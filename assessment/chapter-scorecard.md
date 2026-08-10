@@ -45,12 +45,15 @@ doesn't already have one.
 | 21 | Production React | | | | | | | |
 | 22 | System Design & Mock Interviews | | | | | | | |
 
-**Readiness threshold:** average ≥ 4 across a chapter generally means it's interview-ready.
-3-3.9 means a revision pass is worth doing before an interview. Below 3 means revisit the
-chapter's exercises, not just its `revision.md`.
+**Readiness thresholds — this scale is per-chapter, distinct from (and stricter than) the
+overall-syllabus bar in [`final-readiness.md`](final-readiness.md); see the note there for how
+the two relate:**
+- **≥ 4.0** — this chapter is interview-ready on its own
+- **3.0-3.9** — a revision pass is worth doing before an interview
+- **< 3.0** — revisit the chapter's exercises, not just its `revision.md`
 
 **Critical-topic floor — don't rely on the average alone.** A chapter (or the whole syllabus)
 averaging well can still hide a dangerous gap: e.g. Security at 2.5 inside an otherwise-4.2
 average is a real interview risk that the average hides. Treat **no chapter below 3** as a
-harder constraint than "average ≥ 4 overall," and prioritize revisiting any single sub-3
-chapter before polishing chapters that are already at 4+.
+harder constraint than any average, and prioritize revisiting any single sub-3 chapter before
+polishing chapters that are already at 4+.

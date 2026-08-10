@@ -16,6 +16,9 @@
 - Authorization: RBAC, permissions, feature flags, route protection, UI-level vs backend-level authorization
 - Error taxonomy: network error vs 401/403/404/409/422/429/500 vs timeout/abort vs validation vs business error — and how the UI should differ for each
 - Retries, exponential backoff, request cancellation, timeouts
+- Idempotency and safe retries: what should happen when a request (e.g. a POST) actually
+  succeeded server-side but the response was lost — when is it safe for the client to retry,
+  and how does idempotency-key design address this?
 - Pagination strategies: offset vs cursor-based
 - Realtime overview: polling vs WebSockets vs Server-Sent Events
 

@@ -16,7 +16,10 @@ This is the capstone — synthesizing every prior chapter into interview perform
 - Mock interview checklist and self-review rubric (see also assessment/)
 
 ## What you'll build
-Two full mock-interview run-throughs: one system design, one live-coding — drawing problems from coding-interviews/ and interview-questions/.
+Three full mock-interview run-throughs — one system design, one live-coding, one behavioral —
+drawing problems from coding-interviews/ and interview-questions/. This matches the "at least
+3 full mock interviews" requirement in `assessment/final-readiness.md`; log each one in
+`assessment/mock-interview-scorecard.md`.
 
 ---
 *Detailed notes, explanations, and code examples get added here when this chapter is unlocked. Say "next chapter" (or name this chapter) to begin it.*

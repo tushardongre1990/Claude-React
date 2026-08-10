@@ -13,6 +13,9 @@
 - Component design principles: single responsibility, composition, coupling & cohesion, dependency inversion, separation of concerns
 - The state-placement decision framework: local state → lifted state → context → server state → global client state, and how to justify each step
 - Reusable/shared UI vs feature-specific components
+- Module boundaries and dependency direction: preventing circular dependencies and preventing
+  one feature from reaching into another feature's internal implementation (e.g.
+  `features/orders` may depend on `shared/*`, but not on `features/users/internal/*`)
 - Scaling patterns as a codebase and team grow
 
 ## What you'll build

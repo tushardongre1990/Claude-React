@@ -1,19 +1,42 @@
-# React + TypeScript + Vite
+# React 19 Mastery — App
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The hands-on codebase for the [React 19 Mastery](../README.md) curriculum. Exercise and
+mini-project code for each chapter lives under `src/chapters/<NN-slug>/`, created as chapters
+are unlocked — see [`/CLAUDE.md`](../CLAUDE.md) for the full project context and working
+rules, and [`/notes/README.md`](../notes/README.md) for the curriculum itself.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19.2 + TypeScript (strict)
+- Vite (`@vitejs/plugin-react`)
+- Tailwind CSS v4 (via `@tailwindcss/vite`, no separate config file needed)
+- Oxlint
+
+Dependencies are added incrementally as their chapter is unlocked (React Router, TanStack
+Query, Redux Toolkit/Zustand, React Hook Form, Vitest/RTL/MSW, etc.) rather than all installed
+upfront — this keeps the project honest about what's actually been learned so far.
+
+## Commands
+
+```bash
+npm install
+npm run dev        # start dev server
+npm run build       # type-check (tsc -b) + production build
+npm run preview     # preview the production build
+npm run lint        # oxlint
+```
 
 ## React Compiler
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Not enabled yet — this gets turned on deliberately as part of
+[Chapter 06](../notes/06-performance-and-react-compiler/README.md), so its effect on the app
+can be compared directly with it off. See the
+[React Compiler installation docs](https://react.dev/learn/react-compiler/installation) when
+that chapter starts.
 
-## Expanding the Oxlint configuration
+## Linting
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+For type-aware lint rules, install `oxlint-tsgolint` and extend `.oxlintrc.json`:
 
 ```json
 {
@@ -29,4 +52,5 @@ If you are developing a production application, we recommend enabling type-aware
 }
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the
+full list.

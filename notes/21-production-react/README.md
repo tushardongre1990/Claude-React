@@ -9,6 +9,10 @@ This is what separates 'I know React' from 'I've built and maintained React appl
 ## Topics to cover
 
 - Environment configuration and environment-specific config
+- Frontend secrets: why anything bundled into client-shipped env vars (`VITE_*`,
+  `NEXT_PUBLIC_*`, `REACT_APP_*`, etc.) is effectively public, and what must stay server-side
+  instead — "where would you put an API secret in a Vite React app?" is a real interview
+  question with the answer "not in the frontend bundle"
 - Feature flags
 - Logging, monitoring, error tracking, and analytics (conceptual)
 - API versioning

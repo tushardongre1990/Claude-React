@@ -95,3 +95,12 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   `interview-questions/` and `assessment/` with more categories and a timed-performance /
   critical-topic-floor readiness bar. A proposed CSS fundamentals addition to ch.00 was
   **explicitly declined** — judged as out of scope for this goal.
+- **2026-08-11:** Third review pass — a claim that stale duplicate chapter folders existed on
+  disk was checked directly against the filesystem and git history and found to be **false**
+  (the repo was already clean); no folders were touched. Legitimate fixes from that pass: a
+  stray empty root `package-lock.json` removed, small bullets added to ch.12 (idempotency/safe
+  retries), ch.18 (module boundaries), and ch.21 (frontend secrets), ch.22's "what you'll
+  build" aligned to 3 mock interviews to match `assessment/final-readiness.md`, the
+  chapter-level (≥4.0) vs overall-syllabus (≥3.5) readiness thresholds made explicit about how
+  they relate, a problem-diversity note added to the coding-problem requirements, and
+  `app/README.md` replaced with project-specific content instead of the default Vite template.

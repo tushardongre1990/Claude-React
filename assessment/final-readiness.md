@@ -11,9 +11,14 @@ have been logged. This is meant to be reread in full a few days before a real in
       "notes were written")
 - [ ] Every chapter's `revision.md` has been re-read within the last 2 weeks
 - [ ] At least 10 problems attempted from
-      [`coding-interviews/react/`](../coding-interviews/react/README.md)
+      [`coding-interviews/react/`](../coding-interviews/react/README.md) — with real variety,
+      not just the 10 easiest: include at least 2 async/data-fetching problems, 2
+      performance/virtualization problems, 1 accessibility-focused problem (e.g. the modal),
+      and 1 state-management-heavy problem (e.g. undo/redo)
 - [ ] At least 8 problems attempted from
-      [`coding-interviews/javascript/`](../coding-interviews/javascript/README.md)
+      [`coding-interviews/javascript/`](../coding-interviews/javascript/README.md) — including
+      at least 2 async/concurrency problems (e.g. the concurrency limiter, retry-with-backoff),
+      2 closure/function-composition problems, and 1 caching problem (e.g. LRU cache)
 - [ ] `interview-questions/react-traps/` reviewed end to end
 - [ ] `interview-questions/explain-this-output/` — every snippet answered correctly without help
 - [ ] At least 3 full mock interviews logged in
@@ -42,7 +47,14 @@ the rough ones — the trend across sessions is the actual signal.
 
 ## Chapter scorecard health
 
-- [ ] [`chapter-scorecard.md`](chapter-scorecard.md) — overall average ≥ 3.5
+**How the two thresholds relate:** [`chapter-scorecard.md`](chapter-scorecard.md) uses ≥ 4.0
+as the bar for an individual chapter to be considered bulletproof on its own. The bar below is
+intentionally lower (≥ 3.5) because it's an *overall syllabus* bar — you don't need every
+chapter maxed out to be interview-ready, you need broad solid coverage with no critical gaps.
+A chapter sitting at 3.0-3.9 is fine for overall readiness as long as the floor rule holds; it
+just means that specific chapter isn't its strongest self yet.
+
+- [ ] [`chapter-scorecard.md`](chapter-scorecard.md) — overall average across all chapters ≥ 3.5
 - [ ] **Critical-topic floor: no single chapter below 3**, regardless of overall average (a
       strong average can hide one dangerously weak chapter — check every row, not just the mean)
 - [ ] Any chapter below 3.5 has a scheduled revisit before the interview date

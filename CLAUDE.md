@@ -27,6 +27,17 @@ project, treat the structure described below (including the wording in each chap
 terminology fixes (e.g. "Server Functions/Server Actions" not just "Server Actions";
 `createRoot` described as a React-18-introduced API, not React-19-specific).
 
+A third external review (same day) claimed the repo still contained 8 stale duplicate chapter
+folders from the pre-restructure layout. **That claim was checked directly against the
+filesystem and git history and was false** — the repo was already clean. The legitimate parts
+of that review were still applied: removed a stray empty root `package-lock.json`, added small
+bullets to ch.12/18/21, aligned ch.22's mock-interview count with `assessment/`, and made the
+chapter-level vs overall readiness thresholds explicit. **Lesson for future sessions:** when an
+external review makes a structural claim about this repo's current state, verify it against
+the actual filesystem/git before acting on it rather than trusting the claim — external
+reviewers may be working from a stale copy. Full detail in `notes/README.md`'s revision
+history.
+
 ## The single most important working rule
 
 **Only the current/completed chapters (and problems/questions the user has actually picked)
