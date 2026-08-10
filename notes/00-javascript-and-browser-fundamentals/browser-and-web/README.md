@@ -67,9 +67,18 @@ offline support) without needing to have built one — that's the right depth fo
 
 **Request lifecycle (conceptual):** DNS lookup → TCP handshake (+ TLS handshake for HTTPS) →
 request sent → server processes → response headers + body returned → browser parses.
-HTTP/2 multiplexes many requests over one connection (fixing HTTP/1.1's per-connection
-head-of-line blocking and the need for workarounds like domain sharding); HTTP/3 moves the
-transport to QUIC (over UDP) to fix head-of-line blocking at the TCP level itself.
+
+**HTTP/1.1 → 2 → 3, precisely (a good senior-level distinction to have ready):**
+- HTTP/1.1 serializes requests per connection (one at a time per connection, hence workarounds
+  like opening many connections / domain sharding) — this is **HTTP-level** head-of-line
+  blocking.
+- HTTP/2 multiplexes many request/response streams over a *single* TCP connection, removing
+  that HTTP-level head-of-line blocking. But because it still rides on TCP, if a single TCP
+  packet is lost, **all** multiplexed streams on that connection stall until it's
+  retransmitted — **TCP-level** head-of-line blocking remains.
+- HTTP/3 moves the transport to QUIC (over UDP), which multiplexes streams independently at the
+  transport layer itself — a lost packet only stalls the one stream it belonged to, finally
+  removing head-of-line blocking at both levels.
 
 **Caching headers you should be able to explain, not just name:**
 - `Cache-Control: max-age=N` — cacheable for N seconds without even asking the server.

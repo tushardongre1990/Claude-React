@@ -52,16 +52,20 @@ function Counter() {
   const [count, setCount] = useState(0);
   useEffect(() => {
     const id = setInterval(() => {
-      setCount(count + 1); // `count` is frozen at whatever it was when this effect ran
+      setCount(count + 1); // closes over `count` from the render that created this Effect
     }, 1000);
     return () => clearInterval(id);
-  }, []); // empty deps — this closure is never recreated
+  }, []); // empty deps — this Effect is never re-run, so the closure is never refreshed
 }
 ```
 
-This effect closes over the `count` from the render in which it was created, forever (because
-the empty dependency array means the effect never re-runs to capture a fresh `count`). The
-counter increments once and then sticks. Two fixes, each with a different tradeoff: the
+The interval callback closes over the `count` value from the render in which this Effect was
+created — not a "frozen" value in any special sense, just an ordinary closure. Because the
+dependency array is empty, React never re-runs this Effect on later renders, so the same
+original closure (reading `count` from render 1, i.e. `0`) keeps firing every tick. The visible
+result: the counter goes `0 → 1` once, then every subsequent tick calls `setCount(0 + 1)` again
+— same value in, same value out, so React bails out of re-rendering and it visibly sticks at
+`1`. Two fixes, each with a different tradeoff: the
 functional updater `setCount(c => c + 1)` (doesn't need to read `count` at all), or adding
 `count` to the dependency array (correct, but tears down/recreates the interval every render —
 usually the updater form is what you actually want). This exact bug — "why does my interval
@@ -92,8 +96,20 @@ const user = {
   greet() { return `hi, ${this.name}`; },
 };
 const greet = user.greet;
-greet(); // "hi, undefined" — implicit binding is lost; called as a bare function
+greet(); // implicit binding is lost — called as a bare function
 ```
+
+What that bare call actually produces depends on strict vs. sloppy mode (default-binding rule
+above). In an ES module, inside a `class`, or in any TypeScript-compiled code — i.e. virtually
+everything in a modern React/TS codebase, including this repo — the code is strict by default,
+so `this` is `undefined` and `this.name` **throws** `TypeError: Cannot read properties of
+undefined (reading 'name')`. In old-style sloppy-mode script code, `this` falls back to the
+global object instead, so `this.name` doesn't throw — in Node that's `undefined` ("hi,
+undefined"), but in a browser it can be genuinely surprising: `window.name` is a real, spec'd
+property (defaults to `""`), so the same bug in sloppy-mode browser code silently returns
+`"hi, "` instead of throwing or logging `undefined`. The **mechanism** (implicit binding lost
+on extraction) is the same either way — that's the part to lead with in an interview; the exact
+runtime behavior is a strict-mode detail worth knowing but secondary.
 
 This is exactly what happens when you pass `onClick={user.greet}` in React instead of
 `onClick={() => user.greet()}` or a properly bound/arrow class method — the function is
@@ -130,9 +146,10 @@ class Animal {
 ```
 
 `instanceof` walks the prototype chain checking for a match: `obj instanceof Animal` is really
-asking "does `Animal.prototype` appear anywhere in `obj`'s prototype chain?" This is why it
-breaks across realms (e.g. an array from a different iframe fails `instanceof Array` there,
-because it has a different `Array.prototype`).
+asking "does `Animal.prototype` (from the current realm) appear anywhere in `obj`'s prototype
+chain?" This is why it breaks across realms: an array created inside a different iframe/window
+has *that* iframe's `Array.prototype` in its chain, not the current window's — so
+`arrFromOtherIframe instanceof Array` can be `false` even though it's a perfectly normal array.
 
 **Interview-relevant nuance:** know that `class` doesn't introduce a fundamentally different
 object model — it's the same prototypal inheritance with cleaner syntax, `super`, and a
@@ -184,6 +201,12 @@ exception; syntactically sequential, but not blocking the thread (see event loop
 acceptable — e.g. loading three independent dashboard widgets where one failing shouldn't blank
 the whole page calls for `allSettled`.
 
+**Cancellation:** a Promise itself has no built-in cancellation — once created, it will settle.
+"Cancelling" an async operation means cancelling the *underlying work*, not the Promise object;
+`fetch` supports this via `AbortController`/`AbortSignal` (covered in practice in ch.03), and
+libraries that claim to offer "cancellable promises" are really just discarding the result or
+using this same underlying-operation-cancellation pattern.
+
 ---
 
 ## 5. The event loop
@@ -198,13 +221,18 @@ Call stack (sync code) runs to empty
 Drain the ENTIRE microtask queue (Promise .then/.catch, queueMicrotask, async/await
 continuations) — including microtasks that were queued BY other microtasks
          ↓
-Run exactly ONE macrotask (setTimeout/setInterval callback, I/O callback, message event)
+Run exactly ONE task from the task queue (setTimeout/setInterval callback, I/O callback,
+message event — commonly called a "macrotask" in interview shorthand, though that's not the
+official spec term)
          ↓
-Repeat: drain microtasks again → one macrotask → ...
+The browser MAY get a chance to paint here (not guaranteed on every single task — roughly
+gated to the display's refresh rate, not "once per task")
+         ↓
+Repeat: drain microtasks again → one task → (maybe paint) → ...
 ```
 
 The critical fact that produces the classic "guess the output" question: **microtasks always
-fully drain before the next macrotask runs**, even a `setTimeout(fn, 0)`.
+fully drain before the next task runs**, even a `setTimeout(fn, 0)`.
 
 ```js
 console.log("1");
@@ -214,16 +242,20 @@ console.log("4");
 // Output: 1, 4, 3, 2
 ```
 
-Order: sync code first (1, 4) → microtask queue drains (3) → one macrotask runs (2).
+Order: sync code first (1, 4) → microtask queue drains (3) → the next task runs (2).
 `queueMicrotask` behaves exactly like `.then` for ordering purposes.
 
-**Why this matters for React specifically:** React's batching boundary is closely tied to this
-model. Updates inside the same synchronous call stack (an event handler) get batched into one
-re-render; historically (pre-React 18), updates inside a `setTimeout` callback or a raw Promise
-`.then` were *not* automatically batched because they ran as a separate task/microtask outside
-React's own event handling — React 18's automatic batching closed that gap by batching
-regardless of where the update originates. Knowing the event loop is what lets you explain
-*why* that distinction existed in the first place, not just that "React 18 batches more."
+**Why this matters for React — and where the analogy stops:** the event loop explains *when*
+your code gets to run; React's batching is a separate mechanism *layered on top* that decides,
+given that a chunk of your code is now running, how many state updates inside it get collapsed
+into one re-render. They're related but distinct: pre-React 18, that batching mechanism was
+only wired up around React's own synthetic event handling, so state updates made from inside a
+`setTimeout` callback or a raw Promise `.then` — code running as its own task/microtask,
+outside that wiring — fell through to one re-render per update. React 18's automatic batching
+extended the *same batching mechanism* to apply no matter which task/microtask the update
+happens to run in. Knowing the event loop tells you *when* code runs; it's what makes React's
+own batching rules legible, but batching itself is React's design decision, not a JavaScript
+runtime feature.
 
 **Concurrency vs. parallelism:** JS gives you concurrency (interleaving many logical tasks on
 one thread) but not parallelism (true simultaneous execution) — that's what Web Workers exist
