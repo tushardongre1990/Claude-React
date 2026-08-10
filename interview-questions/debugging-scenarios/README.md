@@ -13,3 +13,8 @@ recall. Status: index only, filled in alongside
 - "A form submission occasionally double-submits."
 - "A list re-renders far more often than it should — how do you find out why, from cold?"
 - "A hydration mismatch warning appears in production only."
+- "An API endpoint occasionally returns stale data even though the server has the latest —
+  where do you even start looking?" (forces reasoning across browser cache, HTTP caching,
+  TanStack Query cache, request races, abort/cancellation, and query invalidation — ties to
+  [ch.11](../../notes/11-data-fetching-and-server-state/README.md) and
+  [ch.12](../../notes/12-api-integration-auth-and-security/README.md))

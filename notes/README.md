@@ -104,3 +104,12 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   chapter-level (≥4.0) vs overall-syllabus (≥3.5) readiness thresholds made explicit about how
   they relate, a problem-diversity note added to the coding-problem requirements, and
   `app/README.md` replaced with project-specific content instead of the default Vite template.
+- **2026-08-11:** Fourth review confirmed the structure is clean and recommended freezing the
+  curriculum. Two small fixes applied: every chapter's `revision.md` now has a **Last
+  reviewed** field (to make the "re-read within 2 weeks" pre-interview requirement in
+  `assessment/final-readiness.md` actually measurable), and a stale-data debugging scenario
+  was added to `interview-questions/debugging-scenarios/`. A suggested "difficulty tier"
+  requirement for the coding bank was considered and **declined** as unnecessary process
+  overhead. **The curriculum is now considered locked** — further changes should come from
+  gaps found while actually studying, not further external review cycles. Time to start
+  Chapter 00.
