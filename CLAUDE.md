@@ -17,8 +17,15 @@ chapter by chapter as the curriculum progresses.
 The curriculum was originally 18 chapters, then expanded to **23 chapters (00-22)** on
 2026-08-11 after the user had it reviewed externally and gaps were identified (JS/browser
 fundamentals, React 19.2, React Compiler depth, API/auth/security, production concerns, a
-dedicated coding-interview bank). If you're resuming this project, treat the structure
-described below as current — don't re-propose the original 18-chapter version.
+dedicated coding-interview bank). A second external review (same day) proposed further
+tightening — mostly wording precision fixes and additions *inside* existing chapters, not new
+chapters — which was applied except for one item: **the user explicitly rejected adding a CSS
+fundamentals section to ch.00**, judging it tangential to this specific goal. Don't re-propose
+CSS content into this curriculum unless the user brings it up again. If you're resuming this
+project, treat the structure described below (including the wording in each chapter's
+`README.md`) as current — don't re-propose the original 18-chapter version or undo the
+terminology fixes (e.g. "Server Functions/Server Actions" not just "Server Actions";
+`createRoot` described as a React-18-introduced API, not React-19-specific).
 
 ## The single most important working rule
 
@@ -57,6 +64,14 @@ When a chapter is unlocked, do all of the following for that chapter (not future
 5. Update the chapter's **Status** to `In Progress` then `Done` in *both* places: the table in
    [`notes/README.md`](notes/README.md) and the mirrored table below in this file. Keep them
    in sync — this file is what a fresh session reads first.
+
+   **A chapter only earns `Done` when all of the following are true, not just "notes were
+   written":** concepts understood, exercises completed, at least a few relevant
+   `interview-questions/` entries answered, at least one concept explained back verbally (not
+   just read), and the chapter's row in
+   [`assessment/chapter-scorecard.md`](assessment/chapter-scorecard.md) meets the readiness
+   threshold defined there. Otherwise leave it `In Progress` — the goal is interview
+   performance, not reading-completion.
 6. When the user works a problem from `coding-interviews/` or a snippet from
    `interview-questions/`, fill in that specific entry in place (requirements/starter/
    solution/follow-ups, or the snippet + answer) — same "only what's been asked for" rule

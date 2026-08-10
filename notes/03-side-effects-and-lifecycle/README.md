@@ -11,7 +11,12 @@ Stale closures and missing cleanup are the #1 source of real-world React bugs �
 - useEffect: dependency arrays, cleanup functions, stale closure bugs
 - useLayoutEffect vs useEffect — timing differences and when it matters
 - StrictMode's effect double-invoke behavior in dev and what it's protecting against
-- Data fetching in effects — and why React 19/frameworks push you toward Suspense instead
+- Data fetching in Effects vs router loaders vs Server Components vs Suspense-enabled sources
+  vs TanStack Query — these solve different problems (an Effect synchronizes with an external
+  system; a loader is route-driven; a Server Component fetches on the server; TanStack Query
+  manages client-side server state; Suspense coordinates rendering around suspension). Teach
+  this as a decision framework, not a simple "Effects are old, Suspense is new" replacement
+  narrative
 - Effect anti-patterns: syncing state that should be derived, effect chains/waterfalls
 - AbortController for cancelling in-flight fetches
 - useSyncExternalStore for subscribing to external (non-React) stores

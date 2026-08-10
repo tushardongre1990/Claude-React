@@ -88,3 +88,10 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   `interview-questions/`, and `assessment/` after reviewing external feedback on gaps
   (JS/browser fundamentals, React 19.2, React Compiler depth, API/auth/security, production
   concerns, and a dedicated coding-interview/traps problem bank).
+- **2026-08-11:** Second review pass — tightened wording in ch.01/02/03 (precision fixes
+  around `createRoot`, state-update semantics, and Effects-vs-Suspense framing), expanded
+  ch.06 (transitions, a canonical Suspense-fundamentals section, deeper React Compiler
+  mechanics), fixed Server Functions/Server Actions terminology in ch.07/17, and expanded
+  `interview-questions/` and `assessment/` with more categories and a timed-performance /
+  critical-topic-floor readiness bar. A proposed CSS fundamentals addition to ch.00 was
+  **explicitly declined** — judged as out of scope for this goal.

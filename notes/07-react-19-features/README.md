@@ -19,10 +19,15 @@ This is the headline chapter — interviewers explicitly probe whether your Reac
 - Document metadata support (title/meta tags rendered from components)
 - Improved hydration error diagnostics
 - React 19.2: <Activity> for keeping hidden UI state alive
-- React 19.2: useEffectEvent for splitting reactive vs non-reactive effect logic
+- React 19.2: useEffectEvent for splitting reactive vs non-reactive effect logic — teach this
+  as "how to call non-reactive logic from an Effect without lying about dependencies," not as
+  a generic dependency-array escape hatch (that misconception is worth its own entry in
+  `interview-questions/react-traps/`)
 - React 19.2: cacheSignal and other Server Components-era additions
 - React 19.2: Performance Tracks, partial pre-rendering, related SSR/Suspense changes (conceptual — deep dive in ch.17)
-- Server Components & Server Actions — conceptual overview (deep dive in ch.17)
+- Server Functions & Server Actions — conceptual overview (deep dive in ch.17); a Server
+  Function becomes a "Server Action" specifically when used in an action context — don't
+  teach the two terms as strict synonyms
 - Migration notes and breaking changes from React 18
 
 ## What you'll build

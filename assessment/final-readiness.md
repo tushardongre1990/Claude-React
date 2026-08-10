@@ -5,8 +5,10 @@ have been logged. This is meant to be reread in full a few days before a real in
 
 ## Coverage
 
-- [ ] All 23 chapters in `notes/` are `Done` (check
-      [`notes/README.md`](../notes/README.md) / [`/CLAUDE.md`](../CLAUDE.md) progress tables)
+- [ ] All 23 chapters in `notes/` are `Done` under the strict definition in
+      [`/CLAUDE.md`](../CLAUDE.md) (concepts understood + exercises completed + interview
+      questions answered + a verbal explanation given + scorecard threshold met — not simply
+      "notes were written")
 - [ ] Every chapter's `revision.md` has been re-read within the last 2 weeks
 - [ ] At least 10 problems attempted from
       [`coding-interviews/react/`](../coding-interviews/react/README.md)
@@ -17,6 +19,21 @@ have been logged. This is meant to be reread in full a few days before a real in
 - [ ] At least 3 full mock interviews logged in
       [`mock-interview-scorecard.md`](mock-interview-scorecard.md)
 
+## Timed performance
+
+Chapter completion measures whether you *went through* the material. This section measures
+whether you can *perform* under the conditions an actual interview imposes — do not skip it in
+favor of just marking chapters "Done."
+
+- [ ] 3 timed JavaScript coding sessions (from `coding-interviews/javascript/`)
+- [ ] 3 timed React coding sessions (from `coding-interviews/react/`)
+- [ ] 3 timed frontend system-design sessions (from ch.22's problem set)
+- [ ] 2 timed debugging sessions (from `interview-questions/debugging-scenarios/`)
+- [ ] 2 behavioral/senior-engineer sessions (STAR-method, from ch.22)
+
+Log every one of these in [`mock-interview-scorecard.md`](mock-interview-scorecard.md), even
+the rough ones — the trend across sessions is the actual signal.
+
 ## Weak areas
 
 - [ ] [`improvement-tracker/weak-areas.md`](../improvement-tracker/weak-areas.md) has no
@@ -25,7 +42,9 @@ have been logged. This is meant to be reread in full a few days before a real in
 
 ## Chapter scorecard health
 
-- [ ] [`chapter-scorecard.md`](chapter-scorecard.md) — no chapter averaging below 3.5
+- [ ] [`chapter-scorecard.md`](chapter-scorecard.md) — overall average ≥ 3.5
+- [ ] **Critical-topic floor: no single chapter below 3**, regardless of overall average (a
+      strong average can hide one dangerously weak chapter — check every row, not just the mean)
 - [ ] Any chapter below 3.5 has a scheduled revisit before the interview date
 
 ## Verdict

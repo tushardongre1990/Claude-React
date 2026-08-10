@@ -48,3 +48,9 @@ doesn't already have one.
 **Readiness threshold:** average ≥ 4 across a chapter generally means it's interview-ready.
 3-3.9 means a revision pass is worth doing before an interview. Below 3 means revisit the
 chapter's exercises, not just its `revision.md`.
+
+**Critical-topic floor — don't rely on the average alone.** A chapter (or the whole syllabus)
+averaging well can still hide a dangerous gap: e.g. Security at 2.5 inside an otherwise-4.2
+average is a real interview risk that the average hides. Treat **no chapter below 3** as a
+harder constraint than "average ≥ 4 overall," and prioritize revisiting any single sub-3
+chapter before polishing chapters that are already at 4+.

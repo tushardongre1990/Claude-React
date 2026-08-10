@@ -9,7 +9,11 @@ State batching and update semantics are a favorite 'explain what happens' interv
 ## Topics to cover
 
 - useState: lazy initial state, functional updates
-- Why state updates are asynchronous — automatic batching in React 18/19 (incl. inside promises/timeouts)
+- The correct mental model (avoid the misleading "state updates are asynchronous" shorthand):
+  state setters *schedule* an update, state is a snapshot fixed for the render that read it,
+  and React batches updates before committing the next render — walk through
+  `setCount(count + 1)` three times vs `setCount(c => c + 1)` three times to show why they
+  differ. Automatic batching in React 18/19 (incl. inside promises/timeouts)
 - Controlled vs uncontrolled inputs
 - Event handling: SyntheticEvent, delegation model, passing arguments to handlers
 - Derived state vs state duplication anti-pattern
