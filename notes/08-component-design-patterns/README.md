@@ -7,6 +7,7 @@
 Pattern-naming ('is this a compound component or render props?') is a common vocabulary check in senior interviews.
 
 ## Topics to cover
+
 - Composition vs inheritance; children/slots pattern
 - Compound components (e.g., Tabs, Accordion)
 - Render props pattern — and why hooks replaced most of its use cases

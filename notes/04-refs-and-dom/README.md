@@ -7,6 +7,7 @@
 Knowing when *not* to reach for a ref is as important as knowing the API — a common signal of seniority.
 
 ## Topics to cover
+
 - useRef for mutable values vs actual DOM references
 - React 19: ref as a plain prop (no more forwardRef) + ref cleanup functions
 - useImperativeHandle and when it's actually justified

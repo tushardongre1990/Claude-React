@@ -7,26 +7,44 @@ this file first, in full, before doing anything else in this repo.
 ## What this project is
 
 The user is preparing for a React interview pitched at **5-10 years of experience** — deep
-hooks/internals knowledge, React 19 fluency, ecosystem breadth, and system-design ability, not
-just "can write a component." This repo is both a learning curriculum (`notes/`) and a
-hands-on codebase (`app/`) built chapter by chapter as that curriculum progresses.
+hooks/internals knowledge, React 19/19.2 fluency, ecosystem breadth beyond just React itself
+(JS/browser fundamentals, API/auth/security, architecture, production concerns), and
+system-design ability, not just "can write a component." This repo is a learning curriculum
+(`notes/`), a dedicated coding-interview problem bank (`coding-interviews/`), short-form
+interview drilling material (`interview-questions/`), and a hands-on codebase (`app/`), built
+chapter by chapter as the curriculum progresses.
+
+The curriculum was originally 18 chapters, then expanded to **23 chapters (00-22)** on
+2026-08-11 after the user had it reviewed externally and gaps were identified (JS/browser
+fundamentals, React 19.2, React Compiler depth, API/auth/security, production concerns, a
+dedicated coding-interview bank). If you're resuming this project, treat the structure
+described below as current — don't re-propose the original 18-chapter version.
 
 ## The single most important working rule
 
-**Only the current/completed chapters have detailed content. Every other chapter folder
-contains an outline only** (`README.md` with topics to cover, empty `exercises/`, and a
-placeholder `revision.md`).
+**Only the current/completed chapters (and problems/questions the user has actually picked)
+have detailed content. Everything else is an outline only** — chapter folders contain a
+`README.md` with topics to cover, empty `exercises/`, and a placeholder `revision.md`;
+`coding-interviews/` and `interview-questions/` subfolders contain an index of problem/snippet
+titles only.
 
-Do **not** write detailed notes, explanations, exercises, or example code for a chapter until
-the user explicitly asks to start it — e.g. "next chapter", "let's do chapter 7", "start
-React 19 features". This was an explicit, deliberate instruction from the user: they want to
-learn chapter by chapter, not be handed the whole syllabus pre-written. Never get ahead of
+Do **not** write detailed notes, explanations, exercises, or example code for a chapter (or a
+specific coding-interview problem, or an explain-this-output snippet) until the user
+explicitly asks to start it — e.g. "next chapter", "let's do chapter 7", "let's try the
+debounced search problem". This was an explicit, deliberate instruction from the user: they
+want to learn incrementally, not be handed the whole syllabus pre-written. Never get ahead of
 where the user actually is.
+
+**Exception:** the `assessment/` folder (scorecards, readiness checklist) is process tooling,
+not chapter content — it was created fully filled-in as templates from the start and should be
+*updated* (rows filled in, scores added) as the user progresses, not left as a placeholder.
 
 When a chapter is unlocked, do all of the following for that chapter (not future ones):
 1. Fill in `notes/<NN-slug>/README.md` with real explanations — assume a strong existing
    React developer, so focus on *depth, nuance, gotchas, and interview framing* rather than
-   basic tutorial prose. Call out what's new/changed in React 19 wherever relevant.
+   basic tutorial prose. Call out what's new/changed in React 19/19.2 wherever relevant. For
+   chapter 07 specifically, verify current API details against the live React docs rather than
+   relying purely on prior knowledge — those APIs were newer at curriculum-design time.
 2. Add hands-on exercises to `notes/<NN-slug>/exercises/` (problem statements), with starter
    and solution code living in `app/src/chapters/<NN-slug>/`.
 3. As the user works through the chapter, actively watch for mistakes, hesitations, or
@@ -37,8 +55,12 @@ When a chapter is unlocked, do all of the following for that chapter (not future
 4. Once the chapter is solid, fill in `notes/<NN-slug>/revision.md` — a short, dense
    cheat-sheet (5-10 min re-read), not a copy of the full notes.
 5. Update the chapter's **Status** to `In Progress` then `Done` in *both* places: the table in
-   [`notes/00-roadmap/README.md`](notes/00-roadmap/README.md) and the mirrored table below in
-   this file. Keep them in sync — this file is what a fresh session reads first.
+   [`notes/README.md`](notes/README.md) and the mirrored table below in this file. Keep them
+   in sync — this file is what a fresh session reads first.
+6. When the user works a problem from `coding-interviews/` or a snippet from
+   `interview-questions/`, fill in that specific entry in place (requirements/starter/
+   solution/follow-ups, or the snippet + answer) — same "only what's been asked for" rule
+   applies there too.
 
 ## Repo structure
 
@@ -49,35 +71,56 @@ When a chapter is unlocked, do all of the following for that chapter (not future
 ├── app/                      ← Vite + React 19 + TypeScript + Tailwind CSS v4
 │   └── src/chapters/<NN-slug>/   ← exercise/mini-project code, created per chapter as unlocked
 ├── notes/
-│   ├── 00-roadmap/README.md  ← curriculum overview + status table (source of truth on structure)
-│   ├── 01-foundations/
-│   │   ├── README.md         ← chapter notes (outline now, full notes once unlocked)
+│   ├── README.md              ← curriculum overview + status table (source of truth on structure)
+│   ├── 00-javascript-and-browser-fundamentals/
+│   │   ├── README.md          ← chapter notes (outline now, full notes once unlocked)
+│   │   ├── javascript/README.md       ← subfolder: JS fundamentals topics
+│   │   ├── browser-and-web/README.md  ← subfolder: browser/web fundamentals topics
 │   │   ├── exercises/README.md
 │   │   └── revision.md
-│   ├── 02-state-and-events/  ← same shape, repeated for all 18 chapters
+│   ├── 01-foundations/
+│   │   ├── README.md
+│   │   ├── exercises/README.md
+│   │   └── revision.md
+│   ├── 02-state-and-events/  ← same shape, repeated for all chapters 01-22
 │   ├── ...
-│   └── 18-system-design-and-mock-interviews/
+│   └── 22-system-design-and-mock-interviews/
+├── coding-interviews/         ← implementation problem bank, separate from concept notes
+│   ├── README.md
+│   ├── react/README.md        ← index of ~23 React build problems
+│   └── javascript/README.md   ← index of ~17 framework-free JS problems
+├── interview-questions/       ← short-form drilling material
+│   ├── README.md
+│   ├── explain-this-output/README.md   ← "what does this log/render, and why" snippets
+│   ├── react-traps/README.md           ← catalog of common misconceptions
+│   └── debugging-scenarios/README.md   ← open-ended production debugging prompts
 ├── revision-notes/README.md  ← master index linking every chapter's revision.md, for full-syllabus review
-└── improvement-tracker/
-    └── weak-areas.md         ← running log of mistakes/gaps observed, with status Open/Resolved
+├── improvement-tracker/
+│   └── weak-areas.md         ← running log of mistakes/gaps observed, with status Open/Resolved
+└── assessment/                ← process tooling, kept filled-in as progress happens (not gated like chapter content)
+    ├── chapter-scorecard.md
+    ├── mock-interview-scorecard.md
+    └── final-readiness.md
 ```
 
 ## Tech stack decisions (already made — don't re-ask)
 
-- **React 19**, functional components + hooks only. No class components except where a
-  chapter explicitly discusses them for historical/interview context.
+- **React 19** (currently 19.2.x per `app/package.json`), functional components + hooks only.
+  No class components except where a chapter explicitly discusses them for
+  historical/interview context.
 - **TypeScript**, strict — the user chose TS over JS specifically so TS-with-React becomes
-  part of the interview prep (see chapter 13).
+  part of the interview prep (see chapter 14).
 - **Vite** as the build tool (`app/`), scaffolded with `create-vite` react-ts template.
 - **Tailwind CSS v4**, wired in via `@tailwindcss/vite` (no `tailwind.config.js`/PostCSS
   needed — v4's Vite plugin + `@import "tailwindcss";` in `src/index.css` is sufficient).
 - **npm** as the package manager (not pnpm/yarn).
 - No backend/database — this is a frontend-only learning repo. Chapters that need "server"
-  concepts (data fetching, SSR/RSC, Actions) mock or use public APIs / Next.js's own dev
+  concepts (data fetching, SSR/RSC, Actions, auth) mock or use public APIs / Next.js's own dev
   server for the SSR chapter specifically.
 - Git repo initialization and the first GitHub push are the **user's** responsibility — do not
   run `git init`, `git remote add`, or push on their behalf unless they explicitly ask again in
-  a future session.
+  a future session. (As of this writing the user has already connected a GitHub remote
+  themselves.)
 
 ## How to resume this project (new session / new machine checklist)
 
@@ -93,42 +136,53 @@ When a chapter is unlocked, do all of the following for that chapter (not future
 
 ## Current Progress
 
-_Keep this table's status column in sync with `notes/00-roadmap/README.md`. Update the "Notes"
-column with anything a fresh session needs to know (e.g. "exercise 3 left unfinished")._
+_Keep this table's status column in sync with `notes/README.md`. Update the "Notes" column
+with anything a fresh session needs to know (e.g. "exercise 3 left unfinished")._
 
 | # | Chapter | Status | Notes |
 |---|---------|--------|-------|
+| 00 | JavaScript & Browser Fundamentals | Not Started | |
 | 01 | Foundations: JSX, Rendering & Components | Not Started | |
 | 02 | State & Events | Not Started | |
 | 03 | Side Effects & Lifecycle | Not Started | |
 | 04 | Refs & the DOM | Not Started | |
 | 05 | Context API & useReducer | Not Started | |
-| 06 | Performance & Memoization | Not Started | |
-| 07 | React 19 New Features | Not Started | |
+| 06 | Performance, Memoization & the React Compiler | Not Started | |
+| 07 | React 19 & 19.2: Modern APIs | Not Started | |
 | 08 | Component Design Patterns | Not Started | |
 | 09 | Forms in Depth | Not Started | |
-| 10 | Routing (React Router v7) | Not Started | |
+| 10 | Routing (React Router) | Not Started | |
 | 11 | Data Fetching & Server State | Not Started | |
-| 12 | Global State Management | Not Started | |
-| 13 | TypeScript with React | Not Started | |
-| 14 | Testing React Applications | Not Started | |
-| 15 | Architecture, SSR & React Server Components | Not Started | |
-| 16 | React Internals: Fiber & Reconciliation | Not Started | |
-| 17 | Accessibility & Web Vitals | Not Started | |
-| 18 | System Design & Mock Interviews | Not Started | |
+| 12 | API Integration, Authentication & Security | Not Started | |
+| 13 | Global State Management | Not Started | |
+| 14 | TypeScript with React | Not Started | |
+| 15 | Testing React Applications | Not Started | |
+| 16 | Error Handling, Debugging & Observability | Not Started | |
+| 17 | Architecture, SSR & React Server Components | Not Started | |
+| 18 | Frontend Application Architecture | Not Started | |
+| 19 | React Internals: Fiber & Reconciliation | Not Started | |
+| 20 | Accessibility & Web Vitals | Not Started | |
+| 21 | Production React | Not Started | |
+| 22 | System Design & Mock Interviews | Not Started | |
 
 ## User preferences / how to teach this user
 
 - Treat the user as an experienced engineer, not a beginner. Assume familiarity with JS/ES6+,
   general software engineering, and prior React exposure — the goal is filling gaps and
-  updating stale knowledge to React 19, not "what is a component" 101.
+  updating stale knowledge to React 19/19.2, not "what is a component" 101.
 - Prioritize *interview framing*: for every concept, be explicit about how it could show up as
   an interview question and what a strong answer sounds like, not just how the API works.
-- Be explicit about what changed in **React 19** specifically vs older React the user may have
-  learned — don't assume they already know the delta.
-- Prefer depth and precision over breadth-padding. This user wants mastery, not a tour.
+- Be explicit about what changed in **React 19 / 19.2** specifically vs older React the user
+  may have learned — don't assume they already know the delta.
+- Prefer depth and precision over breadth-padding. This user wants mastery, not a tour — this
+  is exactly why the curriculum was expanded to 23 chapters based on a real gap analysis
+  rather than padded further to the ~27-chapter "encyclopedic" version that was also proposed
+  and explicitly rejected as overkill.
 - Don't write ahead of the current chapter (see working rule above) — this has been asked for
   explicitly and repetition of this instruction is unnecessary once followed correctly.
+- Use `coding-interviews/` and `interview-questions/` actively, not just `notes/` — the user's
+  goal is interview *performance*, and drilling/output-prediction/traps are as important as
+  the explanatory notes.
 
 ## Commands
 

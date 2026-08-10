@@ -7,6 +7,7 @@
 Stale closures and missing cleanup are the #1 source of real-world React bugs — and a classic senior debugging interview question.
 
 ## Topics to cover
+
 - useEffect: dependency arrays, cleanup functions, stale closure bugs
 - useLayoutEffect vs useEffect — timing differences and when it matters
 - StrictMode's effect double-invoke behavior in dev and what it's protecting against
@@ -14,6 +15,7 @@ Stale closures and missing cleanup are the #1 source of real-world React bugs �
 - Effect anti-patterns: syncing state that should be derived, effect chains/waterfalls
 - AbortController for cancelling in-flight fetches
 - useSyncExternalStore for subscribing to external (non-React) stores
+- Preview: useEffectEvent for separating reactive deps from non-reactive logic — covered fully in ch.07
 
 ## What you'll build
 A live-search component with proper cleanup, request cancellation, and no stale-closure bugs.

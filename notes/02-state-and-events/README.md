@@ -7,6 +7,7 @@
 State batching and update semantics are a favorite 'explain what happens' interview trap for senior candidates.
 
 ## Topics to cover
+
 - useState: lazy initial state, functional updates
 - Why state updates are asynchronous — automatic batching in React 18/19 (incl. inside promises/timeouts)
 - Controlled vs uncontrolled inputs

@@ -7,10 +7,11 @@
 Interviewers use this to check you can explain *why* React works the way it does, not just recite syntax you've used for years on autopilot.
 
 ## Topics to cover
+
 - JSX syntax, expressions, and how it compiles (React.createElement / the modern JSX transform)
 - Functional components vs legacy class components — why hooks replaced classes
 - Props: passing, default values, children, composition over configuration
-- What triggers a render; render phase vs commit phase (conceptual intro, deep dive in ch.16)
+- What triggers a render; render phase vs commit phase (conceptual intro, deep dive in ch.19)
 - Keys and lists: why keys matter, common key anti-patterns (index as key pitfalls)
 - Conditional rendering patterns and their trade-offs
 - createRoot and the React 19 rendering root

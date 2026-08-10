@@ -1,0 +1,38 @@
+# Final Readiness Checklist
+
+A single go/no-go summary to fill in once most chapters are done and a few mock interviews
+have been logged. This is meant to be reread in full a few days before a real interview.
+
+## Coverage
+
+- [ ] All 23 chapters in `notes/` are `Done` (check
+      [`notes/README.md`](../notes/README.md) / [`/CLAUDE.md`](../CLAUDE.md) progress tables)
+- [ ] Every chapter's `revision.md` has been re-read within the last 2 weeks
+- [ ] At least 10 problems attempted from
+      [`coding-interviews/react/`](../coding-interviews/react/README.md)
+- [ ] At least 8 problems attempted from
+      [`coding-interviews/javascript/`](../coding-interviews/javascript/README.md)
+- [ ] `interview-questions/react-traps/` reviewed end to end
+- [ ] `interview-questions/explain-this-output/` — every snippet answered correctly without help
+- [ ] At least 3 full mock interviews logged in
+      [`mock-interview-scorecard.md`](mock-interview-scorecard.md)
+
+## Weak areas
+
+- [ ] [`improvement-tracker/weak-areas.md`](../improvement-tracker/weak-areas.md) has no
+      long-standing `Open` items older than 2 weeks
+- [ ] Every `Open` item has a concrete plan (which chapter/exercise to revisit)
+
+## Chapter scorecard health
+
+- [ ] [`chapter-scorecard.md`](chapter-scorecard.md) — no chapter averaging below 3.5
+- [ ] Any chapter below 3.5 has a scheduled revisit before the interview date
+
+## Verdict
+
+_Fill in once the above is mostly checked:_
+
+**Overall readiness:** Not assessed yet
+**Strongest areas:**
+**Weakest areas:**
+**Plan for the remaining gap:**

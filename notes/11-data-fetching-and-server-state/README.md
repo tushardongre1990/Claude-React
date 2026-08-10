@@ -7,6 +7,7 @@
 Distinguishing 'server state' from UI state is a core system-design talking point for senior React roles.
 
 ## Topics to cover
+
 - Why server state is fundamentally different from client/UI state
 - TanStack Query: queries, mutations, caching, invalidation
 - Suspense for data fetching, paired with error boundaries
