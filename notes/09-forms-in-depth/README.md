@@ -15,6 +15,10 @@ Forms touch state, validation, accessibility, and now Actions — a compact way 
 - Schema validation with Zod
 - Multi-step forms and dynamic field arrays
 - Accessibility in forms: labels, error announcements, focus on error
+- `useId` for generating stable, SSR-safe unique IDs to wire up `<label htmlFor>`/`aria-describedby`
+  pairs without hardcoding strings (which breaks when a component is rendered more than once)
+  or using `Math.random()`/incrementing counters (which cause SSR/client hydration mismatches
+  — see ch.17); not for list `key`s, which is the most common misuse to flag as a trap
 
 ## What you'll build
 A multi-step signup form with Zod validation and Actions-based submission.

@@ -13,7 +13,8 @@ A11y and Core Web Vitals fluency signal production experience beyond 'it works o
 - Keyboard navigation, focus management, and focus restoration; avoiding keyboard traps
 - Screen reader considerations for dynamic content (aria-live regions)
 - Reduced motion, color contrast
-- Accessible forms, loading states, and error states
+- Accessible forms, loading states, and error states (`useId` for label/description wiring —
+  introduced in ch.09, revisited here from the a11y angle)
 - Core Web Vitals (LCP, INP, CLS) and how React apps affect them
 - Performance budgets and bundle analysis
 - Audit tooling: Lighthouse, axe
