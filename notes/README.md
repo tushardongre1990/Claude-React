@@ -40,7 +40,7 @@ syntax.
 
 | # | Chapter | Status |
 |---|---------|--------|
-| 00 | [JavaScript & Browser Fundamentals for React Interviews](00-javascript-and-browser-fundamentals/README.md) | Not Started |
+| 00 | [JavaScript & Browser Fundamentals for React Interviews](00-javascript-and-browser-fundamentals/README.md) | In Progress |
 | 01 | [Foundations: JSX, Rendering & Components](01-foundations/README.md) | Not Started |
 | 02 | [State & Events](02-state-and-events/README.md) | Not Started |
 | 03 | [Side Effects & Lifecycle](03-side-effects-and-lifecycle/README.md) | Not Started |

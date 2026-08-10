@@ -1,6 +1,6 @@
 # Chapter 00: JavaScript & Browser Fundamentals for React Interviews
 
-**Status:** Not Started
+**Status:** In Progress
 **Folder:** `notes/00-javascript-and-browser-fundamentals/`
 
 > **Note:** This chapter is split into two subfolders (`javascript/` and `browser-and-web/`) since it covers two related but distinct bodies of knowledge.
@@ -12,31 +12,36 @@ A large share of 'why does this React code do that' interview questions are actu
 
 ### JavaScript Fundamentals
 
-See [`javascript/README.md`](javascript/README.md). Topics:
-
-- Closures: lexical scope, closures in loops, stale closures, closures inside React hooks
-- `this` binding: implicit vs explicit binding, arrow functions, method-extraction bugs
-- Prototype chain, `class`, inheritance, `Object.create`, `instanceof`
-- Promises: states, chaining, async/await, error propagation, Promise.all/allSettled/race/any
-- The event loop: call stack, microtask vs macrotask queue, setTimeout vs Promise vs queueMicrotask — and how this relates to React's rendering/batching behavior
-- Functional patterns: debounce, throttle, currying, partial application, memoization
-- Objects & equality: shallow vs deep copy, structuredClone, spread, reference equality (why this matters for React state updates and dependency arrays)
-- Modules: ESM vs CommonJS, tree shaking, dynamic imports
-- Memory: garbage collection basics, common leak sources (closures, event listeners, timers)
+Full notes: [`javascript/README.md`](javascript/README.md) — closures, `this` binding,
+prototypes/class, Promises, the event loop, functional patterns (debounce/throttle/curry/
+memoize), object equality, modules, and memory/GC.
 
 ### Browser & Web Fundamentals
 
-See [`browser-and-web/README.md`](browser-and-web/README.md). Topics:
+Full notes: [`browser-and-web/README.md`](browser-and-web/README.md) — the rendering pipeline,
+storage APIs, networking/caching, the browser security model (SOP/CORS/XSS/CSRF/CSP), and
+SPA-relevant concepts (History API, `postMessage`, prefetching).
 
-- Rendering pipeline: DOM, CSSOM, render tree, layout, paint, compositing, reflow/repaint, layout thrashing
-- Storage & browser APIs: localStorage/sessionStorage, cookies, IndexedDB (overview), Cache API
-- Networking: HTTP/1.1 vs 2 vs 3 basics, request lifecycle, caching headers, ETags, CDNs
-- Security model: same-origin policy, CORS, XSS, CSRF, CSP, clickjacking
-- Auth-adjacent browser concepts: JWTs, cookie flags (HttpOnly/Secure/SameSite) — expanded further in ch.12
-- SPA-relevant browser concepts: History API, iframes, postMessage, prefetching
+## Exercises
+
+See [`exercises/README.md`](exercises/README.md) for the full problem set. Starter files live
+in [`app/src/chapters/00-javascript-and-browser-fundamentals/`](../../app/src/chapters/00-javascript-and-browser-fundamentals/).
+
+**How to run a kata** — these are deliberately framework-free, so you don't need the Vite dev
+server. Node 22+ can run TypeScript files directly via type stripping:
+
+```bash
+cd app
+node --experimental-strip-types src/chapters/00-javascript-and-browser-fundamentals/debounce.ts
+```
+
+(The `ExperimentalWarning` printed to stderr is expected and harmless — it's Node telling you
+the flag itself is still experimental, not that anything is wrong.)
 
 ## What you'll build
-Framework-free JS katas (debounce/throttle/memoize/LRU cache) plus written 'trace the event loop' exercises — no React yet, deliberately.
+Framework-free JS katas (debounce/throttle/memoize/LRU cache) plus written 'trace the event
+loop' and closure-bug exercises — no React yet, deliberately.
 
 ---
-*Detailed notes, explanations, and code examples get added here when this chapter is unlocked. Say "next chapter" (or name this chapter) to begin it.*
+When you've worked through the notes and exercises, say so and this chapter's `revision.md`
+will get filled in and its status moved to `Done`.

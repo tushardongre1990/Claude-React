@@ -167,7 +167,7 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
 
 | # | Chapter | Status | Notes |
 |---|---------|--------|-------|
-| 00 | JavaScript & Browser Fundamentals | Not Started | |
+| 00 | JavaScript & Browser Fundamentals | In Progress | Notes (both subfolders) + exercises + starter kata files written 2026-08-11. User is now working through exercises. `revision.md` and `Done` status pending completion. |
 | 01 | Foundations: JSX, Rendering & Components | Not Started | |
 | 02 | State & Events | Not Started | |
 | 03 | Side Effects & Lifecycle | Not Started | |
