@@ -12,8 +12,13 @@ a strong *React* engineer, not a general web-platform curriculum.
 
 ## 1. The rendering pipeline
 
-```text
-DOM  +  CSSOM  →  Render Tree  →  Layout  →  Paint  →  Composite
+```mermaid
+flowchart LR
+    DOM["DOM<br/>(parsed HTML)"] --> RT["Render Tree<br/>(visible nodes + computed styles)"]
+    CSSOM["CSSOM<br/>(parsed CSS)"] --> RT
+    RT --> Layout["Layout<br/>(a.k.a. Reflow)"]
+    Layout --> Paint["Paint"]
+    Paint --> Composite["Composite<br/>(GPU layers)"]
 ```
 
 - **DOM** — the parsed HTML document tree. **CSSOM** — the parsed CSS rule tree. Both must be
@@ -65,8 +70,21 @@ offline support) without needing to have built one — that's the right depth fo
 
 ## 3. Networking
 
-**Request lifecycle (conceptual):** DNS lookup → TCP handshake (+ TLS handshake for HTTPS) →
-request sent → server processes → response headers + body returned → browser parses.
+**Request lifecycle (conceptual):**
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant DNS
+    participant Server
+
+    Browser->>DNS: Resolve hostname
+    DNS-->>Browser: IP address
+    Browser->>Server: TCP handshake (+ TLS handshake for HTTPS)
+    Browser->>Server: HTTP request
+    Server-->>Browser: Response headers + body
+    Browser->>Browser: Parse & render
+```
 
 **HTTP/1.1 → 2 → 3, precisely (a good senior-level distinction to have ready):**
 - HTTP/1.1 serializes requests per connection (one at a time per connection, hence workarounds
@@ -79,6 +97,22 @@ request sent → server processes → response headers + body returned → brows
 - HTTP/3 moves the transport to QUIC (over UDP), which multiplexes streams independently at the
   transport layer itself — a lost packet only stalls the one stream it belonged to, finally
   removing head-of-line blocking at both levels.
+
+```mermaid
+flowchart TB
+    subgraph h1["HTTP/1.1 — one request at a time per connection"]
+        r1["Connection A: request 1 → response 1 → request 2 ..."]
+    end
+    subgraph h2["HTTP/2 — multiplexed streams, one TCP connection"]
+        s1["Stream A"] --> tcp["single TCP connection"]
+        s2["Stream B"] --> tcp
+        tcp -.->|"one lost packet stalls ALL streams"| stall["TCP-level HOL blocking"]
+    end
+    subgraph h3["HTTP/3 — independent streams over QUIC/UDP"]
+        q1["Stream A (independent)"]
+        q2["Stream B (independent — unaffected by A's packet loss)"]
+    end
+```
 
 **Caching headers you should be able to explain, not just name:**
 - `Cache-Control: max-age=N` — cacheable for N seconds without even asking the server.
@@ -109,6 +143,24 @@ triggers a **preflight**: the browser sends an `OPTIONS` request first to ask pe
 sending the real one. Know this distinction — "why did an extra OPTIONS request show up in the
 network tab" is a real debugging question this answers directly.
 
+```mermaid
+sequenceDiagram
+    participant JS as Page JS (origin A)
+    participant Browser
+    participant Server as Server (origin B)
+
+    JS->>Browser: fetch(non-simple request)
+    Browser->>Server: OPTIONS preflight
+    Server-->>Browser: Access-Control-Allow-* headers
+    alt origin allowed
+        Browser->>Server: actual request
+        Server-->>Browser: response
+        Browser-->>JS: response is readable
+    else origin not allowed
+        Browser-->>JS: blocked — CORS error (request may have still happened server-side)
+    end
+```
+
 **XSS (Cross-Site Scripting)** — an attacker gets their JavaScript to execute in your page's
 origin, typically by injecting it into content that later gets rendered as HTML/executed as a
 script. React's JSX escapes values by default (text content is set via safe DOM APIs, not
@@ -123,6 +175,19 @@ user's browser into making a request to your origin *using the user's existing c
 initiated the request). Defenses: CSRF tokens (a value the attacker's page can't read/guess),
 `SameSite` cookies (see ch.12), and checking custom headers (which simple cross-origin form
 submissions can't set).
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Evil as evil.example (attacker page)
+    participant Bank as yourbank.example
+
+    User->>Bank: logs in — receives a session cookie
+    User->>Evil: later, visits the attacker's page (different tab)
+    Evil->>Bank: auto-submits a form / fires a request
+    Note over Bank: browser attaches yourbank.example's cookie<br/>automatically — it doesn't know the request<br/>was INITIATED by evil.example
+    Bank-->>Bank: request looks authenticated — action performed
+```
 
 **CSP (Content-Security-Policy)** — a response header that restricts what a page is *allowed*
 to load/execute (scripts, styles, images, connections) as a defense-in-depth layer, so even if

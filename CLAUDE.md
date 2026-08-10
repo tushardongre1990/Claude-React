@@ -196,6 +196,11 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
 - Treat the user as an experienced engineer, not a beginner. Assume familiarity with JS/ES6+,
   general software engineering, and prior React exposure — the goal is filling gaps and
   updating stale knowledge to React 19/19.2, not "what is a component" 101.
+- **Explain concepts via code examples and Mermaid diagrams as much as possible** — this was
+  an explicit request. Use Mermaid for anything that's a state machine, a sequence/timing
+  relationship, a tree/hierarchy, or a decision flowchart (closures/scope, the event loop,
+  Promise states, prototype chains, request lifecycles, `this`-binding rules, etc.). Applies
+  to every chapter's notes going forward.
 - Prioritize *interview framing*: for every concept, be explicit about how it could show up as
   an interview question and what a strong answer sounds like, not just how the API works.
 - Be explicit about what changed in **React 19 / 19.2** specifically vs older React the user

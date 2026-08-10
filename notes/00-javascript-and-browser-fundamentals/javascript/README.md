@@ -26,6 +26,22 @@ counter(); // 1
 counter(); // 2 — same `count` binding, mutated in place
 ```
 
+```mermaid
+flowchart TB
+    subgraph scope["makeCounter() call (still alive)"]
+        count["count — currently 2"]
+    end
+    subgraph fn["the returned function"]
+        body["() =&gt; ++count"]
+    end
+    body -->|"live reference, not a copy"| count
+    call1["counter() — call 1"] --> body
+    call2["counter() — call 2"] --> body
+```
+
+Both calls go through the *same* function, which holds the *same* live reference to `count` —
+that's why the value persists and increments instead of resetting.
+
 **Closures in loops — the classic trap:**
 
 ```js
@@ -43,6 +59,26 @@ its own `i`.
 for (let i = 0; i < 3; i++) {
   setTimeout(() => console.log(i), 0);
 } // logs 0, 1, 2
+```
+
+```mermaid
+flowchart TB
+    subgraph varLoop["var — one shared binding"]
+        direction TB
+        iVar["i (ends the loop at 3)"]
+        v1["callback 1"] --> iVar
+        v2["callback 2"] --> iVar
+        v3["callback 3"] --> iVar
+    end
+    subgraph letLoop["let — a fresh binding per iteration"]
+        direction TB
+        i0["i = 0"]
+        i1["i = 1"]
+        i2["i = 2"]
+        l1["callback 1"] --> i0
+        l2["callback 2"] --> i1
+        l3["callback 3"] --> i2
+    end
 ```
 
 **Stale closures — the React-relevant version of the same bug:**
@@ -87,6 +123,22 @@ is called*, not where it's defined. Four rules, in precedence order:
 3. **Implicit binding** — `obj.method()` binds `this` to `obj` (whatever is left of the dot).
 4. **Default binding** — a bare function call binds `this` to `undefined` in strict mode (or
    the global object in sloppy mode).
+
+```mermaid
+flowchart TD
+    Start["How was the function called?"] --> Q1{"Called with new?"}
+    Q1 -->|yes| R1["this = the newly created object"]
+    Q1 -->|no| Q2{"Called via .call / .apply / .bind?"}
+    Q2 -->|yes| R2["this = the explicitly passed object"]
+    Q2 -->|no| Q3{"Called as obj.method()?"}
+    Q3 -->|yes| R3["this = obj (whatever is left of the dot)"]
+    Q3 -->|no, bare call| Q4{"Strict mode?"}
+    Q4 -->|yes| R4["this = undefined"]
+    Q4 -->|no, sloppy mode| R5["this = the global object"]
+```
+
+Precedence flows top to bottom — `new` wins over everything, explicit binding beats implicit,
+and a bare call only falls back to the default rule when none of the others apply.
 
 **The classic break — method extraction:**
 
@@ -136,6 +188,15 @@ const child = Object.create(base);
 child.greet(); // "hi" — found by walking up the prototype chain
 ```
 
+```mermaid
+flowchart BT
+    child["child<br/>(own properties: none)"] -->|"[[Prototype]]"| base["base<br/>(has greet())"]
+    base -->|"[[Prototype]]"| ObjProto["Object.prototype"]
+    ObjProto -->|"[[Prototype]]"| Null["null — chain ends"]
+    lookup["child.greet() lookup"] -.->|"1. not on child"| child
+    lookup -.->|"2. found on base ✓"| base
+```
+
 `class` syntax is sugar over this same prototype mechanism — methods defined in a class body
 live on `ClassName.prototype`, not on each instance:
 
@@ -164,6 +225,15 @@ A Promise is a state machine with exactly one transition: **pending → fulfille
 **pending → rejected**, and once settled, it never changes state again. `.then()` handlers
 registered *after* settlement still fire (asynchronously, as a microtask) — this is what makes
 Promises safe to consume regardless of timing.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending
+    Pending --> Fulfilled: resolve(value)
+    Pending --> Rejected: reject(error)
+    Fulfilled --> [*]: settled — never changes again
+    Rejected --> [*]: settled — never changes again
+```
 
 **Chaining returns a new Promise each time** — if a `.then` callback returns a value, the next
 `.then` receives that value; if it returns a Promise, the chain waits for it to settle first
@@ -215,20 +285,12 @@ using this same underlying-operation-cancellation pattern.
 Async work doesn't run on a second thread; it gets *scheduled* and the event loop decides when
 the (empty) call stack gets to run it.
 
-```text
-Call stack (sync code) runs to empty
-         ↓
-Drain the ENTIRE microtask queue (Promise .then/.catch, queueMicrotask, async/await
-continuations) — including microtasks that were queued BY other microtasks
-         ↓
-Run exactly ONE task from the task queue (setTimeout/setInterval callback, I/O callback,
-message event — commonly called a "macrotask" in interview shorthand, though that's not the
-official spec term)
-         ↓
-The browser MAY get a chance to paint here (not guaranteed on every single task — roughly
-gated to the display's refresh rate, not "once per task")
-         ↓
-Repeat: drain microtasks again → one task → (maybe paint) → ...
+```mermaid
+flowchart TD
+    A["Call stack (sync code) runs to empty"] --> B["Drain the ENTIRE microtask queue<br/>(.then/.catch, queueMicrotask, await continuations —<br/>including microtasks queued BY other microtasks)"]
+    B --> C["Run exactly ONE task from the task queue<br/>(setTimeout/setInterval callback, I/O, message event —<br/>informally called a 'macrotask')"]
+    C --> D["Browser MAY get a chance to paint here<br/>(not every task — roughly gated to refresh rate)"]
+    D --> B
 ```
 
 The critical fact that produces the classic "guess the output" question: **microtasks always
@@ -240,6 +302,24 @@ setTimeout(() => console.log("2"), 0);
 Promise.resolve().then(() => console.log("3"));
 console.log("4");
 // Output: 1, 4, 3, 2
+```
+
+```mermaid
+sequenceDiagram
+    participant Stack as Call Stack
+    participant Micro as Microtask Queue
+    participant Task as Task Queue
+
+    Stack->>Stack: log("1")
+    Stack->>Task: schedule setTimeout callback
+    Stack->>Micro: schedule .then callback
+    Stack->>Stack: log("4")
+    Note over Stack: call stack empty — sync code done
+    Stack->>Micro: drain microtask queue
+    Micro->>Stack: run .then → log("3")
+    Note over Stack: microtask queue empty — pick next task
+    Stack->>Task: run next task
+    Task->>Stack: run setTimeout callback → log("2")
 ```
 
 Order: sync code first (1, 4) → microtask queue drains (3) → the next task runs (2).
@@ -279,6 +359,24 @@ you want steady periodic updates while the event is continuously firing.
 The distinction is the single most common thing people get backwards in interviews: debounce
 delays until quiet; throttle rate-limits during continuous activity.
 
+```mermaid
+flowchart LR
+    subgraph calls["Calls arrive (typing, scrolling, ...)"]
+        c1(("call")) --- c2(("call")) --- c3(("call")) --- c4(("call")) --- c5(("call"))
+    end
+    subgraph debounce["debounce(fn, delay) fires"]
+        d1["fn() — once, only after calls stop for `delay`ms"]
+    end
+    subgraph throttle["throttle(fn, interval) fires"]
+        t1["fn()"] --- t2["fn()"] --- t3["fn()"]
+    end
+    calls -.-> debounce
+    calls -.-> throttle
+```
+
+Debounce collapses the whole burst into a single trailing call; throttle lets several calls
+through at a steady cadence *while the burst is still happening*.
+
 **Currying** — transforming `f(a, b, c)` into `f(a)(b)(c)`, each call returning a new function
 until all arguments are supplied. **Partial application** is the more general, less rigid
 cousin — fixing *some* arguments now and supplying the rest later in one call, not necessarily
@@ -301,6 +399,23 @@ contents are never `===` unless they're the literal same reference in memory.
 { a: 1 } === { a: 1 } // false — different objects
 const obj = { a: 1 };
 obj === obj // true — same reference
+```
+
+```mermaid
+flowchart LR
+    subgraph memA["memory"]
+        o1["{ a: 1 }"]
+        o2["{ a: 1 }"]
+    end
+    left["{ a: 1 } === { a: 1 }"] -.->|"different addresses"| o1
+    left -.->|"different addresses"| o2
+    result1["→ false"]
+
+    subgraph memB["memory"]
+        o3["{ a: 1 }"]
+    end
+    right["obj === obj"] -->|"same address, both sides"| o3
+    result2["→ true"]
 ```
 
 This is *the* reason React dependency arrays and `React.memo` behave the way they do: passing a
@@ -349,6 +464,15 @@ JS uses (mostly) mark-and-sweep garbage collection: an object is eligible for co
 nothing reachable from a root (global scope, active call stacks, closures still in use) holds a
 reference to it. You don't manually free memory — you avoid *unintentionally keeping a
 reference alive*.
+
+```mermaid
+flowchart LR
+    Root["Roots<br/>(globals, active call stacks, live closures)"] --> A["object A — reachable, kept"]
+    A --> B["object B — reachable via A, kept"]
+    C["object C — nothing points to it anymore"]
+    style C stroke-dasharray: 5 5
+    C -.->|"eligible for GC — unreachable from any root"| GC["🗑"]
+```
 
 **Common leak sources, all closure-shaped:**
 - **Event listeners never removed** — `addEventListener` without a matching `removeEventListener`
