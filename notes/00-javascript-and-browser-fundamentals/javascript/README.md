@@ -587,8 +587,13 @@ renders when the meaningful content hasn't changed).
 **Shallow vs. deep copy** — `{ ...obj }` and `[...arr]` (and `Object.assign`) copy only the
 top level; nested objects/arrays are still shared references between the copy and the original.
 `structuredClone(obj)` (built into modern JS, no library needed) performs a true recursive deep
-clone, but cannot clone functions, DOM nodes, or class instances with private fields — know
-this limitation, it's a common "why doesn't structuredClone work here" trap.
+clone. It has two *different* kinds of limitations, worth distinguishing: functions and DOM
+nodes are hard-rejected — it **throws** `DataCloneError`. Custom class instances are the more
+dangerous trap, because there's **no error at all**: it silently clones the plain data
+properties and hands back an ordinary object that has lost the prototype chain entirely — the
+class's methods are gone and `cloned instanceof MyClass` is `false`. "Cannot clone" undersells
+it; for class instances specifically, it's "clones something that looks similar but silently
+isn't the same type anymore," which is a worse trap precisely because it doesn't fail loudly.
 
 ```js
 const original = { nested: { count: 1 } };

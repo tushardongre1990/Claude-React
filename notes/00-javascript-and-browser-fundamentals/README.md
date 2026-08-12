@@ -30,15 +30,22 @@ See [`exercises/README.md`](exercises/README.md) for the full problem set. Start
 in [`app/src/chapters/00-javascript-and-browser-fundamentals/`](../../app/src/chapters/00-javascript-and-browser-fundamentals/).
 
 **How to run a kata** — these are deliberately framework-free, so you don't need the Vite dev
-server. Node 22+ can run TypeScript files directly via type stripping:
+server. Node can run TypeScript files directly via type stripping — the exact invocation
+depends on your installed Node version (check with `node --version`):
 
-```bash
-cd app
-node --experimental-strip-types src/chapters/00-javascript-and-browser-fundamentals/debounce.ts
-```
+- **Node 22.6-22.17:** requires the flag —
+  `node --experimental-strip-types src/chapters/00-javascript-and-browser-fundamentals/debounce.ts`
+  (the `ExperimentalWarning` on stderr is expected and harmless).
+- **Node 22.18+ / 23.6+ / 24+:** type stripping is **on by default**, no flag needed —
+  just `node src/chapters/00-javascript-and-browser-fundamentals/debounce.ts`.
+- **Below Node 22.6:** type stripping isn't available at all; either upgrade Node or ask for a
+  `tsx`-based alternative.
 
-(The `ExperimentalWarning` printed to stderr is expected and harmless — it's Node telling you
-the flag itself is still experimental, not that anything is wrong.)
+Either way, TypeScript syntax that requires actual *transformation* (not just erasure) still
+isn't supported even on newer Node — most relevantly, constructor **parameter properties**
+(`constructor(private x: number)`), enums, and namespaces with runtime code. `lru-cache.ts`
+already avoids this; if you write your own class-based solution, declare fields explicitly
+instead (see that file for the pattern) rather than using parameter-property shorthand.
 
 ## What you'll build
 Framework-free JS katas (debounce/throttle/memoize/LRU cache) plus written 'trace the event

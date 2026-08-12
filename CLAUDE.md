@@ -60,9 +60,11 @@ not chapter content — it was created fully filled-in as templates from the sta
 When a chapter is unlocked, do all of the following for that chapter (not future ones):
 1. Fill in `notes/<NN-slug>/README.md` with real explanations — assume a strong existing
    React developer, so focus on *depth, nuance, gotchas, and interview framing* rather than
-   basic tutorial prose. Call out what's new/changed in React 19/19.2 wherever relevant. For
-   chapter 07 specifically, verify current API details against the live React docs rather than
-   relying purely on prior knowledge — those APIs were newer at curriculum-design time.
+   basic tutorial prose. Call out what's new/changed in React 19/19.2 wherever relevant.
+   **Before writing (or reviewing) any chapter's content, verify current API/tooling details
+   against official documentation rather than relying purely on prior/training knowledge** —
+   explicit standing instruction (2026-08-13), not limited to ch.07 as originally scoped. See
+   "Accuracy & currency practice" below for which docs to check per topic.
 2. Add hands-on exercises to `notes/<NN-slug>/exercises/` (problem statements), with starter
    and solution code living in `app/src/chapters/<NN-slug>/`.
 3. As the user works through the chapter, actively watch for mistakes, hesitations, or
@@ -87,6 +89,33 @@ When a chapter is unlocked, do all of the following for that chapter (not future
    `interview-questions/`, fill in that specific entry in place (requirements/starter/
    solution/follow-ups, or the snippet + answer) — same "only what's been asked for" rule
    applies there too.
+
+## Accuracy & currency practice
+
+Explicit standing instruction from the user (2026-08-13): **before writing or reviewing
+chapter content, check official documentation for accuracy and for anything newer than
+training-data knowledge** — don't rely on memory alone for fast-moving APIs/tooling. This
+applies project-wide, not just to the React 19.2 chapter it originated from. Use WebFetch/
+WebSearch against these sources as relevant to the topic at hand:
+
+- **React APIs/behavior** (all React chapters, especially ch.06/07/17): react.dev — the
+  official docs are unusually current and explicit about version deltas.
+- **Node.js runtime/APIs** (ch.00 katas, tooling, any `node --experimental-strip-types` /
+  built-in test runner / etc. references): nodejs.org docs, and re-check flags/APIs marked
+  "Experimental" since they change between Node versions — this repo currently targets
+  whatever Node version is actually installed (`node --version`), not a hardcoded one.
+- **Core JS language + browser APIs** (ch.00): MDN (developer.mozilla.org).
+- **Routing** (ch.10): reactrouter.com — actively evolving (Declarative/Data/Framework modes).
+- **Server state / data fetching** (ch.11): tanstack.com/query docs.
+- **TypeScript** (ch.14): typescriptlang.org/docs, especially for newer utility types/operators.
+- **Testing** (ch.15): vitest.dev, testing-library.com.
+- **Next.js / RSC** (ch.17): nextjs.org docs and react.dev's RSC reference pages.
+- **Tailwind** (`app/` setup, not a chapter subject itself): tailwindcss.com docs — this repo
+  is on v4, whose config model differs meaningfully from v3; don't default to v3-era answers.
+
+When something in an already-written chapter turns out to be stale or wrong after checking a
+source, fix it in place and note the correction in that chapter's section of
+`notes/README.md`'s revision history, the same way prior review-driven fixes have been logged.
 
 ## Repo structure
 

@@ -113,3 +113,15 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   overhead. **The curriculum is now considered locked** — further changes should come from
   gaps found while actually studying, not further external review cycles. Time to start
   Chapter 00.
+- **2026-08-13:** Ch.00's `javascript/README.md` was rewritten so every section builds up from
+  a plain-language "start here" explanation before reaching interview-depth precision (the
+  user's actual JS level is "comfortable with basics, shaky on deeper mechanics" — the original
+  "assume fluency" framing was wrong for JS specifically; see `CLAUDE.md`). A standing
+  "Accuracy & currency practice" was also added to `CLAUDE.md`, and a first verification pass
+  against official docs (MDN, react.dev, nodejs.org) was run against ch.00: confirmed accurate
+  — closures wording, Promise combinator semantics, React 18 automatic batching, CORS/preflight
+  semantics. Found and fixed two real staleness issues — Node's TypeScript type-stripping is
+  now **on by default** as of Node 22.18/23.6/24+ (was experimental-flag-only when originally
+  written), and `structuredClone`'s behavior on custom class instances is a **silent** data
+  loss (prototype/methods dropped, no error thrown), not a hard failure like functions/DOM
+  nodes — the original wording implied a uniform "cannot clone" failure mode across all three.
