@@ -14,7 +14,9 @@ A large share of 'why does this React code do that' interview questions are actu
 
 Full notes: [`javascript/README.md`](javascript/README.md) — closures, `this` binding,
 prototypes/class, Promises, the event loop, functional patterns (debounce/throttle/curry/
-memoize), object equality, modules, and memory/GC.
+memoize), object equality, modules, and memory/GC. Each section starts from a plain-language
+explanation and builds up to interview-level precision — you don't need prior depth on these
+topics going in, just comfort with everyday JS (variables, functions, arrays, objects).
 
 ### Browser & Web Fundamentals
 

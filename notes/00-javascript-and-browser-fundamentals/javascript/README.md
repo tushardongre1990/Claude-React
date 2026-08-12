@@ -3,18 +3,67 @@
 **Status:** In Progress
 **Part of:** [Chapter 00: JavaScript & Browser Fundamentals for React Interviews](../README.md)
 
-This is written for someone who already writes JavaScript daily — the goal isn't "what is a
-closure" 101, it's precision: the exact mental model an interviewer expects you to reach for
-under pressure, and the specific traps that catch experienced developers.
+This assumes you're comfortable with everyday JS — variables, functions, arrays, objects,
+loops — but haven't necessarily gone deep on *how the language actually works underneath*.
+Each section builds up from a plain-language explanation of the concept, through a simple
+example, and only then into the precise mental model and interview-level nuance. Don't skip
+the "start here" parts even if a section feels basic at first — the deeper content builds
+directly on them.
 
 ---
 
 ## 1. Closures
 
-**The precise definition:** a closure is the combination of a function and the *lexical
-environment* it was defined in. Every function in JS keeps a reference to the scope chain that
-existed when it was created — not a copy of the variables, a live reference to the same
-binding.
+### Start here: what "scope" even means
+
+Every variable you create lives inside some *container*. A function body is a container. So is
+a `{ }` block. Code running inside a container can see variables declared in that container,
+and in any container *surrounding* it — but not in unrelated containers next to it.
+
+```js
+function outer() {
+  const message = "hello";
+
+  function inner() {
+    console.log(message); // inner can "see" message — it's in a surrounding container
+  }
+
+  inner();
+}
+outer(); // logs "hello"
+```
+
+Nothing surprising yet — `inner` can read `message` because it's physically written inside
+`outer`. This ability to reach outward for variables is called the **scope chain**.
+
+### The twist that makes it a "closure"
+
+Now: what if `inner` is *returned out* of `outer`, and called much later, long after `outer`
+has already finished running?
+
+```js
+function outer() {
+  const message = "hello";
+  return function inner() {
+    console.log(message);
+  };
+}
+
+const saved = outer(); // outer() has already finished and returned
+saved();               // ...but this still logs "hello". How?
+```
+
+`outer()` finished executing before `saved()` is ever called. Normally you'd expect `message`
+to be gone once `outer` returns — but it isn't. JavaScript functions keep a live connection to
+the scope they were created in, for as long as the function itself still exists. That
+connection — a function plus the variables it can still reach, even after the code that
+created them has finished — **is** a closure. You don't opt into this; every function in JS is
+automatically a closure over its surrounding scope, most of the time you just never notice
+because the function is called and discarded immediately.
+
+**The precise definition, now that the mechanism is clear:** a closure is the combination of a
+function and the *lexical environment* it was defined in. It's a **live reference** to the
+same variable binding, not a copy of the value at the time the function was created:
 
 ```js
 function makeCounter() {
@@ -42,7 +91,7 @@ flowchart TB
 Both calls go through the *same* function, which holds the *same* live reference to `count` —
 that's why the value persists and increments instead of resetting.
 
-**Closures in loops — the classic trap:**
+### Closures in loops — the classic trap
 
 ```js
 for (var i = 0; i < 3; i++) {
@@ -50,10 +99,15 @@ for (var i = 0; i < 3; i++) {
 } // logs 3, 3, 3
 ```
 
-`var` is function-scoped, so there is exactly **one** `i` binding shared by all three
-callbacks; by the time the callbacks run, the loop has finished and `i` is 3. Switching to
-`let` fixes it because `let` creates a **new binding per iteration** — each closure captures
-its own `i`.
+Every one of those three callbacks closes over `i` — but with `var`, there is only **one** `i`
+variable for the *whole loop*, shared by every iteration (that's what "function-scoped" means:
+`var` doesn't create a new variable per loop turn, it reuses one). By the time any callback
+actually runs (after a `setTimeout`, even a `0`ms one, always runs *later* — see the event loop
+section below), the loop has already finished and `i` is `3`. All three callbacks are closing
+over the same, now-finished-at-`3` variable.
+
+`let` fixes this because `let` creates a **brand new binding on every iteration** — each
+callback closes over its own private copy of `i`, not a shared one:
 
 ```js
 for (let i = 0; i < 3; i++) {
@@ -81,7 +135,10 @@ flowchart TB
     end
 ```
 
-**Stale closures — the React-relevant version of the same bug:**
+### Stale closures — the same bug, but in React
+
+This is the single most valuable thing to take from this section, because it explains a real
+class of React bugs you will hit:
 
 ```jsx
 function Counter() {
@@ -95,17 +152,26 @@ function Counter() {
 }
 ```
 
-The interval callback closes over the `count` value from the render in which this Effect was
-created — not a "frozen" value in any special sense, just an ordinary closure. Because the
-dependency array is empty, React never re-runs this Effect on later renders, so the same
-original closure (reading `count` from render 1, i.e. `0`) keeps firing every tick. The visible
-result: the counter goes `0 → 1` once, then every subsequent tick calls `setCount(0 + 1)` again
-— same value in, same value out, so React bails out of re-rendering and it visibly sticks at
-`1`. Two fixes, each with a different tradeoff: the
-functional updater `setCount(c => c + 1)` (doesn't need to read `count` at all), or adding
-`count` to the dependency array (correct, but tears down/recreates the interval every render —
-usually the updater form is what you actually want). This exact bug — "why does my interval
-only increment once" — is one of the most common real interview debugging prompts.
+Every time `Counter` renders, React runs the component function again, which means `count` is
+a *brand new variable* each render (this is a core React idea: each render gets its own
+snapshot of state, it isn't one mutable box that changes in place). The `setInterval` callback
+above closes over the `count` variable from *whichever render created this Effect* — and
+because the dependency array is empty, this Effect only runs once, on the first render, so the
+interval callback is permanently stuck closing over `count` from that first render (`0`).
+
+Walking through what actually happens: first tick calls `setCount(0 + 1)` → count becomes `1`,
+component re-renders. But the *interval callback itself* was never recreated — it's still the
+same closure from render 1, still reading `count = 0`. So the second tick also calls
+`setCount(0 + 1)` → `1` again. React sees the new value equals the old value and skips
+re-rendering. The visible result: the counter goes `0 → 1` once, then visibly sticks at `1`
+forever, even though the interval is still firing every second.
+
+Two fixes, each with a different tradeoff: the functional updater `setCount(c => c + 1)`
+(doesn't need to read `count` from the closure at all — React hands it the latest value
+directly), or adding `count` to the dependency array (correct, but tears down and recreates
+the interval every render — usually the updater form is what you actually want). This exact
+bug — "why does my interval only increment once" — is one of the most common real interview
+debugging prompts.
 
 **Interview framing:** if asked "why doesn't this effect see the latest state," the strong
 answer names the mechanism (closure captured the render's snapshot of state) before naming the
@@ -115,8 +181,31 @@ fix. Naming the fix without the mechanism reads as pattern-matching, not underst
 
 ## 2. `this` binding
 
-`this` is **not** lexically scoped for regular functions — it's determined by *how a function
-is called*, not where it's defined. Four rules, in precedence order:
+### Start here: `this` is decided at call time, not definition time
+
+In most things you've written so far, a variable's value is whatever you last set it to. `this`
+doesn't work that way. `this` is a special keyword whose value is decided **fresh, every single
+time a function is called**, based on *how* it was called — not where the function was written.
+This trips up almost everyone coming from other languages (or from mostly writing React
+function components, where `this` barely comes up).
+
+```js
+const user = { name: "Ana", greet() { return this.name; } };
+user.greet(); // "Ana" — called as user.greet(), so `this` = user
+```
+
+That much feels intuitive. The confusion starts when the *same function* gets called a
+different way:
+
+```js
+const greetFn = user.greet;
+greetFn(); // NOT "Ana" — this is a "bare" call, so `this` isn't `user` anymore
+```
+
+Same function, different call, different `this`. That's the whole concept — the rest of this
+section is just precisely nailing down the rules for "how was it called."
+
+### The four rules, in precedence order
 
 1. **`new` binding** — `new Foo()` binds `this` to the newly created object.
 2. **Explicit binding** — `fn.call(obj)`, `fn.apply(obj)`, `fn.bind(obj)`.
@@ -140,7 +229,7 @@ flowchart TD
 Precedence flows top to bottom — `new` wins over everything, explicit binding beats implicit,
 and a bare call only falls back to the default rule when none of the others apply.
 
-**The classic break — method extraction:**
+### The classic break — method extraction
 
 ```js
 const user = {
@@ -150,6 +239,10 @@ const user = {
 const greet = user.greet;
 greet(); // implicit binding is lost — called as a bare function
 ```
+
+Pulling `greet` out into its own variable and calling it doesn't carry `user` along with it —
+functions aren't "attached" to the object they came from, `this` is only set at the moment of
+the call, and `greet()` here is a bare call (rule 4).
 
 What that bare call actually produces depends on strict vs. sloppy mode (default-binding rule
 above). In an ES module, inside a `class`, or in any TypeScript-compiled code — i.e. virtually
@@ -167,25 +260,40 @@ This is exactly what happens when you pass `onClick={user.greet}` in React inste
 `onClick={() => user.greet()}` or a properly bound/arrow class method — the function is
 detached from the object it was "called on."
 
+### Arrow functions sidestep all of this
+
 **Arrow functions don't have their own `this`** — they capture `this` lexically from the
-enclosing scope at definition time, and it can never be reassigned (`.call`/`.apply`/`.bind`
-on an arrow function has no effect on `this`). This is precisely why arrow functions became
-the default for React class-component handlers before hooks existed, and why `this` mostly
-disappears as a concern once you're all-in on function components — but interviewers will
-still test whether you understand *why* it disappeared, not just that it did.
+enclosing scope at definition time (the same way closures capture variables, above), and it can
+never be reassigned: `.call`/`.apply`/`.bind` on an arrow function has no effect on `this`. This
+is precisely why arrow functions became the default for React class-component handlers before
+hooks existed, and why `this` mostly disappears as a concern once you're all-in on function
+components — but interviewers will still test whether you understand *why* it disappeared, not
+just that it did.
 
 ---
 
 ## 3. Prototypes, `class`, and inheritance
 
-JavaScript objects have an internal `[[Prototype]]` link (`Object.getPrototypeOf(obj)`,
-historically `__proto__`) forming a chain that property lookup walks when a property isn't
-found directly on the object.
+### Start here: every object has an invisible fallback object
+
+You've probably called `.toString()` or used `.hasOwnProperty()` on a plain object without ever
+defining those methods yourself:
+
+```js
+const obj = { a: 1 };
+obj.toString(); // "[object Object]" — but you never wrote a toString method. Where's it from?
+```
+
+Every object in JS has a hidden, internal link to *another* object — its **prototype**. When
+you access a property that isn't found directly on the object, JS automatically looks it up on
+the prototype instead, and if it's not there either, on *that* object's prototype, and so on,
+until it reaches the end of the chain (`null`). `toString` exists on `Object.prototype`, which
+sits at the end of the chain for almost every plain object — that's where it's coming from.
 
 ```js
 const base = { greet() { return "hi"; } };
-const child = Object.create(base);
-child.greet(); // "hi" — found by walking up the prototype chain
+const child = Object.create(base); // explicitly wire up child's prototype to be `base`
+child.greet(); // "hi" — not found on child, found by walking up to base
 ```
 
 ```mermaid
@@ -197,16 +305,24 @@ flowchart BT
     lookup -.->|"2. found on base ✓"| base
 ```
 
+This fallback chain is what people mean by "prototypal inheritance" — objects share behavior by
+being linked to other objects, not by copying.
+
+### `class` is the same mechanism, with nicer syntax
+
 `class` syntax is sugar over this same prototype mechanism — methods defined in a class body
-live on `ClassName.prototype`, not on each instance:
+live on `ClassName.prototype`, **one shared copy**, not duplicated onto every instance:
 
 ```js
 class Animal {
   speak() { return "..."; } // one shared function on Animal.prototype
 }
+const a1 = new Animal();
+const a2 = new Animal();
+a1.speak === a2.speak; // true — same function, shared via the prototype chain
 ```
 
-`instanceof` walks the prototype chain checking for a match: `obj instanceof Animal` is really
+`instanceof` walks that same chain checking for a match: `obj instanceof Animal` is really
 asking "does `Animal.prototype` (from the current realm) appear anywhere in `obj`'s prototype
 chain?" This is why it breaks across realms: an array created inside a different iframe/window
 has *that* iframe's `Array.prototype` in its chain, not the current window's — so
@@ -220,6 +336,29 @@ default, methods are non-enumerable, and a class can't be called without `new`).
 ---
 
 ## 4. Promises & async/await
+
+### Start here: what problem does a Promise actually solve?
+
+Some operations take time — fetching data over the network, reading a file, waiting on a timer.
+JS can't just pause and wait (see the event loop below for why), so it needs some way to say
+"start this now, and run this other code once it's done, whenever that is." Before Promises,
+this was done with **callbacks** — you passed a function directly into the async operation, and
+it called your function back when finished. That worked, but chaining several async steps in a
+row turned into deeply nested, hard-to-read code (informally called "callback hell").
+
+A **Promise** is an object that represents "a value that doesn't exist yet, but will (or
+won't) at some point in the future." Instead of passing a callback *into* a function, the
+function hands you back a Promise, and you attach what to do next *onto* it:
+
+```js
+const promise = new Promise((resolve, reject) => {
+  setTimeout(() => resolve("done!"), 1000); // after 1s, this Promise "resolves"
+});
+
+promise.then((value) => console.log(value)); // logs "done!" after 1 second
+```
+
+### The state machine, precisely
 
 A Promise is a state machine with exactly one transition: **pending → fulfilled** or
 **pending → rejected**, and once settled, it never changes state again. `.then()` handlers
@@ -240,12 +379,14 @@ stateDiagram-v2
 (auto-flattening, no manual "promise of a promise" nesting).
 
 **Error propagation** — a rejection skips every `.then` until it hits a `.catch` (or a second
-argument to `.then`). This is the same model `try/catch` gives you around `await`:
+argument to `.then`). `async`/`await` is syntax that lets you write Promise-based code that
+*looks* synchronous, while the `try/catch` around it gives you the same error-skipping
+behavior:
 
 ```js
 async function load() {
   try {
-    const res = await fetch("/api");
+    const res = await fetch("/api"); // "pause" here until the fetch Promise settles
     if (!res.ok) throw new Error("bad status");
     return await res.json();
   } catch (err) {
@@ -254,11 +395,12 @@ async function load() {
 }
 ```
 
-**`async` functions always return a Promise**, even if you `return` a plain value — it gets
-wrapped. `await` unwraps a Promise's resolved value or re-throws its rejection as a catchable
-exception; syntactically sequential, but not blocking the thread (see event loop below).
+`await` doesn't actually block the thread while "paused" — it unwraps a Promise's resolved
+value (or re-throws its rejection as a catchable exception) while letting other code run in the
+meantime; see the event loop section for exactly how that works. **`async` functions always
+return a Promise**, even if you `return` a plain value — it gets wrapped automatically.
 
-**Combinators — know the exact failure semantics of each, this gets asked directly:**
+### Combinators — know the exact failure semantics of each, this gets asked directly
 
 | Combinator | Resolves when | Rejects when |
 |---|---|---|
@@ -281,9 +423,20 @@ using this same underlying-operation-cancellation pattern.
 
 ## 5. The event loop
 
-**The mental model senior interviews actually test:** JS is single-threaded — one call stack.
-Async work doesn't run on a second thread; it gets *scheduled* and the event loop decides when
-the (empty) call stack gets to run it.
+### Start here: JS can only do one thing at a time — so how does "async" work?
+
+JavaScript is **single-threaded**: there's exactly one call stack, and it can only run one
+piece of code at a time — no true multitasking inside your JS. And yet a web page stays
+interactive while a network request is in flight; a `setTimeout` doesn't freeze everything for
+a second. How?
+
+The trick: slow operations (timers, network requests, reading files) aren't actually done *by*
+JavaScript itself — they're handed off to the browser (or Node), which does the waiting outside
+of your JS thread entirely. When that outside work finishes, it doesn't interrupt whatever your
+JS is currently doing; instead, it *schedules* your callback to run **later**, the next time
+the JS thread is free. The **event loop** is the mechanism that decides when "later" is.
+
+### The mechanism, precisely
 
 ```mermaid
 flowchart TD
@@ -345,8 +498,9 @@ for (see ch.06), running on an actually separate thread with no shared memory by
 
 ## 6. Functional patterns
 
-These come up both as direct coding-interview problems (see `coding-interviews/javascript/`)
-and as the theoretical basis for hooks like `useMemo`/`useCallback`.
+These are reusable techniques, not deep language concepts — they come up both as direct
+coding-interview problems (see `coding-interviews/javascript/`) and as the theoretical basis
+for hooks like `useMemo`/`useCallback`.
 
 **Debounce** — collapse a burst of calls into one, fired only after the calls *stop* for a
 given delay (cancel-and-reschedule on every call). Use case: search-as-you-type, only fire the
@@ -392,8 +546,14 @@ later instead of magic.
 
 ## 7. Objects & equality
 
-**`===` is reference equality for objects/arrays/functions** — two objects with identical
-contents are never `===` unless they're the literal same reference in memory.
+### Start here: two kinds of values, two kinds of equality
+
+JS values fall into two categories. **Primitives** (numbers, strings, booleans, `null`,
+`undefined`, symbols) are compared *by value* — `5 === 5` is `true` because they're literally
+the same value. **Objects** (including arrays and functions) are compared *by reference* —
+`===` asks "are these two variables pointing at the exact same object in memory," not "do they
+look the same." This trips people up because two objects can be structurally identical and
+still not be `===`:
 
 ```js
 { a: 1 } === { a: 1 } // false — different objects
@@ -445,6 +605,25 @@ on that reference changing (memoization, `useEffect` deps) won't fire.
 
 ## 8. Modules
 
+### Start here: what problem modules solve
+
+As an app grows past one file, you need a way to split code across multiple files while being
+explicit about what each file makes available to others (`export`) and what it pulls in from
+elsewhere (`import`) — instead of every file dumping variables into one shared global space
+where anything could collide with anything else. That's what a "module" is: one file, with an
+explicit, declared boundary of what it shares.
+
+```js
+// math.js
+export function add(a, b) { return a + b; }
+
+// app.js
+import { add } from "./math.js";
+add(2, 3); // 5
+```
+
+### ESM vs. CommonJS, and why it matters for bundling
+
 **ESM (`import`/`export`) vs. CommonJS (`require`/`module.exports`):** ESM is statically
 analyzable — imports/exports are resolved at parse time, before any code runs, which is exactly
 what makes **tree shaking** possible (a bundler can prove which exports are unused and delete
@@ -460,10 +639,16 @@ but the *decision to load it* happens at runtime.
 
 ## 9. Memory & garbage collection
 
-JS uses (mostly) mark-and-sweep garbage collection: an object is eligible for collection once
-nothing reachable from a root (global scope, active call stacks, closures still in use) holds a
-reference to it. You don't manually free memory — you avoid *unintentionally keeping a
-reference alive*.
+### Start here: you never manually free memory in JS
+
+In some lower-level languages, you have to explicitly allocate and free memory yourself. JS
+does this for you automatically, through a process called **garbage collection (GC)**. You
+never call a "free" function — instead, the JS engine periodically walks through everything
+still in memory and asks: *starting from the places code can actually reach right now (global
+variables, currently-running function calls, closures still referenced somewhere) — can this
+value still be reached?* If nothing can reach it anymore, it's deleted and the memory is
+reclaimed. This is (mostly) **mark-and-sweep**: mark everything reachable from a root, sweep
+away everything that wasn't marked.
 
 ```mermaid
 flowchart LR
@@ -473,6 +658,10 @@ flowchart LR
     style C stroke-dasharray: 5 5
     C -.->|"eligible for GC — unreachable from any root"| GC["🗑"]
 ```
+
+The practical consequence: **you don't manually free memory, you avoid *unintentionally
+keeping a reference alive*.** A "memory leak" in JS almost always means "something is still
+reachable that shouldn't be," not "memory wasn't freed."
 
 **Common leak sources, all closure-shaped:**
 - **Event listeners never removed** — `addEventListener` without a matching `removeEventListener`

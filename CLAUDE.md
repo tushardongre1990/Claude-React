@@ -193,9 +193,23 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
 
 ## User preferences / how to teach this user
 
-- Treat the user as an experienced engineer, not a beginner. Assume familiarity with JS/ES6+,
-  general software engineering, and prior React exposure — the goal is filling gaps and
-  updating stale knowledge to React 19/19.2, not "what is a component" 101.
+- Treat the user as an experienced engineer, not a beginner, **except specifically on core
+  JavaScript mechanics** (see the next bullet — this was corrected 2026-08-13 after the
+  original "assume JS/ES6+ fluency" framing turned out to be wrong). General software
+  engineering judgment and prior React/practical exposure can still be assumed; deep JS
+  language mechanics cannot.
+- **The user's actual JS level (stated 2026-08-13): comfortable with everyday JS — variables,
+  functions, arrays, objects, loops — but not deep language mechanics** (closures, `this`,
+  prototypes, the event loop, promises, equality/references, modules, GC — i.e. most of
+  ch.00). **Whenever a JS concept comes up, anywhere in the curriculum, teach/explain it
+  in full rather than assuming it** — this is a standing, explicit instruction, not a
+  one-time ask. Ch.00's `javascript/README.md` was rewritten 2026-08-13 so every section
+  starts with a plain-language "start here" explanation before reaching the interview-depth
+  precision layer — use that same build-up structure (basics → simple example → precise
+  mental model → interview nuance) whenever a new JS concept is introduced in a later
+  chapter too, not just in ch.00. React/architecture-level content elsewhere in the
+  curriculum still assumes a strong, experienced engineer — this exception is scoped to core
+  JS language mechanics specifically.
 - **Explain concepts via code examples and Mermaid diagrams as much as possible** — this was
   an explicit request. Use Mermaid for anything that's a state machine, a sequence/timing
   relationship, a tree/hierarchy, or a decision flowchart (closures/scope, the event loop,
