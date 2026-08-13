@@ -229,6 +229,35 @@ flowchart TD
 Precedence flows top to bottom — `new` wins over everything, explicit binding beats implicit,
 and a bare call only falls back to the default rule when none of the others apply.
 
+### One example per rule
+
+```js
+// Rule 4 — default binding: no object, no new, no .call/.apply/.bind
+function whoAmI() { return this; }
+whoAmI(); // strict mode: undefined | sloppy mode: the global object
+
+// Rule 3 — implicit binding: whatever is left of the dot at the call site
+const counter = { count: 0, increment() { return ++this.count; } };
+counter.increment(); // 1 — this = counter
+
+// Rule 2 — explicit binding: .call/.apply set this for one call, .bind locks it permanently
+function increment() { return ++this.count; }
+const counterA = { count: 0 };
+increment.call(counterA); // 1 — this = counterA
+const boundToA = increment.bind(counterA);
+boundToA(); // 2 — locked to counterA even without .call
+
+// explicit binding beats implicit — .call on a method overrides the object left of the dot
+const other = { count: 50 };
+counter.increment.call(other); // 51, not 2 — explicit binding wins even though it's written as counter.increment
+
+// Rule 1 — new binding: always creates a fresh object and binds this to it
+function Counter() { this.count = 0; }
+Counter.prototype.increment = function () { return ++this.count; };
+const c = new Counter();
+c.increment(); // 1
+```
+
 ### The classic break — method extraction
 
 ```js
@@ -259,6 +288,29 @@ runtime behavior is a strict-mode detail worth knowing but secondary.
 This is exactly what happens when you pass `onClick={user.greet}` in React instead of
 `onClick={() => user.greet()}` or a properly bound/arrow class method — the function is
 detached from the object it was "called on."
+
+### The other classic gotcha — `new` beats even `.bind`
+
+The precedence order isn't just a checklist, it has teeth: `new` overrides an *explicit*
+binding that was set up earlier via `.bind`, even though `.bind` is usually described as
+"permanently locking `this`."
+
+```js
+function Foo(val) { this.val = val; }
+const boundFoo = Foo.bind({ val: "locked" });
+
+boundFoo(999);        // this = { val: "locked" } — explicit binding, as expected
+const instance = new boundFoo(999);
+instance.val;          // 999 — `new` wins! The "locked" object is discarded entirely.
+```
+
+`.bind` only pre-fills what `this` will be *if no higher-precedence rule fires*. Calling the
+bound function normally uses that locked object (rule 2, explicit binding). But calling it with
+`new` invokes rule 1, which unconditionally creates a fresh object and binds `this` to that
+instead — the earlier `.bind` call is simply ignored. This is the detail that trips people up
+when they assume `.bind` is unbreakable; in an interview, leading with "`new` is rule 1, `.bind`
+is only rule 2" is the fast way to show you actually know the precedence order isn't just
+memorized trivia.
 
 ### Arrow functions sidestep all of this
 
