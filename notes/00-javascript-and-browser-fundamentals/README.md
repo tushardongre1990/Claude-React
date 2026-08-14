@@ -21,8 +21,10 @@ topics going in, just comfort with everyday JS (variables, functions, arrays, ob
 ### Browser & Web Fundamentals
 
 Full notes: [`browser-and-web/README.md`](browser-and-web/README.md) — the rendering pipeline,
-storage APIs, networking/caching, the browser security model (SOP/CORS/XSS/CSRF/CSP), and
-SPA-relevant concepts (History API, `postMessage`, prefetching).
+storage APIs, networking/caching, the browser security model (SOP/Same-Origin Policy,
+CORS/Cross-Origin Resource Sharing, XSS/Cross-Site Scripting, CSRF/Cross-Site Request Forgery,
+CSP/Content-Security-Policy), and SPA (Single Page Application)-relevant concepts (History API,
+`postMessage`, prefetching).
 
 ## Exercises
 

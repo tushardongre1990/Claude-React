@@ -8,10 +8,10 @@ This is the capstone — synthesizing every prior chapter into interview perform
 
 ## Topics to cover
 
-- Frontend system design framework: requirements → constraints → API → data model → component hierarchy → state ownership → server state → caching → rendering strategy → performance → accessibility → error handling → security → testing → observability
+- Frontend system design framework: requirements → constraints → API (Application Programming Interface) → data model → component hierarchy → state ownership → server state → caching → rendering strategy → performance → accessibility → error handling → security → testing → observability
 - Problem set (easy/medium): autocomplete, debounced search, modal, toast system, tabs, pagination, infinite scroll
 - Problem set (senior): notification platform, chat application, analytics dashboard, collaborative editor, file upload system, large/virtualized data table, design system, permissions system, feature-flag system, offline-first app
-- Behavioral question prep (STAR method) tailored to frontend/React roles
+- Behavioral question prep (STAR (Situation, Task, Action, Result) method) tailored to frontend/React roles
 - Whiteboard-style 'explain reconciliation/hooks internals' question bank
 - Mock interview checklist and self-review rubric (see also assessment/)
 

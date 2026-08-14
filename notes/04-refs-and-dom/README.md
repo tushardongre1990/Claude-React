@@ -1,4 +1,4 @@
-# Chapter 04: Refs & the DOM
+# Chapter 04: Refs & the DOM (Document Object Model)
 
 **Status:** Not Started
 **Folder:** `notes/04-refs-and-dom/`

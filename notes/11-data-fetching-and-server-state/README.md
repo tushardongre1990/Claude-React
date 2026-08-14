@@ -4,7 +4,7 @@
 **Folder:** `notes/11-data-fetching-and-server-state/`
 
 ## Why this chapter matters for a 5-10 YOE interview
-Distinguishing 'server state' from UI state is a core system-design talking point for senior React roles.
+Distinguishing 'server state' from UI (User Interface) state is a core system-design talking point for senior React roles.
 
 ## Topics to cover
 

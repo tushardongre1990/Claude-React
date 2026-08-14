@@ -1,4 +1,4 @@
-# Chapter 17: Architecture, SSR & React Server Components
+# Chapter 17: Architecture, SSR (Server-Side Rendering) & React Server Components (RSC)
 
 **Status:** Not Started
 **Folder:** `notes/17-architecture-ssr-and-rsc/`
@@ -8,7 +8,7 @@ RSC questions are one of the least-rehearsed parts of senior React interviews ri
 
 ## Topics to cover
 
-- CSR vs SSR vs SSG vs ISR — trade-offs
+- CSR (Client-Side Rendering) vs SSR vs SSG (Static Site Generation) vs ISR (Incremental Static Regeneration) — trade-offs
 - Server Components vs Client Components — the mental model
 - Trap to explicitly correct: there is no directive that marks a Server Component — `"use
   server"` marks a Server Function, not a component; Server Components are the default in an

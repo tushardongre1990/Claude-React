@@ -8,13 +8,13 @@ Senior candidates are expected to justify *how* and *whether* they test somethin
 
 ## Topics to cover
 
-- Testing philosophy: React Testing Library's user-centric queries
+- Testing philosophy: React Testing Library (RTL)'s user-centric queries
 - Vitest setup within a Vite project
 - Testing components, user events, and async UI
-- Mocking network requests with MSW
+- Mocking network requests with MSW (Mock Service Worker)
 - Testing custom hooks
 - Testing forms and routed components
-- Testing strategy: the test pyramid, unit vs integration vs E2E, where Playwright fits
+- Testing strategy: the test pyramid, unit vs integration vs E2E (End-to-End), where Playwright fits
 - What NOT to test — avoiding testing implementation details, flaky tests, test isolation
 - Snapshot tests — when they help vs when they rot
 

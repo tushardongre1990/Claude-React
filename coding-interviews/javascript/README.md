@@ -19,7 +19,7 @@ format. These are framework-free and pair naturally with
 10. `retry(fn, attempts)` with backoff
 11. Async concurrency limiter (run N promises at a time)
 12. Simple event emitter / pub-sub
-13. LRU cache
+13. LRU (Least Recently Used) cache
 14. Flatten a nested array
 15. Flatten a nested object (dot-path keys)
 16. Deep merge two objects

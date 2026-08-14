@@ -12,7 +12,7 @@ about* code and scenarios, not building things.
   are subtly wrong.
 - [`debugging-scenarios/`](debugging-scenarios/README.md) — open-ended production scenarios
   ("users report the page is slow", "this only breaks in production") that test debugging
-  process, not just API knowledge.
+  process, not just API (Application Programming Interface) knowledge.
 
 As with everything else in this repo, entries are added when explicitly worked on, not
 pre-written in bulk. See [`/CLAUDE.md`](../CLAUDE.md).

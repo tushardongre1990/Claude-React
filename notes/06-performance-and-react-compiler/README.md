@@ -10,7 +10,7 @@ Performance debugging is where senior candidates are separated from mid-level on
 
 - Why components re-render: parent renders, state changes, context changes
 - React.memo, useMemo, useCallback — what they actually do, and when they help vs hurt
-- Concurrent UI APIs: `useTransition`/`startTransition` and `useDeferredValue` — urgent vs
+- Concurrent UI (User Interface) APIs (Application Programming Interfaces): `useTransition`/`startTransition` and `useDeferredValue` — urgent vs
   non-urgent updates (e.g. keeping a search input responsive while a large result list update
   is deferred/interruptible); underlying scheduling concepts covered fully in ch.19
 - **Suspense fundamentals** (the canonical treatment — ch.07/11/17 build on this rather than

@@ -13,7 +13,7 @@ Data routers changed a lot of 'how do you fetch on route change' answers — out
 - Nested routes and layouts
 - Dynamic segments, search params, navigation hooks
 - useFetcher for concurrent data interactions without navigation
-- Pending UI and revalidation
+- Pending UI (User Interface) and revalidation
 - Code-splitting routes with lazy loading
 - Protected routes / auth guards (ties into ch.12)
 - Route-level error boundaries

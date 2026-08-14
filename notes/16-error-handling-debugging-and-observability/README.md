@@ -11,7 +11,7 @@
 - Error Boundaries: what they catch, and why they do NOT catch event-handler or async errors
 - Route-level error boundaries (ties into ch.10)
 - Handling async/promise errors and event-handler errors explicitly
-- Fallback UI and retry UX patterns
+- Fallback UI (User Interface) and retry UX (User Experience) patterns
 - Logging and error tracking (conceptual — e.g. Sentry-style tooling)
 - React DevTools Profiler workflow (cross-ref ch.06)
 - Browser DevTools: network panel, performance panel, memory panel, source maps

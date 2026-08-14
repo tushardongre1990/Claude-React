@@ -7,7 +7,7 @@ tested under interview-style time pressure.
 - [`react/`](react/README.md) — React implementation problems (build a debounced search, a
   virtualized list, a data table, etc.)
 - [`javascript/`](javascript/README.md) — plain JavaScript problems, framework-free (debounce,
-  LRU cache, event emitter, etc.) — these get asked independently of React at 5-10 YOE
+  LRU (Least Recently Used) cache, event emitter, etc.) — these get asked independently of React at 5-10 YOE
 
 ## Format (once a problem is unlocked)
 

@@ -18,7 +18,7 @@ have been logged. This is meant to be reread in full a few days before a real in
 - [ ] At least 8 problems attempted from
       [`coding-interviews/javascript/`](../coding-interviews/javascript/README.md) — including
       at least 2 async/concurrency problems (e.g. the concurrency limiter, retry-with-backoff),
-      2 closure/function-composition problems, and 1 caching problem (e.g. LRU cache)
+      2 closure/function-composition problems, and 1 caching problem (e.g. LRU (Least Recently Used) cache)
 - [ ] `interview-questions/react-traps/` reviewed end to end
 - [ ] `interview-questions/explain-this-output/` — every snippet answered correctly without help
 - [ ] At least 3 full mock interviews logged in
@@ -34,7 +34,7 @@ favor of just marking chapters "Done."
 - [ ] 3 timed React coding sessions (from `coding-interviews/react/`)
 - [ ] 3 timed frontend system-design sessions (from ch.22's problem set)
 - [ ] 2 timed debugging sessions (from `interview-questions/debugging-scenarios/`)
-- [ ] 2 behavioral/senior-engineer sessions (STAR-method, from ch.22)
+- [ ] 2 behavioral/senior-engineer sessions (STAR (Situation, Task, Action, Result)-method, from ch.22)
 
 Log every one of these in [`mock-interview-scorecard.md`](mock-interview-scorecard.md), even
 the rough ones — the trend across sessions is the actual signal.

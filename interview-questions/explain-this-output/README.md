@@ -19,13 +19,13 @@ that motivates a good "explain this" snippet contributes one or two here).
   correctly (ties to [ch.14](../../notes/14-typescript-with-react/README.md)).
 - **Plain JavaScript** — `this` binding surprises, prototype chain lookups, closures inside
   loops, reference vs value equality (ties to ch.00).
-- **Browser & networking** — caching-header behavior, CORS preflight triggers, cookie
+- **Browser & networking** — caching-header behavior, CORS (Cross-Origin Resource Sharing) preflight triggers, cookie
   attribute effects (ties to ch.00 and
   [ch.12](../../notes/12-api-integration-auth-and-security/README.md)).
-- **Security** — snippets where a seemingly-safe pattern is actually XSS/CSRF-exposed (ties to
+- **Security** — snippets where a seemingly-safe pattern is actually XSS (Cross-Site Scripting)/CSRF (Cross-Site Request Forgery)-exposed (ties to
   ch.12).
 - **React 19 / 19.2 APIs** — `use()`, `useActionState`, `useOptimistic`, `useEffectEvent`,
   `<Activity>` output/behavior questions (ties to
   [ch.07](../../notes/07-react-19-features/README.md)).
-- **RSC/SSR** — Server vs Client Component boundaries, what actually executes where, hydration
+- **RSC (React Server Components)/SSR (Server-Side Rendering)** — Server vs Client Component boundaries, what actually executes where, hydration
   mismatch snippets (ties to [ch.17](../../notes/17-architecture-ssr-and-rsc/README.md)).

@@ -27,7 +27,7 @@ format.
 19. Tree view (expand/collapse, recursive)
 20. Drag-and-drop list reordering
 21. Kanban board (drag-and-drop across columns)
-22. Chat UI (message list + composer, auto-scroll behavior)
+22. Chat UI (User Interface) (message list + composer, auto-scroll behavior)
 23. Notification center (read/unread state, grouping)
 
 Each of these is deliberately reusable across chapters — e.g. problem 10 (virtualized list)

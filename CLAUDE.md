@@ -200,7 +200,7 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
 | 01 | Foundations: JSX, Rendering & Components | Not Started | |
 | 02 | State & Events | Not Started | |
 | 03 | Side Effects & Lifecycle | Not Started | |
-| 04 | Refs & the DOM | Not Started | |
+| 04 | Refs & the DOM (Document Object Model) | Not Started | |
 | 05 | Context API & useReducer | Not Started | |
 | 06 | Performance, Memoization & the React Compiler | Not Started | |
 | 07 | React 19 & 19.2: Modern APIs | Not Started | |
@@ -208,12 +208,12 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
 | 09 | Forms in Depth | Not Started | |
 | 10 | Routing (React Router) | Not Started | |
 | 11 | Data Fetching & Server State | Not Started | |
-| 12 | API Integration, Authentication & Security | Not Started | |
+| 12 | API (Application Programming Interface) Integration, Authentication & Security | Not Started | |
 | 13 | Global State Management | Not Started | |
 | 14 | TypeScript with React | Not Started | |
 | 15 | Testing React Applications | Not Started | |
 | 16 | Error Handling, Debugging & Observability | Not Started | |
-| 17 | Architecture, SSR & React Server Components | Not Started | |
+| 17 | Architecture, SSR (Server-Side Rendering) & React Server Components (RSC) | Not Started | |
 | 18 | Frontend Application Architecture | Not Started | |
 | 19 | React Internals: Fiber & Reconciliation | Not Started | |
 | 20 | Accessibility & Web Vitals | Not Started | |

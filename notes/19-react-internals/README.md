@@ -8,7 +8,7 @@
 
 ## Topics to cover
 
-- Virtual DOM vs the Fiber tree — what problem Fiber actually solves
+- Virtual DOM (Document Object Model) vs the Fiber tree — what problem Fiber actually solves
 - Reconciliation and diffing heuristics (keys, type comparison)
 - Render phase vs commit phase, in detail
 - Concurrent rendering: transitions and priority lanes

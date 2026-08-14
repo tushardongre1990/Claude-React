@@ -20,7 +20,7 @@ and [`interview-questions/explain-this-output/`](../interview-questions/explain-
 | 01 | Foundations | [revision.md](../notes/01-foundations/revision.md) |
 | 02 | State & Events | [revision.md](../notes/02-state-and-events/revision.md) |
 | 03 | Side Effects & Lifecycle | [revision.md](../notes/03-side-effects-and-lifecycle/revision.md) |
-| 04 | Refs & the DOM | [revision.md](../notes/04-refs-and-dom/revision.md) |
+| 04 | Refs & the DOM (Document Object Model) | [revision.md](../notes/04-refs-and-dom/revision.md) |
 | 05 | Context API & useReducer | [revision.md](../notes/05-context-and-reducers/revision.md) |
 | 06 | Performance, Memoization & the React Compiler | [revision.md](../notes/06-performance-and-react-compiler/revision.md) |
 | 07 | React 19 & 19.2: Modern APIs | [revision.md](../notes/07-react-19-features/revision.md) |
@@ -28,12 +28,12 @@ and [`interview-questions/explain-this-output/`](../interview-questions/explain-
 | 09 | Forms in Depth | [revision.md](../notes/09-forms-in-depth/revision.md) |
 | 10 | Routing | [revision.md](../notes/10-routing/revision.md) |
 | 11 | Data Fetching & Server State | [revision.md](../notes/11-data-fetching-and-server-state/revision.md) |
-| 12 | API Integration, Authentication & Security | [revision.md](../notes/12-api-integration-auth-and-security/revision.md) |
+| 12 | API (Application Programming Interface) Integration, Authentication & Security | [revision.md](../notes/12-api-integration-auth-and-security/revision.md) |
 | 13 | Global State Management | [revision.md](../notes/13-global-state-management/revision.md) |
 | 14 | TypeScript with React | [revision.md](../notes/14-typescript-with-react/revision.md) |
 | 15 | Testing | [revision.md](../notes/15-testing/revision.md) |
 | 16 | Error Handling, Debugging & Observability | [revision.md](../notes/16-error-handling-debugging-and-observability/revision.md) |
-| 17 | Architecture, SSR & RSC | [revision.md](../notes/17-architecture-ssr-and-rsc/revision.md) |
+| 17 | Architecture, SSR (Server-Side Rendering) & RSC (React Server Components) | [revision.md](../notes/17-architecture-ssr-and-rsc/revision.md) |
 | 18 | Frontend Application Architecture | [revision.md](../notes/18-frontend-application-architecture/revision.md) |
 | 19 | React Internals | [revision.md](../notes/19-react-internals/revision.md) |
 | 20 | Accessibility & Web Vitals | [revision.md](../notes/20-accessibility-and-web-vitals/revision.md) |

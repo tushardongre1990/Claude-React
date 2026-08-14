@@ -13,7 +13,7 @@ rules, and [`/notes/README.md`](../notes/README.md) for the curriculum itself.
 - Oxlint
 
 Dependencies are added incrementally as their chapter is unlocked (React Router, TanStack
-Query, Redux Toolkit/Zustand, React Hook Form, Vitest/RTL/MSW, etc.) rather than all installed
+Query, Redux Toolkit/Zustand, React Hook Form, Vitest/RTL (React Testing Library)/MSW (Mock Service Worker), etc.) rather than all installed
 upfront — this keeps the project honest about what's actually been learned so far.
 
 ## Commands

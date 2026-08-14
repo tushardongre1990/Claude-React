@@ -44,7 +44,7 @@ syntax.
 | 01 | [Foundations: JSX, Rendering & Components](01-foundations/README.md) | Not Started |
 | 02 | [State & Events](02-state-and-events/README.md) | Not Started |
 | 03 | [Side Effects & Lifecycle](03-side-effects-and-lifecycle/README.md) | Not Started |
-| 04 | [Refs & the DOM](04-refs-and-dom/README.md) | Not Started |
+| 04 | [Refs & the DOM (Document Object Model)](04-refs-and-dom/README.md) | Not Started |
 | 05 | [Context API & useReducer](05-context-and-reducers/README.md) | Not Started |
 | 06 | [Performance, Memoization & the React Compiler](06-performance-and-react-compiler/README.md) | Not Started |
 | 07 | [React 19 & 19.2: Modern APIs](07-react-19-features/README.md) | Not Started |
@@ -52,12 +52,12 @@ syntax.
 | 09 | [Forms in Depth](09-forms-in-depth/README.md) | Not Started |
 | 10 | [Routing (React Router)](10-routing/README.md) | Not Started |
 | 11 | [Data Fetching & Server State](11-data-fetching-and-server-state/README.md) | Not Started |
-| 12 | [API Integration, Authentication & Security](12-api-integration-auth-and-security/README.md) | Not Started |
+| 12 | [API (Application Programming Interface) Integration, Authentication & Security](12-api-integration-auth-and-security/README.md) | Not Started |
 | 13 | [Global State Management](13-global-state-management/README.md) | Not Started |
 | 14 | [TypeScript with React](14-typescript-with-react/README.md) | Not Started |
 | 15 | [Testing React Applications](15-testing/README.md) | Not Started |
 | 16 | [Error Handling, Debugging & Observability](16-error-handling-debugging-and-observability/README.md) | Not Started |
-| 17 | [Architecture, SSR & React Server Components](17-architecture-ssr-and-rsc/README.md) | Not Started |
+| 17 | [Architecture, SSR (Server-Side Rendering) & React Server Components (RSC)](17-architecture-ssr-and-rsc/README.md) | Not Started |
 | 18 | [Frontend Application Architecture](18-frontend-application-architecture/README.md) | Not Started |
 | 19 | [React Internals: Fiber & Reconciliation](19-react-internals/README.md) | Not Started |
 | 20 | [Accessibility & Web Vitals](20-accessibility-and-web-vitals/README.md) | Not Started |

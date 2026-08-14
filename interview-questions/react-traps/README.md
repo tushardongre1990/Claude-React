@@ -6,7 +6,7 @@ wrong. Status: index only, filled in as related chapters are completed.
 ## Categories planned
 
 - **Rendering** — a state update doesn't mutate state immediately; a parent re-rendering
-  doesn't necessarily mean the DOM updates; render ≠ commit; `React.memo` doesn't stop all
+  doesn't necessarily mean the DOM (Document Object Model) updates; render ≠ commit; `React.memo` doesn't stop all
   re-renders.
 - **Effects** — an effect is not a lifecycle-method equivalent; effects shouldn't derive state
   that could be computed during render; dependency arrays aren't a general-purpose
@@ -35,7 +35,7 @@ wrong. Status: index only, filled in as related chapters are completed.
   something that suspends, the actual data source (a framework, TanStack Query, `use()`, a
   lazy import) determines how/what suspends (ties to ch.06).
 - **Server Components** — `"use server"` does **not** mark a Server Component; it marks a
-  Server Function. Server Components are the default in an RSC-enabled framework, not
+  Server Function. Server Components are the default in an RSC (React Server Components)-enabled framework, not
   something opted into per-file with a directive (ties to
   [ch.17](../../notes/17-architecture-ssr-and-rsc/README.md)).
 - **StrictMode + effects** — "if the dependency array is empty, the effect only runs once" is
@@ -45,6 +45,6 @@ wrong. Status: index only, filled in as related chapters are completed.
 ## Categories to also cover here (as content is added)
 
 - JavaScript (`this`, closures, prototypes, equality) — cross-referencing ch.00
-- Browser/networking (caching, CORS, cookies) — cross-referencing ch.00 and ch.12
-- Security (token storage, XSS/CSRF surface) — cross-referencing ch.12
+- Browser/networking (caching, CORS (Cross-Origin Resource Sharing), cookies) — cross-referencing ch.00 and ch.12
+- Security (token storage, XSS (Cross-Site Scripting)/CSRF (Cross-Site Request Forgery) surface) — cross-referencing ch.12
 - TypeScript (narrowing, generic inference, polymorphic components) — cross-referencing ch.14

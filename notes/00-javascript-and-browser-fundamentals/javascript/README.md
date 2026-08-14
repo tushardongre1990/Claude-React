@@ -640,7 +640,7 @@ renders when the meaningful content hasn't changed).
 top level; nested objects/arrays are still shared references between the copy and the original.
 `structuredClone(obj)` (built into modern JS, no library needed) performs a true recursive deep
 clone. It has two *different* kinds of limitations, worth distinguishing: functions and DOM
-nodes are hard-rejected — it **throws** `DataCloneError`. Custom class instances are the more
+(Document Object Model) nodes are hard-rejected — it **throws** `DataCloneError`. Custom class instances are the more
 dangerous trap, because there's **no error at all**: it silently clones the plain data
 properties and hands back an ordinary object that has lost the prototype chain entirely — the
 class's methods are gone and `cloned instanceof MyClass` is `false`. "Cannot clone" undersells
@@ -681,7 +681,7 @@ add(2, 3); // 5
 
 ### ESM vs. CommonJS, and why it matters for bundling
 
-**ESM (`import`/`export`) vs. CommonJS (`require`/`module.exports`):** ESM is statically
+**ESM (ECMAScript Modules) (`import`/`export`) vs. CommonJS (`require`/`module.exports`):** ESM is statically
 analyzable — imports/exports are resolved at parse time, before any code runs, which is exactly
 what makes **tree shaking** possible (a bundler can prove which exports are unused and delete
 them, because the import graph is static). CommonJS resolves `require()` calls at runtime,

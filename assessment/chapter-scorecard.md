@@ -25,7 +25,7 @@ doesn't already have one.
 | 01 | Foundations | | | | | | | |
 | 02 | State & Events | | | | | | | |
 | 03 | Side Effects & Lifecycle | | | | | | | |
-| 04 | Refs & the DOM | | | | | | | |
+| 04 | Refs & the DOM (Document Object Model) | | | | | | | |
 | 05 | Context & useReducer | | | | | | | |
 | 06 | Performance & React Compiler | | | | | | | |
 | 07 | React 19 & 19.2 | | | | | | | |
@@ -33,12 +33,12 @@ doesn't already have one.
 | 09 | Forms in Depth | | | | | | | |
 | 10 | Routing | | | | | | | |
 | 11 | Data Fetching & Server State | | | | | | | |
-| 12 | API Integration, Auth & Security | | | | | | | |
+| 12 | API (Application Programming Interface) Integration, Auth & Security | | | | | | | |
 | 13 | Global State Management | | | | | | | |
 | 14 | TypeScript with React | | | | | | | |
 | 15 | Testing | | | | | | | |
 | 16 | Error Handling, Debugging & Observability | | | | | | | |
-| 17 | Architecture, SSR & RSC | | | | | | | |
+| 17 | Architecture, SSR (Server-Side Rendering) & RSC (React Server Components) | | | | | | | |
 | 18 | Frontend Application Architecture | | | | | | | |
 | 19 | React Internals | | | | | | | |
 | 20 | Accessibility & Web Vitals | | | | | | | |

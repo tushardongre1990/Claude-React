@@ -11,7 +11,7 @@
 - When you actually need global state (decision framework — cross-referenced with ch.18)
 - Context + useReducer as a baseline solution
 - Redux Toolkit: slices, thunks, RTK Query overview
-- Zustand: minimal API, selectors, middleware
+- Zustand: minimal API (Application Programming Interface), selectors, middleware
 - Jotai and the atomic state model
 - Trade-off comparison for interview discussion (boilerplate, performance, learning curve)
 - State colocation principle — keeping state as local as possible

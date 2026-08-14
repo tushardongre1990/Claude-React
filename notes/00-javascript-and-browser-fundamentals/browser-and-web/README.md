@@ -21,15 +21,15 @@ flowchart LR
     Paint --> Composite["Composite<br/>(GPU layers)"]
 ```
 
-- **DOM** — the parsed HTML document tree. **CSSOM** — the parsed CSS rule tree. Both must be
-  ready before the **render tree** can be built (the render tree is the DOM filtered to only
-  visible nodes, each merged with its computed styles).
+- **DOM (Document Object Model)** — the parsed HTML document tree. **CSSOM (CSS Object Model)**
+  — the parsed CSS rule tree. Both must be ready before the **render tree** can be built (the
+  render tree is the DOM filtered to only visible nodes, each merged with its computed styles).
 - **Layout (a.k.a. reflow)** — computing the exact size/position of every render-tree node.
   Expensive because it can cascade: changing one element's size can shift everyone after it.
 - **Paint** — filling in pixels (text, colors, borders, shadows) into layers.
-- **Composite** — combining painted layers onto the screen, potentially using the GPU
-  (transforms/opacity can be composited without repainting, which is why animating those two
-  properties is cheap and animating `width`/`top` is expensive).
+- **Composite** — combining painted layers onto the screen, potentially using the GPU (Graphics
+  Processing Unit) (transforms/opacity can be composited without repainting, which is why
+  animating those two properties is cheap and animating `width`/`top` is expensive).
 
 **Reflow vs. repaint, precisely:** a *repaint* is needed when visual appearance changes without
 affecting layout (e.g. `color`, `background`). A *reflow* is needed when geometry changes
@@ -47,9 +47,9 @@ visible flash, at the cost of blocking paint if the work is heavy.
 
 ---
 
-## 2. Storage & browser APIs
+## 2. Storage & browser APIs (Application Programming Interfaces)
 
-| Mechanism | Persists? | Size | Sync/Async | Sent with every HTTP request? |
+| Mechanism | Persists? | Size | Sync/Async | Sent with every HTTP (HyperText Transfer Protocol) request? |
 |---|---|---|---|---|
 | `localStorage` | Yes (until cleared) | ~5-10MB | Sync | No |
 | `sessionStorage` | Tab lifetime only | ~5-10MB | Sync | No |
@@ -86,6 +86,10 @@ sequenceDiagram
     Browser->>Browser: Parse & render
 ```
 
+**DNS (Domain Name System)** resolves a hostname to an IP (Internet Protocol) address. **TCP
+(Transmission Control Protocol)** establishes a reliable connection; **TLS (Transport Layer
+Security)** is the encryption handshake that makes HTTP into HTTPS (HTTP Secure).
+
 **HTTP/1.1 → 2 → 3, precisely (a good senior-level distinction to have ready):**
 - HTTP/1.1 serializes requests per connection (one at a time per connection, hence workarounds
   like opening many connections / domain sharding) — this is **HTTP-level** head-of-line
@@ -94,9 +98,9 @@ sequenceDiagram
   that HTTP-level head-of-line blocking. But because it still rides on TCP, if a single TCP
   packet is lost, **all** multiplexed streams on that connection stall until it's
   retransmitted — **TCP-level** head-of-line blocking remains.
-- HTTP/3 moves the transport to QUIC (over UDP), which multiplexes streams independently at the
-  transport layer itself — a lost packet only stalls the one stream it belonged to, finally
-  removing head-of-line blocking at both levels.
+- HTTP/3 moves the transport to QUIC (over UDP, User Datagram Protocol), which multiplexes
+  streams independently at the transport layer itself — a lost packet only stalls the one
+  stream it belonged to, finally removing head-of-line blocking at both levels.
 
 ```mermaid
 flowchart TB
@@ -122,8 +126,8 @@ flowchart TB
 - The practical distinction: `max-age` avoids the request entirely until it expires; `ETag`
   still makes a request but can avoid re-downloading the body.
 
-**CDNs** cache static assets at edge locations geographically close to the user, cutting
-latency and offloading the origin server — this is why build tooling fingerprints filenames
+**CDNs (Content Delivery Networks)** cache static assets at edge locations geographically close
+to the user, cutting latency and offloading the origin server — this is why build tooling fingerprints filenames
 (`app.a1b2c3.js`) so a CDN/browser can cache them forever and safely bust the cache only when
 content actually changes.
 
@@ -135,7 +139,7 @@ content actually changes.
 tuple `(scheme, host, port)`. By default, a script from one origin cannot read the response of
 a request to a different origin, and cannot read another origin's cookies/localStorage/DOM.
 
-**CORS** is the *opt-in relaxation* of SOP — a server explicitly allows specific other origins
+**CORS (Cross-Origin Resource Sharing)** is the *opt-in relaxation* of SOP — a server explicitly allows specific other origins
 to read its responses via `Access-Control-Allow-Origin` (and related headers). A "simple"
 cross-origin request still happens; CORS only controls whether the browser lets your JS *read*
 the response. A "non-simple" request (custom headers, non-GET/POST/HEAD, certain content types)
@@ -200,11 +204,11 @@ CSP's `frame-ancestors`.
 
 ---
 
-## 5. SPA-relevant browser concepts
+## 5. SPA (Single Page Application)-relevant browser concepts
 
 - **History API** (`pushState`/`replaceState`/`popstate`) — what client-side routers (React
-  Router, ch.10) are built on: changing the URL and browser history without a full page
-  navigation/reload.
+  Router, ch.10) are built on: changing the URL (Uniform Resource Locator) and browser history
+  without a full page navigation/reload.
 - **iframes & `postMessage`** — the sanctioned way for two different-origin windows/iframes to
   communicate, since SOP otherwise blocks them from touching each other's DOM/JS directly;
   `postMessage` requires the receiver to explicitly opt in and should always verify
