@@ -257,11 +257,13 @@ up separately above.
   and `inputElement.value` (the DOM property, always current) can disagree once a user types.
 
 > **Interview framing:** "how does JSX become the DOM" is a favorite basic-but-revealing
-> question. A strong answer chains all three steps explicitly — compiles to `createElement`/
-> `jsx()` calls → produces a plain-object element tree → React's renderer walks that tree during
-> the commit phase (§4) and performs the actual DOM mutations. Answering "JSX gets turned into
-> HTML" conflates two different things (a JS object vs. actual DOM) and is the tell of someone
-> who hasn't looked underneath the syntax.
+> question. A strong answer chains all four steps explicitly — compiles to `createElement`/
+> `jsx()` calls → produces a plain-object element tree → React renders/reconciles that tree
+> against the previous one (§4's **render phase**) → commits the resulting DOM mutations (§4's
+> **commit phase**). Answering "JSX gets turned into HTML" conflates two different things (a JS
+> object vs. actual DOM) and is the tell of someone who hasn't looked underneath the syntax;
+> collapsing reconciliation and commit into a single unnamed step is the next most common
+> imprecision, worth avoiding now that §4 gives you the vocabulary to be exact about it.
 
 ---
 
@@ -598,8 +600,11 @@ Everything else is either one of those two, or something that shapes *which* com
 state update actually reaches:
 
 1. **Initial render** — the very first time a component tree is displayed, kicked off by the
-   `createRoot(...).render(<App />)` call covered in §7. Every component in the tree renders
-   once simply because the app is starting up, before any state has changed at all.
+   `createRoot(...).render(<App />)` call covered in §7. Every component in the tree participates
+   in this initial render simply because the app is starting up, before any state has changed at
+   all (in development, under Strict Mode, the render logic for that initial pass may itself be
+   invoked twice per component — §8 — but that's a dev-only stress test of the same initial
+   render, not a second independent trigger).
 2. **State update** — calling a `useState` setter, or dispatching to a `useReducer` (ch.02/05),
    with a value that's actually different from the current one (see the bail-out note below) —
    in the component itself, or in an ancestor (an ancestor's state update is what "a parent
@@ -926,7 +931,11 @@ favorite "spot the bug" interview snippet for exactly that reason — see
 
 - Ternaries nest badly — a ternary-of-ternaries is a real readability trap; switch to early
   returns or an assigned variable once you're past two branches.
-- `&&` is concise but hides the `0`/`NaN`/`''` footgun above.
+- `&&` is concise but hides the footgun above — specifically for **numeric** falsy values (`0`,
+  `NaN`): React renders numbers as visible text, so a falsy number on the left of `&&` leaks
+  into the UI. `false`, `null`, `undefined`, and `''` don't have this problem — React treats
+  `false`/`null`/`undefined` as "holes" it renders nothing for, and an empty string renders as
+  an empty (invisible) text node either way, so none of those three produce stray visible text.
 - Early returns are clearest for "this component has a few mutually-exclusive whole-output
   states" (loading/error/empty/success), but note: hooks must still be called unconditionally
   *before* any early return — you can't put a conditional early return above a `useState`/
@@ -1010,11 +1019,12 @@ do *inside* the mounted tree changed (Actions, the `use` API, etc. — ch.07).
   be needed.
 
 > **Interview framing:** "what's the difference between `ReactDOM.render` and `createRoot`" is
-> as much a legacy-knowledge check as a current-API check — the real answer is that `render` was
-> synchronous-only and blocked concurrent features entirely, while `createRoot` makes automatic
-> batching apply everywhere and makes concurrent-rendering APIs like transitions available to opt
-> into (not automatically active). Knowing `createRoot` is an **18-era** API (not 19-era) is a
-> small but real precision signal.
+> as much a legacy-knowledge check as a current-API check — the real answer, consistent with the
+> nuance above: legacy `render` had no access to React 18's concurrent-rendering model at all
+> (no automatic batching everywhere, no transitions, full stop), while `createRoot` makes
+> automatic batching apply everywhere unconditionally and makes concurrent-rendering APIs like
+> transitions *available* to opt into (not automatically active just from mounting with it).
+> Knowing `createRoot` is an **18-era** API (not 19-era) is a small but real precision signal.
 
 ---
 

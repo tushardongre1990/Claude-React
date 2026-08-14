@@ -252,3 +252,18 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   citations for completeness against the "every specific claim is cited" policy:
   `reference/react/createElement` (component/element/DOM distinction) and
   `reference/react/useContext` (context consumers re-rendering).
+- **2026-08-14 (seventh pass, same day):** A fifth external (ChatGPT) review, run against the
+  fully-cited version, found the chapter at ~9.5/10 with one genuine internal inconsistency and
+  a few wording refinements. Fixed: §1's "how does JSX become the DOM" interview-framing box
+  said React's renderer "walks that tree during the commit phase" — contradicting §4's own
+  (correct) explanation that reconciliation happens during the **render** phase and only DOM
+  mutations happen during **commit**. Reworded to name both phases correctly and explicitly.
+  Reworded "every component in the tree renders once" (initial-render trigger) to avoid reading
+  as inconsistent with §8's own explanation that Strict Mode may invoke render logic twice in
+  development. Verified the `&&`/`0` footgun claim precisely against `learn/conditional-rendering`
+  (`false` is explicitly a "hole" that renders nothing; `0` explicitly is NOT) and narrowed the
+  "0/NaN/''" grouping to just the numeric case (`0`/`NaN`) — an empty string doesn't produce the
+  same visible-junk problem, so grouping it with `0`/`NaN` overstated the footgun. Smoothed the
+  `createRoot`-vs-legacy-`render` interview framing for consistency with the more nuanced
+  paragraph immediately above it (kept the substance — legacy `render` genuinely has no access
+  to React 18's concurrent model at all — just aligned the tone).
