@@ -125,3 +125,10 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   written), and `structuredClone`'s behavior on custom class instances is a **silent** data
   loss (prototype/methods dropped, no error thrown), not a hard failure like functions/DOM
   nodes — the original wording implied a uniform "cannot clone" failure mode across all three.
+- **2026-08-14:** Corrected a wrong assumption: the user is **not** a fluent React user and is
+  learning React for the first time, not just brushing up. Ch.01's notes (originally written
+  assuming React fluency) were rewritten from scratch to teach every concept from zero, using
+  the same "start here" plain-language build-up ch.00 already uses for JS mechanics. This now
+  applies project-wide to every chapter's React content, not just ch.00's JS content — see
+  `CLAUDE.md`'s "User preferences / how to teach this user" section, which is the source of
+  truth for this going forward.

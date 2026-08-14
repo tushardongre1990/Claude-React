@@ -222,23 +222,35 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
 
 ## User preferences / how to teach this user
 
-- Treat the user as an experienced engineer, not a beginner, **except specifically on core
-  JavaScript mechanics** (see the next bullet — this was corrected 2026-08-13 after the
-  original "assume JS/ES6+ fluency" framing turned out to be wrong). General software
-  engineering judgment and prior React/practical exposure can still be assumed; deep JS
-  language mechanics cannot.
+- **Correction (2026-08-14): the user is NOT a fluent React user and is learning React for the
+  first time.** The original framing (treat the user as an experienced React engineer, assume
+  fluency) was wrong and is superseded by this note — do not revert to it. Chapter 01's notes
+  were written assuming fluency and had to be rewritten from scratch for this reason; every
+  chapter from here on (and any already-written chapter, if revisited) must teach React
+  concepts from zero, not assume prior React exposure.
+- **Standing instruction, applies to every chapter/concept, not just React:** every concept —
+  React-specific or JS (see below) — must build up from a plain-language "start here"
+  explanation (what problem does this solve, in plain terms, with a minimal example) before
+  reaching the interview-depth precision layer and interview framing. This is the same
+  structure ch.00's `javascript/README.md` already uses for JS mechanics; it now applies
+  project-wide, including all React content. Don't assume the reader already knows what a
+  "component," "render," "prop," etc. means — define it the first time it's used in each
+  chapter, even if a prior chapter already defined it, briefly enough not to bloat the notes
+  but explicitly enough that skipping straight to a later chapter still works.
+- General software-engineering judgment (reading code, debugging mindset, comfort with
+  tooling/CLI/git) can still be assumed — the gap is specifically React-the-library and, per
+  the note below, deep JS language mechanics. Don't over-correct into explaining unrelated
+  basics (what a function is, what npm is, etc.) that aren't React- or JS-mechanics-specific.
 - **The user's actual JS level (stated 2026-08-13): comfortable with everyday JS — variables,
   functions, arrays, objects, loops — but not deep language mechanics** (closures, `this`,
   prototypes, the event loop, promises, equality/references, modules, GC — i.e. most of
   ch.00). **Whenever a JS concept comes up, anywhere in the curriculum, teach/explain it
   in full rather than assuming it** — this is a standing, explicit instruction, not a
-  one-time ask. Ch.00's `javascript/README.md` was rewritten 2026-08-13 so every section
-  starts with a plain-language "start here" explanation before reaching the interview-depth
-  precision layer — use that same build-up structure (basics → simple example → precise
-  mental model → interview nuance) whenever a new JS concept is introduced in a later
-  chapter too, not just in ch.00. React/architecture-level content elsewhere in the
-  curriculum still assumes a strong, experienced engineer — this exception is scoped to core
-  JS language mechanics specifically.
+  one-time ask.
+- Interview framing (per the bullet further down) is still valuable and should still be
+  included — but it comes *after* the plain-language foundation for each concept, not instead
+  of it. A first-time-learner explanation and interview-caliber precision are not in tension;
+  the notes should do both, in that order, for every concept.
 - **Explain concepts via code examples and Mermaid diagrams as much as possible** — this was
   an explicit request. Use Mermaid for anything that's a state machine, a sequence/timing
   relationship, a tree/hierarchy, or a decision flowchart (closures/scope, the event loop,
