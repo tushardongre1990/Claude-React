@@ -12,6 +12,12 @@ explanation first, precise mechanism second, interview framing third. Don't skip
 here" parts even if a section starts to feel obvious partway through; the precision layer
 builds directly on them.
 
+> **React version note:** these notes target modern React 19.x (currently 19.2, per
+> `app/package.json`). Where current behavior differs from older React versions you're likely to
+> encounter in existing codebases or interview questions (e.g. `defaultProps`, `ref` as a prop,
+> `createRoot` vs. legacy `ReactDOM.render`), the historical difference is called out explicitly
+> rather than assumed.
+
 ---
 
 ## 0. What React actually is, and the problem it solves
@@ -149,13 +155,15 @@ Either way, the call **returns a plain JavaScript object** describing what you a
 something shaped roughly like `{ type: 'h1', props: { className: 'title', children: [...] } }`.
 This is called a **React element**. It is inert data, nothing more — not a DOM node, and it
 doesn't render anything by itself just by existing. It only becomes real DOM once React's
-renderer (`react-dom`) walks that object tree and creates actual DOM nodes to match it.
+renderer (`react-dom`) uses that element tree as the description of the UI, compares it against
+what's already on screen (§4 covers this comparison — **reconciliation** — precisely), and
+commits whatever DOM changes are actually needed.
 
 ```mermaid
 flowchart LR
     jsx["JSX you write:\n&lt;h1&gt;Hello, {name}&lt;/h1&gt;"] -->|compiler: Vite / Babel / TS| call["Function call:\njsx('h1', { children: [...] })"]
     call -->|returns| element["React element\n(a plain JS object — just a description)"]
-    element -->|React walks the tree and creates/updates nodes| dom["Real DOM node\n(what you actually see on screen)"]
+    element -->|reconciled, then committed — §4| dom["Real DOM node\n(what you actually see on screen)"]
 ```
 
 **Why this matters beyond trivia:** understanding that JSX → element (plain object) → DOM is
@@ -169,6 +177,19 @@ a two-step process, not one, explains a lot of things that otherwise look magica
   imports `jsx`/`jsxs` from `react/jsx-runtime` for you instead, so that import is no longer
   needed. If you ever see an old codebase with an apparently-unused `import React from 'react'`
   at the top of every file, that's the classic transform's fingerprint, not dead code.
+
+Three terms that get used loosely but mean genuinely different things — worth having crisp,
+since conflating them is a common source of confused explanations under interview pressure:
+
+| Term | What it actually is |
+|---|---|
+| **Component** | A JS function (or class) you write, that *describes* UI — the blueprint. |
+| **React element** | The plain-object output of calling that description (`{ type, props }`) for one specific render — inert data, not yet on screen. |
+| **DOM node** | The actual browser object that ends up rendered on screen, which React creates/updates to match the element tree. |
+
+`<Counter />` refers to the *component*; calling it (which React does for you) produces a
+*React element*; React then reconciles that element tree and commits the resulting *DOM nodes*.
+All three are related but distinct, and each has already come up separately above.
 
 ### JSX syntax rules, and *why* each one exists
 
@@ -186,7 +207,7 @@ a two-step process, not one, explains a lot of things that otherwise look magica
   to "look up the variable named `Counter` and use *that* as the type" (meaning "this is a
   component I wrote"). A lowercase custom component name would be treated as an unknown HTML
   tag string instead of your component, and silently fail to render what you intended.
-- **Attributes use `camelCase`**, e.g. `strokeWidth` instead of `stroke-width`, `onClick`
+- **Attributes use `camelCase`** — `strokeWidth` instead of `stroke-width`, `onClick`
   instead of `onclick`, and — the one worth having precise — `className` instead of `class` and
   `htmlFor` instead of `for`. React's own docs give the exact reason directly: JSX attributes
   become the keys of a JavaScript object (the props object, from §1's compile step), and you
@@ -203,6 +224,15 @@ a two-step process, not one, explains a lot of things that otherwise look magica
   not an arbitrary substitute, but the name already used by the DOM's own
   [`element.className`](https://developer.mozilla.org/en-US/docs/Web/API/Element/className)
   property — and `htmlFor` follows the same pattern.
+
+  **Two genuine exceptions to the camelCase rule, worth knowing so you don't "fix" them by
+  mistake:** `aria-*` and `data-*` attributes keep their HTML dashed spelling as-is in JSX —
+  `aria-label`, `data-testid`, not `ariaLabel`/`dataTestid`. React's own docs call this out as a
+  historical exception, not an oversight:
+
+  ```jsx
+  <div className="card" tabIndex={0} aria-label="Profile" data-testid="profile" />
+  ```
 
   This distinction between HTML *attributes* (strings in markup) and DOM *properties*
   (JavaScript object fields on the live element) is a genuinely useful thing to have precise for
@@ -233,7 +263,16 @@ function Greeting({ name }) {
 
 `Greeting` is a plain JavaScript function. React calls it for you (you never call it yourself as
 `Greeting()`; instead you write `<Greeting name="Ada" />` in JSX, and React handles invoking the
-function with the right arguments — this is one of the things the JSX compile step sets up).
+function with the right arguments — this is one of the things the JSX compile step sets up). The
+difference between these two is worth having explicit, since it's a real interview distinction,
+not just a stylistic one: `Greeting()` is an ordinary synchronous function call — it runs
+immediately, right where it's written, and you get back whatever it returns. `<Greeting />`
+compiles to `jsx(Greeting, {...})` (§1) — it does **not** call `Greeting` itself; it produces a
+React element that *describes* "render `Greeting` here," and React decides if/when to actually
+call the function, as part of its own render process. This is exactly why React can do things
+like skip calling a component entirely (`memo`, ch.06) or call it twice on purpose (Strict Mode,
+§8) — those are only possible because *React*, not your code, controls the call.
+
 Whatever JSX the function returns is what gets shown on screen for that piece of the page. If
 the function runs again later (because something it depends on changed), whatever it returns
 *this* time replaces what was shown before — this "run the function again to get updated UI" is
@@ -298,6 +337,13 @@ displayed, reading values from a Context, and more. `useState` itself (what `con
 setCount] = useState(0)` means precisely) is the subject of ch.02 — for this chapter, the only
 thing to internalize is *why* hooks exist at all: they're what turn an ordinary, stateless
 function into something that can behave like a living, updating piece of UI.
+
+One constraint worth knowing exists even before ch.02 covers the mechanics and full reasoning —
+React's **Rules of Hooks**, stated as two rules: (1) only call Hooks at the top level of a
+component (never inside a loop, condition, or nested function, and never after an early
+`return`), and (2) only call Hooks from a React function component or another Hook (never from
+a regular JS function). This is *why* §6's conditional-rendering section warns that an early
+return must come *after* all Hook calls, not before.
 
 ### Class components: the older way of doing the same thing
 
@@ -584,7 +630,31 @@ flowchart LR
   catch — see §8 — and it's also what makes advanced features like `useTransition`, ch.06, safe:
   an in-progress render can be abandoned mid-flight with no harm done).
 - **Commit phase**: React actually touches the real DOM here, to match what the render phase
-  just computed, and then runs your Effects. Unlike render, this phase is not interruptible.
+  just computed, and then runs your Effects. Unlike the render phase — which React can pause,
+  throw away, and restart — commit is not treated as discardable, speculative work; React runs
+  it through to completion once it starts.
+
+Four related terms are worth having precisely distinct, since they get used loosely and
+conflated in casual explanations:
+- **Render** — React calling a component function to compute what it should display.
+- **Re-render** — the informal, everyday word for "render happening again," after the initial
+  one — not a separate mechanism, just render happening more than once over a component's life.
+- **Reconciliation** — React's comparison of the new element tree against the previous one, to
+  figure out what actually changed (part of the render phase, above).
+- **Commit** — actually applying the result of that comparison to the real DOM.
+
+### Mount, update, and unmount: naming a component's lifecycle
+
+Three more terms, used constantly once Effects (ch.03) and class lifecycle methods enter the
+picture, worth defining precisely here since this chapter already leans on them implicitly:
+
+- **Mount** — the first time a particular component appears in the tree and gets its first
+  render + commit. A fresh `<Counter />` showing up on screen for the first time is "mounting."
+- **Update** — an already-mounted component rendering again (a re-render) because its own state
+  changed, or a parent re-rendered and passed new props, or a Context value it reads changed.
+- **Unmount** — the component being removed from the tree entirely — its DOM node(s) removed,
+  its state discarded. This is exactly when an Effect's cleanup function (ch.03) runs for the
+  last time, and it's the class-component equivalent of `componentWillUnmount`.
 
 ### Two nuances that show up constantly as "gotcha" questions
 
@@ -610,6 +680,26 @@ array with a **new reference** (rather than mutating the existing one in place) 
 `setUser({ ...user, name })` creates a new object, so React sees a different reference and
 re-renders; `user.name = name; setUser(user)` passes back the *same* reference, so React sees
 "no change" and can skip work — even though the object's contents did change.
+
+**A preview worth having, even though the full mechanics belong to ch.02:** because state
+updates read the snapshot value from the render that scheduled them (the stale-closure point
+above), calling a setter multiple times in a row using the *current* variable doesn't stack the
+way you might expect:
+
+```jsx
+setCount(count + 1); // all three read the SAME `count` snapshot from this render —
+setCount(count + 1); // this only ever moves count from, say, 0 to 1, not to 3
+setCount(count + 1);
+```
+
+The fix is the **updater function** form, which receives the *latest* pending value instead of
+the render's snapshot:
+
+```jsx
+setCount((c) => c + 1); // each call receives the previous call's result — correctly reaches 3
+setCount((c) => c + 1);
+setCount((c) => c + 1);
+```
 
 > **Interview framing:** "why does React batch state updates" is asking about a **performance**
 > optimization, not a correctness one — be precise about that distinction if asked. React groups
@@ -661,9 +751,11 @@ React's own docs frame it well: a key is like a filename — it lets React ident
 renders even if its *position* in the array changes, because a well-chosen key carries more
 information than array position alone does.
 
-### If you don't specify a key, React uses the array index
+### If you don't specify a key, React falls back to the item's position
 
-This works fine as long as the list never reorders, filters, or has items inserted/removed
+Rendering an array without explicit keys doesn't mean nothing happens — React falls back to
+using each item's position/index in the array as its implicit identity for reconciliation. This
+works fine as long as the list never reorders, filters, or has items inserted/removed
 anywhere but the very end. The moment it does, index-as-key breaks the matching:
 
 ```mermaid
@@ -717,9 +809,13 @@ its own logic, you have to pass it again under a different name:
 <User key={user.id} userId={user.id} />
 ```
 
-This trips people up because every other JSX attribute *does* flow through as a prop — `key`
-(and, similarly, `ref` in versions of React before 19 — see ch.04/ch.07) is the exception, not
-the rule.
+This trips people up because every other JSX attribute *does* flow through as a prop — `key` is
+the exception, not the rule. `ref` used to be a second exception with its own special handling
+(requiring `forwardRef` to receive a ref in a function component, because — like `key` — it
+wasn't passed through as a normal prop either), but that's a React-before-19 detail now: **as of
+React 19, function components can receive `ref` directly as a regular prop**, no `forwardRef`
+needed (ch.04/ch.07 cover this properly). `key` remains the one attribute that's never passed
+through, in every version of React up to and including 19.2.
 
 **When is index-as-key actually fine?** When the list is static and will never reorder, filter,
 or have items inserted/removed anywhere but the end — e.g. a fixed set of lines in a poem that
@@ -737,12 +833,15 @@ answer, with the static-list case named as the explicit exception rather than le
 
 ## 6. Conditional rendering patterns and their trade-offs
 
-### Start here: there's no special "if" syntax in JSX
+### Start here: there's no JSX-specific conditional syntax
 
-Recall from §1: `{}` in JSX is an **expression slot**, and `if` is a statement, not an
-expression — so you can't write `{if (x) { ... }}` directly inside JSX. "Conditional rendering"
-in React is really just "which value do I put in this expression slot," using ordinary JS
-expression-shaped tools:
+To be precise about what this means: `if` works perfectly well in a component — it's completely
+ordinary JavaScript, and React's own docs confirm you conditionally render using plain JS tools
+like `if`, `&&`, and `? :`. What doesn't exist is a *JSX-specific* conditional tag or syntax
+inside the markup itself — recall from §1: `{}` in JSX is an **expression slot**, and `if` is a
+statement, not an expression, so you can't write `{if (x) { ... }}` directly inside a JSX tree.
+"Conditional rendering" in React is really just "which value do I put in this expression slot
+(or what do I choose to return before I get there)," using ordinary JS tools:
 
 ```jsx
 // Ternary — good for "either A or B", especially inline

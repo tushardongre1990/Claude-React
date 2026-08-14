@@ -189,3 +189,26 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   listing four numbered items including Context as if a third) — restructured so initial
   render/state-update are the two root causes and parent-rerender/context-consumers are
   explicitly framed as consequences/modifiers, not independent triggers.
+- **2026-08-14 (fourth pass, same day):** A third external (ChatGPT) review, run against the
+  current state, found the chapter substantially correct (~9/10) with a few precision gaps and
+  worthwhile additions still within existing topics. One claimed factual fix — that React 19
+  changed `useMemo`/`useCallback` to reuse the first Strict Mode render's memoized result on the
+  second render — was checked directly against react.dev (the React 19 blog post, the
+  `StrictMode` reference page, and the `useMemo` reference page's own Caveats/Troubleshooting
+  sections) and found to be **unsupported**: the docs state React calls the calculation function
+  twice and uses one call's result, discarding the other — not that the second call reuses the
+  first's result. That specific "fix" was **not applied**. Genuinely applied, each verified by
+  exact quote first: `aria-*`/`data-*` attributes as camelCase exceptions (confirmed on
+  `writing-markup-with-jsx`); the two Rules of Hooks stated briefly (confirmed on
+  `rules/rules-of-hooks`); `ref`-as-a-prop in React 19 tied explicitly to the `key`-is-not-a-prop
+  section, since it's the same "exception to normal prop flow" pattern (confirmed on the React
+  19 blog). Added within existing topics, not new ones: a component/React-element/DOM-node
+  comparison table in §1; an explicit `<Greeting />` vs. `Greeting()` distinction in §2; a
+  render/re-render/reconciliation/commit glossary and a mount/update/unmount subsection in §4;
+  a brief `setCount(count + 1)` vs. `setCount(c => c + 1)` batching preview in §4 (full mechanics
+  still deferred to ch.02); minor wording softenings (commit-phase "not interruptible" reframed
+  as "not treated as discardable," the index-as-key fallback phrased as "implicit identity"
+  rather than implying React literally writes `key={index}`); and a top-of-chapter React-version
+  note. Rejected as already accurate on re-verification: the "minimal DOM changes" wording (§0)
+  — react.dev's own `render-and-commit` page uses the phrase "minimal necessary operations," so
+  softening it further would have been a regression, not a fix.
