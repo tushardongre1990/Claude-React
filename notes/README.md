@@ -267,3 +267,23 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   `createRoot`-vs-legacy-`render` interview framing for consistency with the more nuanced
   paragraph immediately above it (kept the substance — legacy `render` genuinely has no access
   to React 18's concurrent model at all — just aligned the tone).
+- **2026-08-14 (eighth pass, same day):** Fixed a mermaid parse error the user hit directly when
+  rendering §8's Strict Mode sequence diagram: the `Note over` line used literal `\n` for line
+  breaks, which is valid inside flowchart `["..."]` node labels (used elsewhere in this chapter)
+  but not inside a sequence-diagram `Note`, and broke the parser entirely. First fix collapsed it
+  to one line (parses, but the text overflowed the note box's border) — corrected fix uses `<br/>`
+  (the syntax sequence-diagram notes actually support for line breaks) to wrap it into two lines
+  that render inside the box.
+- **2026-08-14 (ninth pass, same day):** A sixth external (ChatGPT) review flagged that the §4
+  render/commit diagram nested browser paint and `useEffect` inside the "Commit phase" subgraph,
+  overclaiming what commit actually covers. Checked directly against
+  `reference/dev-tools/react-performance-tracks` (not previously consulted) before changing
+  anything, since this contradicted the diagram's existing structure — confirmed the page names
+  **Commit** (DOM mutations + `useLayoutEffect`, synchronous) and a separate, later
+  **"Remaining Effects"** phase for passive effects (`useEffect`, usually after paint) as
+  genuinely distinct steps, with browser paint sitting between them. Restructured the diagram so
+  paint and `useEffect` sit *after* the Commit subgraph rather than inside it, and updated the
+  accompanying prose with the exact quote. Also applied a minor wording fix: "component must
+  return something React can display" was imprecise since `null`/`undefined`/booleans are valid
+  returns but aren't actually displayed — reworded to distinguish visibly-rendered values from
+  validly-empty ones.

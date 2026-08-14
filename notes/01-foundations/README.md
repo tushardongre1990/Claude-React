@@ -299,8 +299,9 @@ the essence of what a **render** is, covered precisely in §4.
 **Two rules that define "what makes something a valid React function component":**
 1. Its name must start with a capital letter (see the JSX capitalization rule in §1 — this is
    why).
-2. It must return something React can display: JSX, a string, a number, `null`, `undefined`, a
-   boolean (renders nothing), or an array/Fragment of any of those.
+2. It must return a value React can render or treat as empty: JSX/elements, strings, and numbers
+   are actually displayed; `null`, `undefined`, and booleans render nothing (they're valid
+   returns, just not visible ones); an array/Fragment of any of those is also valid.
 
 **A third rule, easy to overlook because nothing enforces it at compile time: a component must
 be pure while it's rendering.** React's own framing of this — the
@@ -646,10 +647,10 @@ flowchart LR
         direction TB
         c1["Apply the minimal necessary DOM mutations"]
         c2["Run layout Effects (useLayoutEffect) synchronously"]
-        c3["Browser paints the updated screen"]
-        c4["Run Effects (useEffect) — usually after paint,\nbut may run before paint for interaction-caused updates"]
-        c1 --> c2 --> c3 --> c4
+        c1 --> c2
     end
+    commit --> paint["Browser paints the updated screen"]
+    paint --> passive["Passive Effects phase\nRun Effects (useEffect) — usually after paint,\nbut may run before paint for interaction-caused updates"]
 ```
 
 - **Render phase**: your component function actually runs here, computing what the UI *should*
@@ -663,12 +664,18 @@ flowchart LR
   catch — see §8 — and it's also what makes advanced features like `useTransition`, ch.06, safe:
   an in-progress render can be abandoned mid-flight with no harm done).
 - **Commit phase**: React actually touches the real DOM here, to match what the render phase
-  just computed, and then runs your Effects. Unlike the render phase — which React can pause,
-  throw away, and restart — commit is not treated as discardable, speculative work; React runs
-  it through to completion once it starts. `useEffect` timing specifically: React generally lets
-  the browser paint first for Effects not caused by an interaction, but "may run your Effect
-  before the browser paints the updated screen" for interaction-caused ones — direct wording
-  from [`reference/react/useEffect`](https://react.dev/reference/react/useEffect).
+  just computed, and runs layout Effects (`useLayoutEffect`) synchronously as part of the same
+  phase. Unlike the render phase — which React can pause, throw away, and restart — commit is
+  not treated as discardable, speculative work; React runs it through to completion once it
+  starts. Precisely where `useEffect` fits is worth getting right, since it's a common source of
+  imprecision: it is **not** part of the commit phase. React's own performance-tracks
+  documentation names a separate, later step — **"Remaining Effects"** — for exactly this:
+  "React runs passive effects of a rendered subtree. This usually happens after the paint, and
+  this is when React runs hooks like `useEffect`. One known exception is user interactions, like
+  clicks... in this scenario, this phase could run before the paint."
+  ([`reference/dev-tools/react-performance-tracks`](https://react.dev/reference/dev-tools/react-performance-tracks)).
+  So the accurate ordering is commit (DOM + layout Effects) → browser paint (usually) →
+  `useEffect` — not `useEffect` nested inside commit.
 
 Four related terms are worth having precisely distinct, since they get used loosely and
 conflated in casual explanations:
@@ -1135,6 +1142,8 @@ so any claim can be re-checked directly, grouped by the section that relies on i
 
 - §0, §4 — [`learn/render-and-commit`](https://react.dev/learn/render-and-commit) — render
   triggers, render/commit phases, "minimal necessary operations," reconciliation.
+- §4 — [`reference/dev-tools/react-performance-tracks`](https://react.dev/reference/dev-tools/react-performance-tracks)
+  — the precise Commit vs. paint vs. "Remaining Effects" (`useEffect`) ordering.
 - §1 — [`learn/writing-markup-with-jsx`](https://react.dev/learn/writing-markup-with-jsx) —
   JSX transform, single-root rule, camelCase attributes and the `class`/`for` reserved-word
   reasoning, the `aria-*`/`data-*` exception.
