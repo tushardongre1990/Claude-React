@@ -212,3 +212,18 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   note. Rejected as already accurate on re-verification: the "minimal DOM changes" wording (§0)
   — react.dev's own `render-and-commit` page uses the phrase "minimal necessary operations," so
   softening it further would have been a regression, not a fix.
+- **2026-08-14 (fifth pass, same day):** New standing instruction from the user: verified claims
+  need a **visible source link in the notes themselves**, not just verification that happened in
+  a chat turn, so claims can be re-checked independently later — recorded in `CLAUDE.md`'s
+  "Accuracy & currency practice" section. Retrofitted into ch.01: added inline citation links at
+  the specific claims that had gone through correction cycles (JSX transform, `className`/`for`
+  reasoning, `aria-*`/`data-*` exception, component purity, Rules of Hooks, Error Boundaries/
+  `getSnapshotBeforeUpdate`, `defaultProps` removal, render triggers, `useEffect` paint timing,
+  automatic batching, the updater-function example, keys, `ref`-as-prop, conditional rendering,
+  `createRoot`, Strict Mode), plus a `## Sources` section at the end of the chapter mapping every
+  official doc used to the section that relies on it. Two claims already in the chapter that had
+  never actually been independently verified (only asserted, or cited secondhand via an external
+  review) were checked for the first time while adding their citations: `defaultProps` removal
+  wording (confirmed against the React 19 upgrade guide) and the updater-function batching
+  example (confirmed against `learn/queueing-a-series-of-state-updates`) — both held up as
+  written, no corrections needed.

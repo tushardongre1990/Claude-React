@@ -58,7 +58,9 @@ anything changes.
 
 React lets you write **declarative** UI code instead: you describe *what* the UI should look
 like for a given set of data, and React figures out *how* to make the actual DOM match that
-description — including figuring out the minimal set of real DOM changes needed, which is the
+description — including figuring out the minimal set of real DOM changes needed (React's own
+docs use this exact phrase — "minimal necessary operations" — for what happens during commit;
+see [`learn/render-and-commit`](https://react.dev/learn/render-and-commit)), which is the
 hard, error-prone part you'd otherwise be doing by hand.
 
 ```jsx
@@ -143,8 +145,9 @@ compiles to (the **classic transform** — what you'd have seen in React before 
 const el = React.createElement("h1", { className: "title" }, "Hello, ", name);
 ```
 
-or, with the **modern automatic JSX transform** (the default since React 17, and what this
-project's Vite setup uses):
+or, with the **modern automatic JSX transform**
+([`learn/writing-markup-with-jsx`](https://react.dev/learn/writing-markup-with-jsx) — the
+default since React 17, and what this project's Vite setup uses):
 
 ```js
 import { jsx as _jsx } from "react/jsx-runtime";
@@ -215,7 +218,9 @@ All three are related but distinct, and each has already come up separately abov
   destructuring a component's props, exactly like `function Greeting({ name })` in §2/§3 below.
   JavaScript variable/binding names have real restrictions that object property *keys* don't:
   they can't contain dashes (`stroke-width` isn't a legal identifier, hence `strokeWidth`), and
-  they can't be reserved words like `class` — so `function Img({ class }) { ... }` is an actual
+  they can't be reserved words like `class`
+  ([`learn/writing-markup-with-jsx`](https://react.dev/learn/writing-markup-with-jsx) states this
+  directly) — so `function Img({ class }) { ... }` is an actual
   `SyntaxError`, not just bad style, because that destructuring shorthand tries to declare a
   variable literally named `class`. (This is genuinely narrower than "objects can't have `class`
   as a key at all" — `{ class: 'x' }` and `el.class` are both fine; it's specifically the
@@ -227,8 +232,9 @@ All three are related but distinct, and each has already come up separately abov
 
   **Two genuine exceptions to the camelCase rule, worth knowing so you don't "fix" them by
   mistake:** `aria-*` and `data-*` attributes keep their HTML dashed spelling as-is in JSX —
-  `aria-label`, `data-testid`, not `ariaLabel`/`dataTestid`. React's own docs call this out as a
-  historical exception, not an oversight:
+  `aria-label`, `data-testid`, not `ariaLabel`/`dataTestid`.
+  [`learn/writing-markup-with-jsx`](https://react.dev/learn/writing-markup-with-jsx) calls this
+  out directly as a historical exception, not an oversight:
 
   ```jsx
   <div className="card" tabIndex={0} aria-label="Profile" data-testid="profile" />
@@ -285,8 +291,9 @@ the essence of what a **render** is, covered precisely in §4.
    boolean (renders nothing), or an array/Fragment of any of those.
 
 **A third rule, easy to overlook because nothing enforces it at compile time: a component must
-be pure while it's rendering.** React's own framing of this (the "Rules of React") is precise
-enough to quote directly — a component must be:
+be pure while it's rendering.** React's own framing of this — the
+[Rules of React: components and Hooks must be pure](https://react.dev/reference/rules/components-and-hooks-must-be-pure)
+— is precise enough to quote directly — a component must be:
 - **Idempotent** — given the same props/state/context, it always returns the same JSX.
 - **Free of side effects during render** — the function body itself must not modify external
   variables, touch the DOM, start subscriptions, or make network calls. Side effects still have
@@ -339,7 +346,8 @@ thing to internalize is *why* hooks exist at all: they're what turn an ordinary,
 function into something that can behave like a living, updating piece of UI.
 
 One constraint worth knowing exists even before ch.02 covers the mechanics and full reasoning —
-React's **Rules of Hooks**, stated as two rules: (1) only call Hooks at the top level of a
+React's **[Rules of Hooks](https://react.dev/reference/rules/rules-of-hooks)**, stated as two
+rules: (1) only call Hooks at the top level of a
 component (never inside a loop, condition, or nested function, and never after an early
 `return`), and (2) only call Hooks from a React function component or another Hook (never from
 a regular JS function). This is *why* §6's conditional-rendering section warns that an early
@@ -402,8 +410,10 @@ actual behavior (state + effects) is expressible with `useState`/`useReducer`/`u
 without a line-for-line lifecycle-method mapping. The one capability that's a genuine, current
 exception — not just "no exact Hook equivalent," but "cannot be done with hooks at all" — is
 **Error Boundaries**: catching render errors from components below you in the tree requires the
-`componentDidCatch` / `static getDerivedStateFromError` contract, and React hasn't shipped a
-Hook-based equivalent for that specific capability.
+`componentDidCatch` / `static getDerivedStateFromError` contract, and
+[react.dev states directly](https://react.dev/reference/react/Component) that "there is
+currently no way to write an Error Boundary as a function component" (the same page also
+confirms `getSnapshotBeforeUpdate` currently has no Hook equivalent).
 
 > **Interview framing:** a common trap question is "can you replace all class components with
 > hooks?" — the precise answer distinguishes two different claims: no Hook maps one-to-one onto
@@ -470,7 +480,10 @@ There used to be a React-specific way to do this (`Button.defaultProps = { varia
 — you may still see it in older code. It's **deprecated** as of React 18.3 and its support was
 **removed entirely for function components in React 19** — always use a JS default parameter
 instead going forward. (This deprecation is function-component-specific; `defaultProps` on
-*class* components still works.)
+*class* components still works — confirmed directly in the
+[React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide): "we're also
+removing `defaultProps` from function components in place of ES6 default parameters. Class
+components will continue to support `defaultProps` since there is no ES6 alternative.")
 
 ### `children`: the prop that isn't passed as an attribute
 
@@ -568,8 +581,9 @@ update" questions are really questions about which of these two steps did or did
 
 ### What triggers a render
 
-React's own docs name exactly two root causes for a component to render at all:
-**initial render**, and **a state update** (in that component, or in one of its ancestors).
+React's own docs ([`learn/render-and-commit`](https://react.dev/learn/render-and-commit)) name
+exactly two root causes for a component to render at all: **initial render**, and **a state
+update** (in that component, or in one of its ancestors).
 Everything else is either one of those two, or something that shapes *which* components a
 state update actually reaches:
 
@@ -623,7 +637,8 @@ flowchart LR
 - **Render phase**: your component function actually runs here, computing what the UI *should*
   look like as a fresh element tree, then React compares that against the previous tree — this
   comparison process is what React's docs call **reconciliation** — to figure out exactly what
-  changed. This phase must be **pure** — no side effects
+  changed ([`learn/render-and-commit`](https://react.dev/learn/render-and-commit)). This phase
+  must be **pure** — no side effects
   (no mutating variables outside the function, no network calls, no touching the DOM directly)
   — because React is allowed to start, throw away, and restart a render without warning if it
   decides to (this is exactly what Strict Mode's double-invoke in development is designed to
@@ -632,7 +647,10 @@ flowchart LR
 - **Commit phase**: React actually touches the real DOM here, to match what the render phase
   just computed, and then runs your Effects. Unlike the render phase — which React can pause,
   throw away, and restart — commit is not treated as discardable, speculative work; React runs
-  it through to completion once it starts.
+  it through to completion once it starts. `useEffect` timing specifically: React generally lets
+  the browser paint first for Effects not caused by an interaction, but "may run your Effect
+  before the browser paints the updated screen" for interaction-caused ones — direct wording
+  from [`reference/react/useEffect`](https://react.dev/reference/react/useEffect).
 
 Four related terms are worth having precisely distinct, since they get used loosely and
 conflated in casual explanations:
@@ -693,7 +711,8 @@ setCount(count + 1);
 ```
 
 The fix is the **updater function** form, which receives the *latest* pending value instead of
-the render's snapshot:
+the render's snapshot (worked example with the same reasoning:
+[`learn/queueing-a-series-of-state-updates`](https://react.dev/learn/queueing-a-series-of-state-updates)):
 
 ```jsx
 setCount((c) => c + 1); // each call receives the previous call's result — correctly reaches 3
@@ -707,7 +726,8 @@ setCount((c) => c + 1);
 > pass instead of one per call, which avoids redundant re-renders. Worth naming explicitly: React
 > 18 made this automatic batching apply *everywhere* (inside promises, timeouts, native event
 > handlers — not just React's own synthetic event handlers), which is a real behavior change
-> from React 17 and earlier, where only updates inside React event handlers were batched.
+> from React 17 and earlier, where only updates inside React event handlers were batched — see
+> the [React 18 release post](https://react.dev/blog/2022/03/29/react-v18).
 
 ---
 
@@ -747,9 +767,10 @@ Without a stable identity attached to each item, React has no way to distinguish
 reordered the list" from "the user deleted item 2 and a brand-new, differently-worded item 2
 just happened to appear in its place."
 
-React's own docs frame it well: a key is like a filename — it lets React identify an item across
-renders even if its *position* in the array changes, because a well-chosen key carries more
-information than array position alone does.
+React's own docs ([`learn/rendering-lists`](https://react.dev/learn/rendering-lists)) frame it
+well: a key is like a filename — it lets React identify an item across renders even if its
+*position* in the array changes, because a well-chosen key carries more information than array
+position alone does.
 
 ### If you don't specify a key, React falls back to the item's position
 
@@ -814,8 +835,9 @@ the exception, not the rule. `ref` used to be a second exception with its own sp
 (requiring `forwardRef` to receive a ref in a function component, because — like `key` — it
 wasn't passed through as a normal prop either), but that's a React-before-19 detail now: **as of
 React 19, function components can receive `ref` directly as a regular prop**, no `forwardRef`
-needed (ch.04/ch.07 cover this properly). `key` remains the one attribute that's never passed
-through, in every version of React up to and including 19.2.
+needed (confirmed in the [React 19 release post](https://react.dev/blog/2024/12/05/react-19);
+ch.04/ch.07 cover this properly). `key` remains the one attribute that's never passed through,
+in every version of React up to and including 19.2.
 
 **When is index-as-key actually fine?** When the list is static and will never reorder, filter,
 or have items inserted/removed anywhere but the end — e.g. a fixed set of lines in a poem that
@@ -836,8 +858,10 @@ answer, with the static-list case named as the explicit exception rather than le
 ### Start here: there's no JSX-specific conditional syntax
 
 To be precise about what this means: `if` works perfectly well in a component — it's completely
-ordinary JavaScript, and React's own docs confirm you conditionally render using plain JS tools
-like `if`, `&&`, and `? :`. What doesn't exist is a *JSX-specific* conditional tag or syntax
+ordinary JavaScript, and React's own docs confirm this directly: "you can conditionally render
+JSX using JavaScript syntax like `if` statements, `&&`, and `? :` operators"
+([`learn/conditional-rendering`](https://react.dev/learn/conditional-rendering)). What doesn't
+exist is a *JSX-specific* conditional tag or syntax
 inside the markup itself — recall from §1: `{}` in JSX is an **expression slot**, and `if` is a
 statement, not an expression, so you can't write `{if (x) { ... }}` directly inside a JSX tree.
 "Conditional rendering" in React is really just "which value do I put in this expression slot
@@ -943,8 +967,9 @@ root.render(<App />);
 ```
 
 Precision point worth having ready for interviews: **`createRoot` is a React 18 API, not
-React-19-specific.** It replaced the older, legacy `ReactDOM.render()` call. React's own React
-18 release notes state it plainly: "new features in React 18 don't work without it" — but be
+React-19-specific.** It replaced the older, legacy `ReactDOM.render()` call. React's own
+[React 18 release post](https://react.dev/blog/2022/03/29/react-v18) states it plainly: "new
+features in React 18 don't work without it" — but be
 precise about what that means, rather than picturing `createRoot` as one big switch that turns
 concurrency on everywhere. Automatic batching (§4) applies automatically to every update once
 you're on `createRoot`, with nothing further to opt into. Concurrent-rendering features like
@@ -962,7 +987,8 @@ do *inside* the mounted tree changed (Actions, the `use` API, etc. — ch.07).
   part of what makes hot-reloading during development not blow away all your component state).
 - `createRoot` accepts an options object for error handling — `onCaughtError`,
   `onUncaughtError`, `onRecoverableError` — the React 19-era mechanism for hooking up custom
-  error reporting (e.g. to a service like Sentry) at the root level.
+  error reporting (e.g. to a service like Sentry) at the root level (see
+  [`reference/react-dom/client/createRoot`](https://react.dev/reference/react-dom/client/createRoot)).
 - `root.render()` itself isn't fully synchronous end-to-end — code immediately after
   `root.render()` can run before Effects have fired; `flushSync` exists for the rare cases where
   you specifically need DOM updates flushed synchronously (mostly relevant for measuring layout
@@ -997,7 +1023,9 @@ UI of its own, and it does **nothing at all in production builds** — its entir
 you catch bugs *while you're developing*, by deliberately doing extra, redundant work that makes
 certain classes of bugs impossible to miss.
 
-The specific thing it checks for: React expects every component you write to behave like a
+The specific thing it checks for (per
+[`reference/react/StrictMode`](https://react.dev/reference/react/StrictMode)): React expects
+every component you write to behave like a
 **pure function** — same inputs (props/state/context) always produce the same output, with no
 side effects sneaking out during rendering. If that's true of your component, calling its
 function twice in a row and throwing away the first result changes nothing observable — a pure
@@ -1059,6 +1087,46 @@ property real production remounts and concurrent rendering rely on.
 > symmetrical, which is exactly the property real-world remounts and concurrent rendering can
 > also exercise; don't overstate it as "guaranteed to leak in production," but do treat it as a
 > real defect in the Effect's cleanup logic worth fixing.
+
+---
+
+## Sources
+
+Every specific, checkable claim above was verified against these official docs before being
+written (see `CLAUDE.md`'s "Accuracy & currency practice" for the standing policy). Listed here
+so any claim can be re-checked directly, grouped by the section that relies on it:
+
+- §0, §4 — [`learn/render-and-commit`](https://react.dev/learn/render-and-commit) — render
+  triggers, render/commit phases, "minimal necessary operations," reconciliation.
+- §1 — [`learn/writing-markup-with-jsx`](https://react.dev/learn/writing-markup-with-jsx) —
+  JSX transform, single-root rule, camelCase attributes and the `class`/`for` reserved-word
+  reasoning, the `aria-*`/`data-*` exception.
+- §1 — [`reference/react-dom/components/common`](https://react.dev/reference/react-dom/components/common)
+  — `className`/`htmlFor` as DOM property names.
+- §2 — [`reference/rules/components-and-hooks-must-be-pure`](https://react.dev/reference/rules/components-and-hooks-must-be-pure)
+  — component purity (idempotency, no side effects, no external mutation).
+- §2 — [`reference/rules/rules-of-hooks`](https://react.dev/reference/rules/rules-of-hooks) —
+  the two Rules of Hooks.
+- §2 — [`reference/react/Component`](https://react.dev/reference/react/Component) — Error
+  Boundaries requiring a class, `getSnapshotBeforeUpdate` having no Hook equivalent.
+- §3 — [React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide) —
+  `defaultProps` removed for function components.
+- §4 — [`reference/react/useEffect`](https://react.dev/reference/react/useEffect) — Effect
+  timing relative to browser paint.
+- §4 — [React 18 release post](https://react.dev/blog/2022/03/29/react-v18) — automatic
+  batching everywhere, what `createRoot` unlocks.
+- §4 — [`learn/queueing-a-series-of-state-updates`](https://react.dev/learn/queueing-a-series-of-state-updates)
+  — the snapshot/updater-function batching example.
+- §5 — [`learn/rendering-lists`](https://react.dev/learn/rendering-lists) — keys, the
+  index-as-key trap, `key` not being forwarded as a prop.
+- §5 — [React 19 release post](https://react.dev/blog/2024/12/05/react-19) — `ref` as a regular
+  prop for function components.
+- §6 — [`learn/conditional-rendering`](https://react.dev/learn/conditional-rendering) — no
+  JSX-specific conditional syntax.
+- §7 — [`reference/react-dom/client/createRoot`](https://react.dev/reference/react-dom/client/createRoot)
+  — `createRoot`/`root.render()` behavior, error-handling options.
+- §8 — [`reference/react/StrictMode`](https://react.dev/reference/react/StrictMode) — what
+  double-invokes, the setup→cleanup→setup stress-test framing.
 
 ---
 

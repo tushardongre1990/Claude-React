@@ -117,6 +117,20 @@ When something in an already-written chapter turns out to be stale or wrong afte
 source, fix it in place and note the correction in that chapter's section of
 `notes/README.md`'s revision history, the same way prior review-driven fixes have been logged.
 
+**Standing instruction (2026-08-14): cite sources in the notes themselves, not just in
+conversation.** When a chapter's notes state a specific, checkable factual claim (an API's exact
+behavior, a version-specific change, a "this is why" explanation) that was verified against an
+official doc, include a link to that doc near the claim (inline markdown link, or a `## Sources`
+section at the end of the chapter mapping doc links to the section/topic they support) so the
+user can independently re-verify it later without re-deriving which claim came from where. This
+was requested explicitly after a couple of correction cycles on ch.01 where the user re-checked
+claims against react.dev themselves — the standing "verify against official docs before writing"
+practice (above) is necessary but not sufficient on its own; the verification needs to be
+*visible in the artifact*, not just something that happened in a chat turn the user may not
+revisit. Apply this to every chapter going forward, and retrofit it into already-written
+chapters' notes when next touching them (don't do a one-off pass across untouched chapters
+purely to backfill citations — add them as chapters are written or revised).
+
 ## Repo structure
 
 ```
