@@ -172,12 +172,14 @@ a two-step process, not one, explains a lot of things that otherwise look magica
 
 ### JSX syntax rules, and *why* each one exists
 
-- **A component must return a single root element.** You can't return two sibling objects from
-  a function without wrapping them (e.g. in an array) — and a React component function is,
-  underneath, just returning one JS value. So `return <h1>A</h1><p>B</p>;` is illegal; you must
-  wrap it in a parent element (`<div>...</div>`) or, if you don't want an extra wrapper `<div>`
-  showing up in the actual DOM, a **Fragment** (`<>...</>`), which exists specifically to group
-  elements without adding a real DOM node.
+- **A component must return a single value** — more precisely "single root element" than a hard
+  rule, since a component can just as validly return a plain string, a number, `null`, a
+  boolean (renders nothing), or an array of elements. What's actually illegal is writing two
+  *adjacent* JSX elements with nothing wrapping them: `return <h1>A</h1><p>B</p>;` fails because
+  that's not one JS value, it's two sibling expressions with no container. Wrap them in a parent
+  element (`<div>...</div>`) or, if you don't want an extra wrapper `<div>` showing up in the
+  actual DOM, a **Fragment** (`<>...</>`), which exists specifically to group elements without
+  adding a real DOM node.
 - **Component names must be capitalized** (`<Counter />`, not `<counter />`). This isn't a style
   preference — it's how the compiler decides what a tag *means*. `<div>` compiles to the string
   `"div"` as the element's `type` (meaning "this is a built-in HTML tag"); `<Counter>` compiles
@@ -185,9 +187,19 @@ a two-step process, not one, explains a lot of things that otherwise look magica
   component I wrote"). A lowercase custom component name would be treated as an unknown HTML
   tag string instead of your component, and silently fail to render what you intended.
 - **Attributes use `camelCase`**, e.g. `className` instead of `class`, `onClick` instead of
-  `onclick`, `htmlFor` instead of `for`. This is because JSX attributes become JavaScript object
-  properties, not literal HTML attribute strings — and `class`/`for` are reserved words in
-  JavaScript, so they can't be used as property names as-is.
+  `onclick`, `htmlFor` instead of `for`. The precise reason (worth getting right — it's *not*
+  "because `class`/`for` are reserved words," which is a common but inaccurate explanation;
+  modern JS actually allows reserved words as object property names, e.g. `{ for: 1 }` is legal)
+  is that **React's JSX attributes mirror the DOM's own JavaScript property names, not the HTML
+  attribute strings.** The DOM API itself exposes an element's CSS class through a property
+  called `element.className` and a label's association through `label.htmlFor` — React just
+  uses those same underlying DOM property names in JSX rather than inventing new ones.
+
+  This distinction between HTML *attributes* (strings in markup) and DOM *properties*
+  (JavaScript object fields on the live element) is a genuinely useful thing to have precise for
+  interviews in its own right, beyond just explaining `className` — it's the same distinction
+  behind why, say, `<input value="x">` (the HTML attribute, only used for the *initial* value)
+  and `inputElement.value` (the DOM property, always current) can disagree once a user types.
 
 > **Interview framing:** "how does JSX become the DOM" is a favorite basic-but-revealing
 > question. A strong answer chains all three steps explicitly — compiles to `createElement`/
@@ -223,6 +235,41 @@ the essence of what a **render** is, covered precisely in §4.
    why).
 2. It must return something React can display: JSX, a string, a number, `null`, `undefined`, a
    boolean (renders nothing), or an array/Fragment of any of those.
+
+**A third rule, easy to overlook because nothing enforces it at compile time: a component must
+be pure while it's rendering.** React's own framing of this (the "Rules of React") is precise
+enough to quote directly — a component must be:
+- **Idempotent** — given the same props/state/context, it always returns the same JSX.
+- **Free of side effects during render** — no network calls, no timers, no logging-as-a-feature,
+  during the function body itself (side effects belong in a `useEffect`, ch.03, which runs
+  *after* render, not during it).
+- **Non-mutating of anything it doesn't own** — it must never write to a variable, object, or
+  array that exists *outside* the function call currently rendering.
+
+That last point has a specific, useful nuance: **reading** an external value during render is
+fine; **mutating** one is the problem.
+
+```jsx
+// fine — items is created fresh inside this render, mutating it locally is harmless
+function FriendList({ friends }) {
+  const items = [];
+  for (const friend of friends) items.push(<li key={friend.id}>{friend.name}</li>);
+  return <ul>{items}</ul>;
+}
+
+// NOT pure — items lives outside the component, so every render mutates shared state
+const items = [];
+function FriendList({ friends }) {
+  for (const friend of friends) items.push(<li key={friend.id}>{friend.name}</li>);
+  return <ul>{items}</ul>;
+}
+```
+
+Why this matters mechanically, not just as a style rule: React is free to call your component
+function more than once for a single logical render (exactly what Strict Mode does on purpose in
+development — §8 — and what concurrent features may do for real in production), so any state
+your render logic leaves behind in shared, external storage will double up, or worse, silently
+diverge from what's on screen.
 
 ### Hooks: how a function component gets "memory" and other capabilities
 
@@ -286,15 +333,24 @@ still **requires** a class to this day.
   concern live in one place, and you can write several independent `useEffect` calls instead of
   cramming every "on mount" concern into one method.
 
-**What classes had that's genuinely gone:** no Hook directly replaces `getSnapshotBeforeUpdate`
-(rare enough not to matter for most apps), and — the one that actually comes up in practice —
-**Error Boundaries still require a class**, because catching render errors from components below
-you in the tree needs the `componentDidCatch` / `static getDerivedStateFromError` contract, and
-React hasn't shipped a Hook-based equivalent for that specific capability.
+**What classes had that's genuinely gone:** there's no Hook that's a direct, one-to-one
+replacement for every class lifecycle method — `getSnapshotBeforeUpdate` in particular has no
+Hook equivalent (rare enough in practice not to matter for most apps). Despite that, the large
+majority of real-world class components *can* be migrated to functions + hooks, because their
+actual behavior (state + effects) is expressible with `useState`/`useReducer`/`useEffect` even
+without a line-for-line lifecycle-method mapping. The one capability that's a genuine, current
+exception — not just "no exact Hook equivalent," but "cannot be done with hooks at all" — is
+**Error Boundaries**: catching render errors from components below you in the tree requires the
+`componentDidCatch` / `static getDerivedStateFromError` contract, and React hasn't shipped a
+Hook-based equivalent for that specific capability.
 
 > **Interview framing:** a common trap question is "can you replace all class components with
-> hooks?" — the precise answer is "yes, for everything except Error Boundaries," not a flat yes.
-> Answering with an unqualified "yes" is the tell that you haven't hit this in practice.
+> hooks?" — the precise answer distinguishes two different claims: no Hook maps one-to-one onto
+> every legacy lifecycle method, but that's a *migration convenience* gap, not a *capability*
+> gap — except for Error Boundaries, which is a genuine capability gap with no Hook-based
+> solution today. Answering with an unqualified "yes" (glossing over Error Boundaries) or an
+> unqualified "no" (overstating the lifecycle-method gap) are both tells that you haven't hit
+> this distinction in practice.
 
 ---
 
@@ -325,13 +381,16 @@ function Greeting({ name }) {
 
 ### Props are read-only from the child's side
 
-This is the first real "gotcha" interviewers probe: **a component must never reassign or mutate
-a prop it received.** Props flow one direction — parent to child. If a child needs to *change*
-something conceptually "given" to it by a parent, the correct pattern is for the parent to pass
-a **callback function** as a prop, which the child calls to ask the parent to make the change
-(the parent owns the actual data and decides what happens). This "data down, callback functions
-back up" shape is called **lifting state up**, and it's covered properly with real code in ch.02
-— for now, just internalize the rule: **props in, never props mutated.**
+This is the first real "gotcha" interviewers probe, and it's worth phrasing precisely the way
+React's own docs do: **props (like state) are an immutable snapshot for a given render** — not
+"a value you're merely asked nicely not to change," but a value that reflects what was true at
+the moment this particular render started, which the child is never meant to write to. Props
+flow one direction — parent to child. If a child needs to *change* something conceptually
+"given" to it by a parent, the correct pattern is for the parent to pass a **callback function**
+as a prop, which the child calls to ask the parent to make the change (the parent owns the
+actual data and decides what happens). This "data down, callback functions back up" shape is
+called **lifting state up**, and it's covered properly with real code in ch.02 — for now, just
+internalize the rule: **props in, never props mutated.**
 
 ### Default values for props
 
@@ -376,6 +435,23 @@ function Card({ children }) {
 Once that equivalence clicks — `children` is nothing but an implicitly-populated prop — a lot of
 component composition patterns stop looking like special syntax and start looking like "just
 passing a value," because that's all it is.
+
+One thing worth being explicit about, since it's an easy wrong assumption to carry forward:
+**`children` is not necessarily a single element.** Anything nested between the tags — multiple
+elements, plain text mixed with elements, even other components — all get collected into
+`children` together:
+
+```jsx
+<Card>
+  <h1>Hello</h1>
+  <p>World</p>
+</Card>
+```
+
+Here `Card`'s `children` prop is a *list* of nodes (an `h1` and a `p`), not one element. React
+refers to this general category — anything renderable, including a single element, an array of
+elements, a string, a number, or nothing at all — as a **React node**, and `children` is typed
+as exactly that, not as "one element."
 
 ### Composition over configuration
 
@@ -429,18 +505,28 @@ function again to get an updated description of the UI." That's the core of it �
 precise two-step process behind it worth knowing exactly, because a lot of "why did/didn't my UI
 update" questions are really questions about which of these two steps did or didn't happen.
 
-### What triggers a render (i.e., what makes React call your component function again)
+### What triggers a render
 
-1. **State changes** — calling a `useState` setter, or dispatching to a `useReducer` (ch.02/05),
+React's own docs name exactly two root causes: **a component's initial render**, and **a state
+update** (in that component or an ancestor of it). Everything else people list as a "trigger" is
+really a consequence of one of those two:
+
+1. **Initial render** — the very first time a component tree is displayed, kicked off by the
+   `createRoot(...).render(<App />)` call covered in §7. Every component in the tree renders
+   once simply because the app is starting up, before any state has changed at all.
+2. **State changes** — calling a `useState` setter, or dispatching to a `useReducer` (ch.02/05),
    with a value that's actually different from the current one (see the bail-out note below).
-2. **A parent re-renders** — by default, when a parent component renders, React renders all of
-   its children too, regardless of whether their own props actually changed. (This is why
-   `memo` exists as a performance escape hatch — ch.06.)
-3. **A Context value changes** — components reading a Context via `useContext` re-render when
+3. **A parent re-renders** — by default, when a parent component renders (for *any* reason,
+   including its own state changing), React renders all of its children too, regardless of
+   whether their own props actually changed. This isn't a third independent root cause so much
+   as state-changes-in-an-ancestor propagating downward — but it's worth calling out on its own,
+   because it's the reason `memo` exists as a performance escape hatch (ch.06): to let a child
+   opt out of re-rendering when its own props haven't actually changed.
+4. **A Context value changes** — components reading a Context via `useContext` re-render when
    the Provider supplying that context gets a new value (ch.05).
 
-Notice what's **not** on this list: a prop changing, by itself, does nothing on its own — a prop
-change only matters *because* it's the parent re-rendering (reason #2) and, as part of that,
+Notice what's **not** on this list on its own: a prop changing, by itself, does nothing — a prop
+change only matters *because* it's the parent re-rendering (reason #3) and, as part of that,
 choosing to pass a different value down.
 
 ### Render phase vs. commit phase
@@ -454,23 +540,24 @@ flowchart LR
         direction TB
         r1["Call your component function"]
         r2["Build a new React-element tree\n(the plain-object description from §1)"]
-        r3["Diff against the previous tree\n(reconciliation)"]
+        r3["Compare against the previous tree —\nreconciliation — to find what changed"]
         r1 --> r2 --> r3
     end
     render --> commit
     subgraph commit["Commit phase"]
         direction TB
-        c1["Apply the necessary DOM mutations"]
+        c1["Apply the minimal necessary DOM mutations"]
         c2["Run layout Effects (useLayoutEffect) synchronously"]
         c3["Browser paints the updated screen"]
-        c4["Run Effects (useEffect) asynchronously"]
+        c4["Run Effects (useEffect) — usually after paint,\nbut may run before paint for interaction-caused updates"]
         c1 --> c2 --> c3 --> c4
     end
 ```
 
 - **Render phase**: your component function actually runs here, computing what the UI *should*
-  look like as a fresh element tree, then React compares ("diffs") that against the previous
-  tree to figure out what actually changed. This phase must be **pure** — no side effects
+  look like as a fresh element tree, then React compares that against the previous tree — this
+  comparison process is what React's docs call **reconciliation** — to figure out exactly what
+  changed. This phase must be **pure** — no side effects
   (no mutating variables outside the function, no network calls, no touching the DOM directly)
   — because React is allowed to start, throw away, and restart a render without warning if it
   decides to (this is exactly what Strict Mode's double-invoke in development is designed to
@@ -498,20 +585,19 @@ when *this* render happened, and it doesn't retroactively update just because yo
 
 **Not every `setState` call causes a re-render.** If you call `setState(x)` with a value that's
 `Object.is`-equal (essentially: reference-equal, for objects/arrays) to the current state, React
-**bails out** and skips re-rendering that component entirely. This is exactly why replacing an
-object or array with a **new reference** (rather than mutating the existing one in place)
-matters: `setUser({ ...user, name })` creates a new object, so React sees a different reference
-and re-renders; `user.name = name; setUser(user)` passes back the *same* reference, so React
-sees "no change" and does nothing — even though the object's contents did change.
+**can bail out** and skip re-rendering that component. This is exactly why replacing an object or
+array with a **new reference** (rather than mutating the existing one in place) matters:
+`setUser({ ...user, name })` creates a new object, so React sees a different reference and
+re-renders; `user.name = name; setUser(user)` passes back the *same* reference, so React sees
+"no change" and can skip work — even though the object's contents did change.
 
-> **Interview framing:** "why does React batch state updates" and "why can't I mutate state
-> directly" are really the same underlying question — React needs to compare *old vs. new* to
-> decide whether (and how) to re-render, and grouping multiple `setState` calls within one event
-> handler into a single render pass is both a performance optimization and a correctness
-> requirement (so the UI never reflects only half of a set of related updates). Worth naming
-> explicitly: React 18 made this automatic batching apply *everywhere* (inside promises,
-> timeouts, native event handlers — not just React's own event handlers), which is a real
-> behavior change from React 17 and earlier.
+> **Interview framing:** "why does React batch state updates" is asking about a **performance**
+> optimization, not a correctness one — be precise about that distinction if asked. React groups
+> multiple `setState` calls that happen within the same event/tick into a single render+commit
+> pass instead of one per call, which avoids redundant re-renders. Worth naming explicitly: React
+> 18 made this automatic batching apply *everywhere* (inside promises, timeouts, native event
+> handlers — not just React's own synthetic event handlers), which is a real behavior change
+> from React 17 and earlier, where only updates inside React event handlers were batched.
 
 ---
 
@@ -590,6 +676,30 @@ than a keys bug unless you know what to look for.
 - **Unique among siblings** — uniqueness across *different*, unrelated arrays elsewhere in the
   app doesn't matter.
 - **Prefer a real, stable identifier from your data** (a database ID) over a synthetic one.
+
+### `key` is not a prop — a genuinely common trap
+
+```jsx
+<User key={user.id} />
+```
+
+does **not** mean the `User` component can read that value as `props.key`:
+
+```jsx
+function User({ key }) { /* key is always undefined here — React strips it out */ }
+```
+
+`key` is metadata *for React itself*, consumed during reconciliation, and it is deliberately
+never forwarded to your component as a prop. If the component actually needs that ID value for
+its own logic, you have to pass it again under a different name:
+
+```jsx
+<User key={user.id} userId={user.id} />
+```
+
+This trips people up because every other JSX attribute *does* flow through as a prop — `key`
+(and, similarly, `ref` in versions of React before 19 — see ch.04/ch.07) is the exception, not
+the rule.
 
 **When is index-as-key actually fine?** When the list is static and will never reorder, filter,
 or have items inserted/removed anywhere but the end — e.g. a fixed set of lines in a poem that
@@ -714,9 +824,12 @@ root.render(<App />);
 ```
 
 Precision point worth having ready for interviews: **`createRoot` is a React 18 API, not
-React-19-specific.** It replaced the older, legacy `ReactDOM.render()` call specifically to opt
-an app into React 18's concurrent-rendering capabilities. It remains the standard mounting API,
-unchanged, in React 19/19.2 — nothing about *mounting itself* changed in 19; only what you can
+React-19-specific.** It replaced the older, legacy `ReactDOM.render()` call, and React 18's new
+features — automatic batching everywhere (§4), transitions, Suspense-driven rendering, and
+concurrent rendering generally — simply **do not work** under an app still mounted with the old
+`ReactDOM.render()`; `createRoot` is the switch that turns all of that on. It remains the
+standard mounting API, unchanged, in React 19/19.2 — nothing about *mounting itself* changed in
+19; only what you can
 do *inside* the mounted tree changed (Actions, the `use` API, etc. — ch.07).
 
 **Nuances worth knowing beyond the basic call:**
@@ -776,30 +889,40 @@ sequenceDiagram
     participant C as Your component
     R->>C: render (1st call)
     R->>C: render (2nd call, discarded — checks for impurity)
-    Note over R,C: commit phase happens once, using the 2nd render's output
+    Note over R,C: commit uses the render output — a reasonable simplified\nmental model of a single mount; treat exact internal sequencing\nas an implementation detail rather than a fixed contract
     R->>C: Effect setup
     R->>C: Effect cleanup (immediately)
     R->>C: Effect setup (again — this is the one that "stays")
 ```
 
-Concretely, double-invocation hits: your component function body (render logic); `useState`/
-`useReducer` initializer and updater functions; `useMemo` computations; and Effect
-setup+cleanup+setup (the same setup+cleanup+setup pattern applies to callback refs too). Class
-components get the equivalent treatment on `constructor`, `render`, and `shouldComponentUpdate`.
+Concretely, double-invocation hits: your component function body (render logic — but *only* the
+top-level logic that runs on every call, not code inside event handlers, which are never
+double-invoked just because Strict Mode is on: clicking a button wrapped in Strict Mode still
+calls its `onClick` exactly once); `useState`/`useReducer` initializer and updater functions;
+`useMemo` computations; and Effect setup+cleanup+setup (the same setup+cleanup+setup pattern
+applies to callback refs too). Class components get the equivalent treatment on `constructor`,
+`render`, and `shouldComponentUpdate`.
 
 **What this reveals in practice:** if a render function pushes to a module-level array as a side
 effect (impure!), you'll see duplicate entries immediately in dev. If a `useEffect` opens a
 WebSocket connection but forgets to close it in its cleanup function, Strict Mode's
 setup→cleanup→setup dance means you'll see *two* open connections almost immediately, instead of
-only noticing a slow leak much later in production.
+only noticing a slow leak much later in production. Framed precisely: Strict Mode isn't making
+your Effect actually run twice in a way that persists — it's stress-testing whether your setup
+and cleanup are *symmetrical* (does cleanup fully undo what setup did?), which is exactly the
+property real production remounts and concurrent rendering rely on.
 
 ### What this is *not*
 
 - It's **not** a performance concern to worry about in production — double-invocation is
   strictly a development-mode behavior; production builds never do this.
-- It's **not** React "being extra cautious for no reason." Every bug Strict Mode surfaces was
-  always a real, latent bug in your code — Strict Mode just makes it visible on every single
-  render, instead of only under rare, hard-to-reproduce production timing conditions.
+- It's **not** React "being extra cautious for no reason." Strict Mode is intentionally stricter
+  than what a single production run happens to exercise — it's surfacing unsafe *assumptions*
+  (code that only works because it happened to run exactly once, in exactly one order) that a
+  different timing, a different React version, or a future concurrent-rendering scenario could
+  just as easily expose in production. Whether every single thing it flags counts as an
+  already-shipped "real" bug depends on the code; the safer framing is that it's exposing
+  assumptions React does not actually guarantee, not that it's crying wolf.
 
 > **Interview framing:** "why does my `useEffect` fire twice in development" is one of the most
 > common confused-newcomer questions turned senior-interview question. The strong answer names

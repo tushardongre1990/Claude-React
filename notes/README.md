@@ -132,3 +132,24 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   applies project-wide to every chapter's React content, not just ch.00's JS content — see
   `CLAUDE.md`'s "User preferences / how to teach this user" section, which is the source of
   truth for this going forward.
+- **2026-08-14 (later same day):** Ch.01 went through an external (ChatGPT) accuracy review;
+  each claim was independently re-verified against react.dev before acting on it, since the
+  review itself contained some imprecise reasoning (e.g. its suggested fix for why
+  `className`/`htmlFor` are used was also inaccurate — reserved words aren't actually the
+  reason, and modern JS permits reserved words as object property names anyway). Confirmed
+  accurate and kept as originally written: React "applies the minimal necessary DOM
+  operations" during commit (this **is** the official docs' own wording — the review's
+  suggestion to soften it was itself overcautious). Genuinely fixed: the `className`/`htmlFor`
+  explanation (now correctly attributed to mirroring DOM property names, not reserved words);
+  "single root element" softened to allow strings/numbers/null/arrays; `useEffect` timing
+  relative to paint (it's not strictly always-after-paint — interaction-caused Effects may run
+  before paint); "batching is a correctness requirement" downgraded to purely a performance
+  framing (matches the React 18 blog post); the hooks-vs-classes migration answer disentangled
+  into "no 1:1 lifecycle mapping" (minor) vs. "Error Boundaries have no Hook equivalent"
+  (genuine); Strict Mode's "every bug was a real latent bug" softened to "exposes unsafe
+  assumptions React doesn't actually guarantee." Genuinely added (still within existing
+  topics, no new topics per the working rule): explicit component-purity guidance with a
+  local-vs-non-local mutation example, `children` can be multiple nodes not just one, "initial
+  render" as an explicit third trigger alongside state/parent/context, `key` is deliberately
+  not forwarded as a regular prop (`props.key` is always `undefined`) plus the related React 19
+  `ref`-as-prop change, and Strict Mode not double-invoking event handlers.
