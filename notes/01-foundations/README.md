@@ -1020,11 +1020,12 @@ do *inside* the mounted tree changed (Actions, the `use` API, etc. — ch.07).
 
 > **Interview framing:** "what's the difference between `ReactDOM.render` and `createRoot`" is
 > as much a legacy-knowledge check as a current-API check — the real answer, consistent with the
-> nuance above: legacy `render` had no access to React 18's concurrent-rendering model at all
-> (no automatic batching everywhere, no transitions, full stop), while `createRoot` makes
-> automatic batching apply everywhere unconditionally and makes concurrent-rendering APIs like
-> transitions *available* to opt into (not automatically active just from mounting with it).
-> Knowing `createRoot` is an **18-era** API (not 19-era) is a small but real precision signal.
+> nuance above: legacy `render` never enables the React 18 concurrent root at all, so neither
+> automatic batching everywhere nor concurrent APIs like transitions are available under it;
+> `createRoot` is what makes automatic batching apply everywhere unconditionally and makes
+> concurrent-rendering APIs like transitions *available* to opt into (not automatically active
+> just from mounting with it). Knowing `createRoot` is an **18-era** API (not 19-era) is a small
+> but real precision signal.
 
 ---
 
@@ -1063,11 +1064,11 @@ sequenceDiagram
     participant R as React (dev + StrictMode)
     participant C as Your component
     R->>C: render (1st call)
-    R->>C: render (2nd call, discarded — checks for impurity)
-    Note over R,C: commit uses the render output — a reasonable simplified\nmental model of a single mount; treat exact internal sequencing\nas an implementation detail rather than a fixed contract
+    R->>C: render (2nd call, discarded - checks for impurity)
+    Note over R,C: simplified model - exact internal sequencing<br/>is an implementation detail, not a fixed contract
     R->>C: Effect setup
     R->>C: Effect cleanup (immediately)
-    R->>C: Effect setup (again — this is the one that "stays")
+    R->>C: Effect setup (again - this is the one that stays)
 ```
 
 Concretely, double-invocation hits: your component function body (render logic — but *only* the
