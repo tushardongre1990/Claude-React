@@ -146,8 +146,11 @@ const el = React.createElement("h1", { className: "title" }, "Hello, ", name);
 ```
 
 or, with the **modern automatic JSX transform**
-([`learn/writing-markup-with-jsx`](https://react.dev/learn/writing-markup-with-jsx) — the
-default since React 17, and what this project's Vite setup uses):
+([`learn/writing-markup-with-jsx`](https://react.dev/learn/writing-markup-with-jsx) confirms
+this has been the default since React 17; separately, this project's own
+`app/tsconfig.app.json` sets `"jsx": "react-jsx"`, which is what actually turns this transform
+on for this repo specifically — a project-configuration fact, not something the React docs
+themselves establish):
 
 ```js
 import { jsx as _jsx } from "react/jsx-runtime";
@@ -182,7 +185,10 @@ a two-step process, not one, explains a lot of things that otherwise look magica
   at the top of every file, that's the classic transform's fingerprint, not dead code.
 
 Three terms that get used loosely but mean genuinely different things — worth having crisp,
-since conflating them is a common source of confused explanations under interview pressure:
+since conflating them is a common source of confused explanations under interview pressure.
+[`reference/react/createElement`](https://react.dev/reference/react/createElement) states the
+middle one directly: "an element is a lightweight description of a piece of the user
+interface... creating this object does not render the component or create any DOM elements."
 
 | Term | What it actually is |
 |---|---|
@@ -190,9 +196,13 @@ since conflating them is a common source of confused explanations under intervie
 | **React element** | The plain-object output of calling that description (`{ type, props }`) for one specific render — inert data, not yet on screen. |
 | **DOM node** | The actual browser object that ends up rendered on screen, which React creates/updates to match the element tree. |
 
-`<Counter />` refers to the *component*; calling it (which React does for you) produces a
-*React element*; React then reconciles that element tree and commits the resulting *DOM nodes*.
-All three are related but distinct, and each has already come up separately above.
+`<Counter />` refers to the *component*, and (per §1's compile step) it immediately produces a
+*React element* — an object whose `type` points at the `Counter` function — without calling
+`Counter` itself. React only calls `Counter` later, during its own render process (§2 explains
+this `<Counter />` vs. `Counter()` distinction precisely). Once React has done that and knows
+what the tree should look like, it reconciles the result and commits the resulting *DOM nodes*.
+All three — component, element, DOM node — are related but distinct, and each has already come
+up separately above.
 
 ### JSX syntax rules, and *why* each one exists
 
@@ -603,7 +613,10 @@ neither of which is an independent trigger on its own:
   escape hatch (ch.06): to let a child opt out when its own props haven't changed.
 - **Context consumers re-render when their Provider's value changes** — components reading a
   Context via `useContext` are re-rendered whenever the Provider supplying that context receives
-  a new value (ch.05), independent of whether their own local props/state changed.
+  a new value (ch.05), independent of whether their own local props/state changed. Direct
+  confirmation: "React automatically re-renders all the children that use a particular context
+  starting from the provider that receives a different `value`"
+  ([`reference/react/useContext`](https://react.dev/reference/react/useContext)).
 
 Notice what's **not** on this list on its own: a prop changing, by itself, does nothing — a prop
 change only matters *because* the parent re-rendered (from its own state update) and, as part of
@@ -1051,17 +1064,30 @@ Concretely, double-invocation hits: your component function body (render logic �
 top-level logic that runs on every call, not code inside event handlers, which are never
 double-invoked just because Strict Mode is on: clicking a button wrapped in Strict Mode still
 calls its `onClick` exactly once); `useState`/`useReducer` initializer and updater functions;
-`useMemo` computations; and Effect setup+cleanup+setup (the same setup+cleanup+setup pattern
-applies to callback refs too). Class components get the equivalent treatment on `constructor`,
-`render`, and `shouldComponentUpdate`.
+and Effect setup+cleanup+setup (the same setup+cleanup+setup pattern applies to callback refs
+too). Class components get the equivalent treatment on `constructor`, `render`, and
+`shouldComponentUpdate`.
+
+**One specific exception worth having current for React 19, since it changed:** `useMemo` and
+`useCallback` calculations are *not* independently re-run on Strict Mode's second render the way
+they used to be. The
+[React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide) states this
+directly, under "StrictMode changes": "when double rendering in Strict Mode in development,
+`useMemo` and `useCallback` will reuse the memoized results from the first render during the
+second render." (Ch.06 covers `useMemo`/`useCallback` properly — the point for this chapter is
+just that Strict Mode's double-invocation isn't perfectly uniform across every hook, and this is
+exactly the kind of detail worth re-checking per React version rather than assuming.)
 
 **What this reveals in practice:** if a render function pushes to a module-level array as a side
 effect (impure!), you'll see duplicate entries immediately in dev. If a `useEffect` opens a
-WebSocket connection but forgets to close it in its cleanup function, Strict Mode's
-setup→cleanup→setup dance means you'll see *two* open connections almost immediately, instead of
-only noticing a slow leak much later in production. Framed precisely: Strict Mode isn't making
-your Effect actually run twice in a way that persists — it's stress-testing whether your setup
-and cleanup are *symmetrical* (does cleanup fully undo what setup did?), which is exactly the
+WebSocket connection with a *correct* cleanup function, the setup→cleanup→setup dance closes the
+first connection before opening the second, so you're left with exactly one live connection —
+indistinguishable from production. If that Effect's cleanup is missing or incomplete, though,
+that same dance is precisely what exposes it: you'll end up with a stray, un-closed connection
+from the first setup almost immediately in dev, instead of only noticing a slow leak much later
+in production. Framed precisely: Strict Mode isn't making your Effect actually run twice in a
+way that persists — it's stress-testing whether your setup and cleanup are *symmetrical* (does
+cleanup fully undo what setup did?), which is exactly the
 property real production remounts and concurrent rendering rely on.
 
 ### What this is *not*
@@ -1103,6 +1129,8 @@ so any claim can be re-checked directly, grouped by the section that relies on i
   reasoning, the `aria-*`/`data-*` exception.
 - §1 — [`reference/react-dom/components/common`](https://react.dev/reference/react-dom/components/common)
   — `className`/`htmlFor` as DOM property names.
+- §1, §2 — [`reference/react/createElement`](https://react.dev/reference/react/createElement) —
+  a React element as an immutable, lightweight description, distinct from rendering/DOM nodes.
 - §2 — [`reference/rules/components-and-hooks-must-be-pure`](https://react.dev/reference/rules/components-and-hooks-must-be-pure)
   — component purity (idempotency, no side effects, no external mutation).
 - §2 — [`reference/rules/rules-of-hooks`](https://react.dev/reference/rules/rules-of-hooks) —
@@ -1117,6 +1145,8 @@ so any claim can be re-checked directly, grouped by the section that relies on i
   batching everywhere, what `createRoot` unlocks.
 - §4 — [`learn/queueing-a-series-of-state-updates`](https://react.dev/learn/queueing-a-series-of-state-updates)
   — the snapshot/updater-function batching example.
+- §4 — [`reference/react/useContext`](https://react.dev/reference/react/useContext) — Context
+  consumers re-rendering when their Provider's value changes.
 - §5 — [`learn/rendering-lists`](https://react.dev/learn/rendering-lists) — keys, the
   index-as-key trap, `key` not being forwarded as a prop.
 - §5 — [React 19 release post](https://react.dev/blog/2024/12/05/react-19) — `ref` as a regular
@@ -1127,6 +1157,9 @@ so any claim can be re-checked directly, grouped by the section that relies on i
   — `createRoot`/`root.render()` behavior, error-handling options.
 - §8 — [`reference/react/StrictMode`](https://react.dev/reference/react/StrictMode) — what
   double-invokes, the setup→cleanup→setup stress-test framing.
+- §8 — [React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide) —
+  "StrictMode changes": `useMemo`/`useCallback` reusing the first render's memoized result on
+  the second Strict Mode render.
 
 ---
 

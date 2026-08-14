@@ -227,3 +227,28 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   wording (confirmed against the React 19 upgrade guide) and the updater-function batching
   example (confirmed against `learn/queueing-a-series-of-state-updates`) — both held up as
   written, no corrections needed.
+- **2026-08-14 (sixth pass, same day):** A fourth external (ChatGPT) review, run against the
+  now-cited version, repeated a claim from an earlier round: that React 19 changed
+  `useMemo`/`useCallback` to reuse the first Strict Mode render's memoized result on the second
+  render. That claim had already been checked and rejected in the fifth-pass round above — but
+  this review cited a *different* URL (the
+  [React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide)'s dedicated
+  "StrictMode changes" section) than the one checked before (the general React 19 release blog
+  post, which doesn't mention it). Fetching the upgrade guide directly confirmed the claim is
+  real and verbatim-documented — the earlier rejection was itself wrong, not because the source
+  was misread, but because the wrong document was checked. **Lesson, logged to memory:** a
+  version-specific behavior change is more likely to live in a dedicated upgrade/migration guide
+  than a general release announcement; checking one plausible page and finding nothing isn't the
+  same as confirming the claim is unsupported. Fixed ch.01's Strict Mode section accordingly, with
+  the exact upgrade-guide quote. Also fixed in this pass: a real internal contradiction where the
+  new component/element/DOM comparison table said "`<Counter />` ... calling it ... produces a
+  React element" — directly contradicting §1's own (correct) explanation that `<Counter />`
+  produces an element *without* calling `Counter`; reworded so the two sections agree. Softened
+  the Strict Mode WebSocket cleanup example, which read as "you'll always see two connections"
+  when the accurate framing is "two connections only if cleanup is actually broken — that's the
+  point of the stress test." Clarified that "this project's Vite setup uses the automatic JSX
+  transform" is a project-configuration fact (verified against `app/tsconfig.app.json`'s
+  `"jsx": "react-jsx"`), not something the cited react.dev page itself establishes. Added two
+  citations for completeness against the "every specific claim is cited" policy:
+  `reference/react/createElement` (component/element/DOM distinction) and
+  `reference/react/useContext` (context consumers re-rendering).
