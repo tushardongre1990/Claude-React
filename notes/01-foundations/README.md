@@ -186,14 +186,23 @@ a two-step process, not one, explains a lot of things that otherwise look magica
   to "look up the variable named `Counter` and use *that* as the type" (meaning "this is a
   component I wrote"). A lowercase custom component name would be treated as an unknown HTML
   tag string instead of your component, and silently fail to render what you intended.
-- **Attributes use `camelCase`**, e.g. `className` instead of `class`, `onClick` instead of
-  `onclick`, `htmlFor` instead of `for`. The precise reason (worth getting right — it's *not*
-  "because `class`/`for` are reserved words," which is a common but inaccurate explanation;
-  modern JS actually allows reserved words as object property names, e.g. `{ for: 1 }` is legal)
-  is that **React's JSX attributes mirror the DOM's own JavaScript property names, not the HTML
-  attribute strings.** The DOM API itself exposes an element's CSS class through a property
-  called `element.className` and a label's association through `label.htmlFor` — React just
-  uses those same underlying DOM property names in JSX rather than inventing new ones.
+- **Attributes use `camelCase`**, e.g. `strokeWidth` instead of `stroke-width`, `onClick`
+  instead of `onclick`, and — the one worth having precise — `className` instead of `class` and
+  `htmlFor` instead of `for`. React's own docs give the exact reason directly: JSX attributes
+  become the keys of a JavaScript object (the props object, from §1's compile step), and you
+  will very often want to pull those attributes out into plain variables — most commonly via
+  destructuring a component's props, exactly like `function Greeting({ name })` in §2/§3 below.
+  JavaScript variable/binding names have real restrictions that object property *keys* don't:
+  they can't contain dashes (`stroke-width` isn't a legal identifier, hence `strokeWidth`), and
+  they can't be reserved words like `class` — so `function Img({ class }) { ... }` is an actual
+  `SyntaxError`, not just bad style, because that destructuring shorthand tries to declare a
+  variable literally named `class`. (This is genuinely narrower than "objects can't have `class`
+  as a key at all" — `{ class: 'x' }` and `el.class` are both fine; it's specifically the
+  variable/binding-name position, e.g. destructuring shorthand or `var`/`let`/`const` names,
+  that rejects reserved words.) Since `class` can't safely be used, React picked `className` —
+  not an arbitrary substitute, but the name already used by the DOM's own
+  [`element.className`](https://developer.mozilla.org/en-US/docs/Web/API/Element/className)
+  property — and `htmlFor` follows the same pattern.
 
   This distinction between HTML *attributes* (strings in markup) and DOM *properties*
   (JavaScript object fields on the live element) is a genuinely useful thing to have precise for
@@ -240,9 +249,15 @@ the essence of what a **render** is, covered precisely in §4.
 be pure while it's rendering.** React's own framing of this (the "Rules of React") is precise
 enough to quote directly — a component must be:
 - **Idempotent** — given the same props/state/context, it always returns the same JSX.
-- **Free of side effects during render** — no network calls, no timers, no logging-as-a-feature,
-  during the function body itself (side effects belong in a `useEffect`, ch.03, which runs
-  *after* render, not during it).
+- **Free of side effects during render** — the function body itself must not modify external
+  variables, touch the DOM, start subscriptions, or make network calls. Side effects still have
+  a place, just not *during* the render call itself — React's own guidance splits them by
+  cause: a side effect triggered by a specific user interaction (a click, a form submit) belongs
+  in an **event handler**, not an Effect (e.g. a "Buy" button's `fetch('/api/buy', ...)` call
+  belongs in the `onClick` handler, since it should run exactly when — and only when — the user
+  clicks); a side effect that needs to happen because the component is *displayed*, regardless
+  of what interaction caused that, belongs in `useEffect` (ch.03) — e.g. opening a connection
+  that should exist for as long as the component is on screen, no matter how it got there.
 - **Non-mutating of anything it doesn't own** — it must never write to a variable, object, or
   array that exists *outside* the function call currently rendering.
 
@@ -507,27 +522,32 @@ update" questions are really questions about which of these two steps did or did
 
 ### What triggers a render
 
-React's own docs name exactly two root causes: **a component's initial render**, and **a state
-update** (in that component or an ancestor of it). Everything else people list as a "trigger" is
-really a consequence of one of those two:
+React's own docs name exactly two root causes for a component to render at all:
+**initial render**, and **a state update** (in that component, or in one of its ancestors).
+Everything else is either one of those two, or something that shapes *which* components a
+state update actually reaches:
 
 1. **Initial render** — the very first time a component tree is displayed, kicked off by the
    `createRoot(...).render(<App />)` call covered in §7. Every component in the tree renders
    once simply because the app is starting up, before any state has changed at all.
-2. **State changes** — calling a `useState` setter, or dispatching to a `useReducer` (ch.02/05),
-   with a value that's actually different from the current one (see the bail-out note below).
-3. **A parent re-renders** — by default, when a parent component renders (for *any* reason,
-   including its own state changing), React renders all of its children too, regardless of
-   whether their own props actually changed. This isn't a third independent root cause so much
-   as state-changes-in-an-ancestor propagating downward — but it's worth calling out on its own,
-   because it's the reason `memo` exists as a performance escape hatch (ch.06): to let a child
-   opt out of re-rendering when its own props haven't actually changed.
-4. **A Context value changes** — components reading a Context via `useContext` re-render when
-   the Provider supplying that context gets a new value (ch.05).
+2. **State update** — calling a `useState` setter, or dispatching to a `useReducer` (ch.02/05),
+   with a value that's actually different from the current one (see the bail-out note below) —
+   in the component itself, or in an ancestor (an ancestor's state update is what "a parent
+   re-renders" means in practice).
+
+Once a state update happens somewhere, two more things shape what actually renders as a result,
+neither of which is an independent trigger on its own:
+
+- **By default, a re-rendering parent re-renders all of its children too** — regardless of
+  whether their own props actually changed. This is exactly why `memo` exists as a performance
+  escape hatch (ch.06): to let a child opt out when its own props haven't changed.
+- **Context consumers re-render when their Provider's value changes** — components reading a
+  Context via `useContext` are re-rendered whenever the Provider supplying that context receives
+  a new value (ch.05), independent of whether their own local props/state changed.
 
 Notice what's **not** on this list on its own: a prop changing, by itself, does nothing — a prop
-change only matters *because* it's the parent re-rendering (reason #3) and, as part of that,
-choosing to pass a different value down.
+change only matters *because* the parent re-rendered (from its own state update) and, as part of
+that, chose to pass a different value down.
 
 ### Render phase vs. commit phase
 
@@ -824,12 +844,16 @@ root.render(<App />);
 ```
 
 Precision point worth having ready for interviews: **`createRoot` is a React 18 API, not
-React-19-specific.** It replaced the older, legacy `ReactDOM.render()` call, and React 18's new
-features — automatic batching everywhere (§4), transitions, Suspense-driven rendering, and
-concurrent rendering generally — simply **do not work** under an app still mounted with the old
-`ReactDOM.render()`; `createRoot` is the switch that turns all of that on. It remains the
-standard mounting API, unchanged, in React 19/19.2 — nothing about *mounting itself* changed in
-19; only what you can
+React-19-specific.** It replaced the older, legacy `ReactDOM.render()` call. React's own React
+18 release notes state it plainly: "new features in React 18 don't work without it" — but be
+precise about what that means, rather than picturing `createRoot` as one big switch that turns
+concurrency on everywhere. Automatic batching (§4) applies automatically to every update once
+you're on `createRoot`, with nothing further to opt into. Concurrent-rendering features like
+transitions, by contrast, remain **opt-in** — using `createRoot` makes those APIs *available*,
+but a component tree mounted with `createRoot` doesn't start rendering concurrently on its own;
+you still have to reach for `useTransition`/`startTransition` (ch.06) to actually use them. It
+remains the standard mounting API, unchanged, in React 19/19.2 — nothing about *mounting itself*
+changed in 19; only what you can
 do *inside* the mounted tree changed (Actions, the `use` API, etc. — ch.07).
 
 **Nuances worth knowing beyond the basic call:**
@@ -849,9 +873,10 @@ do *inside* the mounted tree changed (Actions, the `use` API, etc. — ch.07).
 
 > **Interview framing:** "what's the difference between `ReactDOM.render` and `createRoot`" is
 > as much a legacy-knowledge check as a current-API check — the real answer is that `render` was
-> synchronous-only and blocked concurrent features entirely, while `createRoot` is what makes
-> automatic batching-everywhere, transitions, and Suspense-driven rendering possible. Knowing
-> `createRoot` is an **18-era** API (not 19-era) is a small but real precision signal.
+> synchronous-only and blocked concurrent features entirely, while `createRoot` makes automatic
+> batching apply everywhere and makes concurrent-rendering APIs like transitions available to opt
+> into (not automatically active). Knowing `createRoot` is an **18-era** API (not 19-era) is a
+> small but real precision signal.
 
 ---
 
@@ -927,9 +952,14 @@ property real production remounts and concurrent rendering rely on.
 > **Interview framing:** "why does my `useEffect` fire twice in development" is one of the most
 > common confused-newcomer questions turned senior-interview question. The strong answer names
 > the *mechanism* (setup→cleanup→setup, dev-only, designed to catch missing/incorrect cleanup)
-> rather than just "oh that's normal, ignore it." If an Effect breaks under double-invocation,
-> the Effect had a real bug (e.g. a missing `clearInterval`/`unsubscribe` in its cleanup
-> function) that would eventually have caused a leak in production too — just harder to spot.
+> rather than just "oh that's normal, ignore it." React's own docs frame the purpose precisely:
+> it's a **stress test that verifies cleanup "mirrors" setup** — the rule of thumb is that a user
+> shouldn't be able to tell the difference between setup running once (production) and
+> setup→cleanup→setup (development). If an Effect breaks under that stress test — e.g. a missing
+> `clearInterval`/`unsubscribe` in its cleanup function — its setup/cleanup logic isn't correctly
+> symmetrical, which is exactly the property real-world remounts and concurrent rendering can
+> also exercise; don't overstate it as "guaranteed to leak in production," but do treat it as a
+> real defect in the Effect's cleanup logic worth fixing.
 
 ---
 

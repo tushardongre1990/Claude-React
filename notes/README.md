@@ -153,3 +153,39 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   render" as an explicit third trigger alongside state/parent/context, `key` is deliberately
   not forwarded as a regular prop (`props.key` is always `undefined`) plus the related React 19
   `ref`-as-prop change, and Strict Mode not double-invoking event handlers.
+- **2026-08-14 (same day, correcting the correction above):** The `className`/`htmlFor`
+  "reserved words aren't the reason" fix above was itself wrong — caught by the user, who found
+  the actual react.dev page (`learn/writing-markup-with-jsx`, "camelCase all most of the
+  things") stating outright that `class` **is** a reserved word and that's exactly why
+  `className` exists. My error: a WebFetch summary of that page earlier had missed the precise
+  mechanism and I over-corrected based on a too-narrow rebuttal (object literal keys like
+  `{ class: 1 }` *are* legal, which is true but beside the point). The actual, docs-stated
+  mechanism: JSX attributes become props-object keys that are very commonly destructured into
+  variables, and reserved words can't be used in a variable/binding position (destructuring
+  shorthand, `const`/`let`/`var` names) even though they're fine as plain object keys — so
+  `function Img({ class })` is a real `SyntaxError`. Fixed in ch.01's JSX section with the
+  precise mechanism and a direct citation. **Lesson for future sessions:** a WebFetch summary
+  of a doc page is a paraphrase from a smaller model, not the primary source — for a fact
+  specific and falsifiable enough to state as "X is wrong, here's why," prefer getting the
+  exact quoted wording (or reading the page directly) over trusting a summarized rebuttal,
+  especially before overriding something the official docs state directly.
+- **2026-08-14 (third pass, same day):** A second external (ChatGPT) review of ch.01, run
+  against the post-correction version, found four further precision issues — again each
+  independently verified against react.dev (exact quotes, not summaries, per the lesson above)
+  before acting. Fixed: `createRoot` was described as "the switch that turns on" automatic
+  batching/transitions/concurrent rendering, which overstates it — automatic batching does
+  apply automatically to every update once on `createRoot`, but concurrent features like
+  transitions remain opt-in (`useTransition`/`startTransition`) rather than automatically
+  active; reworded to distinguish the two. Strict Mode's interview-framing line claiming a
+  broken Effect cleanup "would eventually have caused a leak in production too" overstated
+  what React's own docs say (they frame the double setup/cleanup cycle as a stress test for
+  setup/cleanup *symmetry*, not a guarantee of an eventual production leak) — softened to match
+  the docs' actual framing. The purity section's "side effects belong in a `useEffect`" was
+  incomplete — react.dev's guidance splits side effects by cause: interaction-caused side
+  effects (e.g. a "Buy" button's POST request) belong in the **event handler**, not an Effect;
+  only side effects that must happen because the component is displayed, independent of which
+  interaction caused that, belong in `useEffect` — fixed with the docs' own Buy-button example.
+  The render-triggers section had a self-contradiction (claiming exactly two root causes, then
+  listing four numbered items including Context as if a third) — restructured so initial
+  render/state-update are the two root causes and parent-rerender/context-consumers are
+  explicitly framed as consequences/modifiers, not independent triggers.
