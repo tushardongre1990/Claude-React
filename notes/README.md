@@ -338,3 +338,15 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
     could imply React retains a particular Effect instance from the second invocation.
   No changes were made to the parts the review rated already-correct (§3's composition diagram,
   and the long list of concepts it signed off on).
+- **2026-08-18 (second pass, same day):** The same reviewer re-checked the revised file, rated
+  the diagrams ~9.5/10 and interview-safe, and raised exactly one remaining point — all of it
+  outside the diagrams: §4 said React's docs "name **exactly** two root causes for a component
+  to render **at all**," which overstates a teaching simplification as a complete specification,
+  especially given the chapter's own `useSyncExternalStore` caveat a few paragraphs later.
+  Re-checked `learn/render-and-commit` first: the page does say "There are two reasons for a
+  component to render," so the underlying attribution was accurate — the problem was only the
+  added emphasis. Reworded to quote the docs verbatim and frame it explicitly as React's
+  *teaching model* of how rendering starts (the right thing to lead with in an interview) rather
+  than an exhaustive account, and made the two downstream references to "the two root causes"
+  consistent with the new phrasing. The reviewer's recommendation was to stop polishing ch.01's
+  diagrams and move to the next chapter.

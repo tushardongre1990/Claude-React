@@ -620,11 +620,14 @@ update" questions are really questions about which of these two steps did or did
 
 ### What triggers a render
 
-React's own docs ([`learn/render-and-commit`](https://react.dev/learn/render-and-commit)) name
-exactly two root causes for a component to render at all: **initial render**, and **a state
-update** (in that component, or in one of its ancestors).
-Everything else is either one of those two, or something that shapes *which* components a
-state update actually reaches:
+React's own docs ([`learn/render-and-commit`](https://react.dev/learn/render-and-commit)) teach
+this with a deliberately simple model — "There are two reasons for a component to render" —
+naming **initial render** and **a state update** (in that component, or in one of its
+ancestors). Take that for what it is: React's *teaching model* of how rendering starts, which is
+the right thing to lead with in an interview, but not an exhaustive specification of every
+mechanism that can put React to work (the caveat at the end of this section covers the one
+common case that doesn't fit the wording literally). Everything else is either one of those two
+reasons, or something that shapes *which* components a state update actually reaches:
 
 1. **Initial render** — the very first time a component tree is displayed, kicked off by the
    `createRoot(...).render(<App />)` call covered in §7. Every component in the tree participates
@@ -659,7 +662,7 @@ that parent's own state update, or from being re-rendered by *its* parent), whic
 different value down. Tracing "why did this component render?" backwards always terminates at an
 initial render or a state update — never at "a prop changed."
 
-**One honest caveat on the "exactly two root causes" model,** worth having so the model doesn't
+**One honest caveat on that two-reason model,** worth having so the model doesn't
 break the first time you meet an external store: components subscribed via `useSyncExternalStore`
 (ch.13 — how Redux, Zustand, and similar libraries integrate with React) re-render when the
 *store* notifies a change, which isn't a `useState` setter call in the literal sense. It's still
@@ -674,7 +677,7 @@ React splits the work of "update the screen" into two distinct phases:
 
 ```mermaid
 flowchart LR
-    trigger["An update occurs\n(initial render, or a state update —\nthe two root causes above)"] --> render
+    trigger["An update occurs\n(initial render, or a state update —\nthe two reasons above)"] --> render
     subgraph render["Render phase"]
         direction TB
         r1["React walks the tree,\ncalling component functions"]
