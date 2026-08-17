@@ -131,9 +131,16 @@ why "conditional rendering" in React uses expression-shaped tools like the terna
 ### How JSX actually becomes DOM: the compile step
 
 JSX doesn't run in the browser as-is — browsers don't understand it. Before your code ever
-runs, a **compiler** (part of your build tool — Vite in this project, via `@vitejs/plugin-react`)
-transforms every JSX expression into a plain JavaScript function call. This happens at build
-time, invisibly, every time you save a file and the dev server reloads.
+runs, a **JSX transform** rewrites every JSX expression into a plain JavaScript function call.
+This happens at build time, invisibly, every time you save a file and the dev server reloads.
+
+Worth separating two things that get casually conflated here, because the distinction shows up
+in interviews as "what actually compiles your JSX": the **build tool** (Vite, in this project)
+is what orchestrates the dev server and the production build; the **transform itself** is done
+by a compiler the build tool delegates to — Babel, SWC, or TypeScript, depending on the setup.
+Vite isn't itself the JSX compiler. This project delegates to `@vitejs/plugin-react`, whose
+[README](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#jsxruntime)
+states it uses the automatic JSX runtime (described below) by default.
 
 ```jsx
 const el = <h1 className="title">Hello, {name}</h1>;
@@ -147,15 +154,34 @@ const el = React.createElement("h1", { className: "title" }, "Hello, ", name);
 
 or, with the **modern automatic JSX transform**
 ([`learn/writing-markup-with-jsx`](https://react.dev/learn/writing-markup-with-jsx) confirms
-this has been the default since React 17; separately, this project's own
-`app/tsconfig.app.json` sets `"jsx": "react-jsx"`, which is what actually turns this transform
-on for this repo specifically — a project-configuration fact, not something the React docs
-themselves establish):
+this has been the default since React 17):
 
 ```js
-import { jsx as _jsx } from "react/jsx-runtime";
-const el = _jsx("h1", { className: "title", children: ["Hello, ", name] });
+import { jsxs as _jsxs } from "react/jsx-runtime";
+const el = _jsxs("h1", { className: "title", children: ["Hello, ", name] });
 ```
+
+Two details about that output, since "it compiles to `jsx(...)`" is a slightly-too-tidy version
+of the truth that's easy to state wrong out loud:
+
+- The runtime exports **both `jsx` and `jsxs`**. `jsx` is used when the element has a single
+  child; `jsxs` (the `s` is for a *static* children array) is used when the children are a
+  known-at-compile-time list — which is why the example above, with two children (`"Hello, "`
+  and `name`), emits `jsxs` rather than `jsx`.
+- **Development builds use a third entry point entirely:** `jsxDEV` from
+  `react/jsx-dev-runtime`, which takes extra arguments recording the source file, line, and
+  column so React can point at the right line in error messages and warnings.
+
+Which of the three you get is an implementation detail of the transform, not something your
+code chooses, and none of it changes the conceptual point: **JSX becomes a function call that
+returns a plain object.**
+
+> **Project-configuration footnote,** since it's easy to credit the wrong file: for this repo
+> the transform is performed in the Vite pipeline by `@vitejs/plugin-react`, *not* by
+> TypeScript. `app/tsconfig.app.json` does set `"jsx": "react-jsx"`, but it also sets
+> `"noEmit": true`, and `npm run build`'s `tsc -b` step therefore only **type-checks**. So that
+> tsconfig setting is what makes TypeScript type-check your JSX against the automatic runtime's
+> types; it is not what emits the `jsxs(...)` call.
 
 Either way, the call **returns a plain JavaScript object** describing what you asked for —
 something shaped roughly like `{ type: 'h1', props: { className: 'title', children: [...] } }`.
@@ -167,7 +193,7 @@ commits whatever DOM changes are actually needed.
 
 ```mermaid
 flowchart LR
-    jsx["JSX you write:\n&lt;h1&gt;Hello, {name}&lt;/h1&gt;"] -->|compiler: Vite / Babel / TS| call["Function call:\njsx('h1', { children: [...] })"]
+    jsx["JSX you write:\n&lt;h1&gt;Hello, {name}&lt;/h1&gt;"] -->|"JSX transform:\nBabel / SWC / TypeScript,\nrun by the build tool — Vite here"| call["Function call:\njsx / jsxs / jsxDEV\n('h1', { children: [...] })"]
     call -->|returns| element["React element\n(a plain JS object — just a description)"]
     element -->|reconciled, then committed — §4| dom["Real DOM node\n(what you actually see on screen)"]
 ```
@@ -624,9 +650,23 @@ neither of which is an independent trigger on its own:
   starting from the provider that receives a different `value`"
   ([`reference/react/useContext`](https://react.dev/reference/react/useContext)).
 
-Notice what's **not** on this list on its own: a prop changing, by itself, does nothing — a prop
-change only matters *because* the parent re-rendered (from its own state update) and, as part of
-that, chose to pass a different value down.
+Notice what's **not** on this list as a cause of its own: **a prop change is not an independent
+trigger.** Be careful how you phrase this, because the sloppy version ("props changing does
+nothing") is wrong in the other direction — from inside the child, receiving different props is
+absolutely the reason it renders *differently*. The precise claim is about causation, not
+relevance: the thing that caused the child to render *at all* was its parent re-rendering (from
+that parent's own state update, or from being re-rendered by *its* parent), which then passed a
+different value down. Tracing "why did this component render?" backwards always terminates at an
+initial render or a state update — never at "a prop changed."
+
+**One honest caveat on the "exactly two root causes" model,** worth having so the model doesn't
+break the first time you meet an external store: components subscribed via `useSyncExternalStore`
+(ch.13 — how Redux, Zustand, and similar libraries integrate with React) re-render when the
+*store* notifies a change, which isn't a `useState` setter call in the literal sense. It's still
+an **update** in React's model rather than some third phase — it just originates outside React's
+own state. The most robust interview phrasing, which stays true in every case: *React starts
+work either for an initial render or for an update; updates originate from component state, from
+a Provider being given a new value, or from an external store React is subscribed to.*
 
 ### Render phase vs. commit phase
 
@@ -634,12 +674,12 @@ React splits the work of "update the screen" into two distinct phases:
 
 ```mermaid
 flowchart LR
-    trigger["Trigger\n(setState / parent render / context change)"] --> render
+    trigger["An update occurs\n(initial render, or a state update —\nthe two root causes above)"] --> render
     subgraph render["Render phase"]
         direction TB
-        r1["Call your component function"]
-        r2["Build a new React-element tree\n(the plain-object description from §1)"]
-        r3["Compare against the previous tree —\nreconciliation — to find what changed"]
+        r1["React walks the tree,\ncalling component functions"]
+        r2["Each call returns React elements\n(the plain-object description from §1)"]
+        r3["React reconciles each result against\nthe previous tree as it goes"]
         r1 --> r2 --> r3
     end
     render --> commit
@@ -654,10 +694,17 @@ flowchart LR
 ```
 
 - **Render phase**: your component function actually runs here, computing what the UI *should*
-  look like as a fresh element tree, then React compares that against the previous tree — this
+  look like as fresh element trees, which React compares against the previous tree — this
   comparison process is what React's docs call **reconciliation** — to figure out exactly what
-  changed ([`learn/render-and-commit`](https://react.dev/learn/render-and-commit)). This phase
-  must be **pure** — no side effects
+  changed ([`learn/render-and-commit`](https://react.dev/learn/render-and-commit)).
+  **Read the three boxes above as a conceptual breakdown, not as three separate sequential
+  passes over the whole app:** React doesn't call every component, *then* build one complete
+  tree, *then* diff the two finished trees. It traverses the tree, and calling a component and
+  reconciling what that call returned are interleaved as it goes. The simplified "build, then
+  compare" picture is fine for reasoning about *what* the phase accomplishes, and it's how most
+  explanations (including React's own teaching docs) present it — just don't defend it as
+  literal mechanics if an interviewer pushes on it; the real traversal is the subject of ch.19.
+  This phase must be **pure** — no side effects
   (no mutating variables outside the function, no network calls, no touching the DOM directly)
   — because React is allowed to start, throw away, and restart a render without warning if it
   decides to (this is exactly what Strict Mode's double-invoke in development is designed to
@@ -799,25 +846,37 @@ position alone does.
 
 ### If you don't specify a key, React falls back to the item's position
 
-Rendering an array without explicit keys doesn't mean nothing happens — React falls back to
-using each item's position/index in the array as its implicit identity for reconciliation. This
-works fine as long as the list never reorders, filters, or has items inserted/removed
-anywhere but the very end. The moment it does, index-as-key breaks the matching:
+Rendering an array without explicit keys doesn't mean nothing happens — React matches the new
+children against the previous ones **by position/order** in the array, which behaves exactly as
+if you had passed each item's index as its key. React's own docs put it that way directly:
+"You might be tempted to use an item's index in the array as its key. In fact, that's what React
+will use if you don't specify a `key` at all"
+([`learn/rendering-lists`](https://react.dev/learn/rendering-lists)).
+
+One small precision point, since the diagram below could otherwise be misread: React does not
+literally attach `key={0}`, `key={1}` props to your elements when you omit keys — those elements
+genuinely have no key, and positional matching is what the reconciler falls back to. "React uses
+the index as the key" is a description of the resulting *behavior*, which is why it's a fair
+thing to say in an interview, not a description of props React silently wrote for you.
+
+Positional matching works fine as long as the list never reorders, filters, or has items
+inserted/removed anywhere but the very end. The moment it does, it breaks:
 
 ```mermaid
 flowchart TB
-    subgraph before["Before: [A, B, C] — index keys 0,1,2"]
-        A0["key=0: 'A'"] --- B0["key=1: 'B'"] --- C0["key=2: 'C'"]
+    subgraph before["Before: [A, B, C]"]
+        A0["position 0 → 'A'"] --- B0["position 1 → 'B'"] --- C0["position 2 → 'C'"]
     end
-    subgraph after["After deleting 'A': [B, C] — index keys 0,1"]
-        B1["key=0: 'B' ← React thinks this is the SAME element as key=0 'A' above"]
-        C1["key=1: 'C' ← same story"]
+    subgraph after["After deleting 'A': [B, C]"]
+        B1["position 0 → 'B'\nmatched against previous position 0, which held 'A'"]
+        C1["position 1 → 'C'\nmatched against previous position 1, which held 'B'"]
     end
-    before -.->|"React diffs by key, not content"| after
+    before -.->|"matched by position, not by content"| after
 ```
 
-Because `key=0` "is" the same logical element before and after in React's eyes, React reuses the
-existing DOM node and component state at that position — but that node now displays `B`'s
+Because position 0 before and position 0 after are treated as the same logical element, React
+reuses the existing DOM node and component state at that position — but that node now displays
+`B`'s
 content instead of `A`'s. If that list item happens to be, say, a text input holding per-row
 draft text, **the input's state (whatever the user typed) stays attached to the DOM node at that
 position, not to the logical data item that moved** — so after deleting row A, row B visually
@@ -1073,10 +1132,22 @@ sequenceDiagram
     R->>C: render (1st call)
     R->>C: render (2nd call, discarded - checks for impurity)
     Note over R,C: simplified model - exact internal sequencing<br/>is an implementation detail, not a fixed contract
-    R->>C: Effect setup
-    R->>C: Effect cleanup (immediately)
-    R->>C: Effect setup (again - this is the one that stays)
+    R->>C: Effects setup
+    R->>C: Effects cleanup (immediately)
+    R->>C: Effects setup (again - simulates a remount)
 ```
+
+Two wording notes on that diagram, both of which matter for saying this correctly under
+interview pressure:
+
+- **"Effects" is the right word, not "`useEffect`".** React's docs use *Effect* as the general
+  term, and Strict Mode's extra setup/cleanup/setup cycle applies to Effects as a category —
+  `useEffect`, `useLayoutEffect`, and `useInsertionEffect` — not to `useEffect` alone
+  ([`reference/react/StrictMode`](https://react.dev/reference/react/StrictMode)).
+- **The second setup isn't a special "surviving" instance.** It's simply the state you're left
+  in after the extra cycle finishes — the same state a single production setup would have
+  produced. React isn't picking one of two Effect instances to keep; it ran setup, undid it with
+  your cleanup, and ran setup again, and that final setup is just the last one standing.
 
 Concretely, double-invocation hits: your component function body (render logic — but *only* the
 top-level logic that runs on every call, not code inside event handlers, which are never
@@ -1147,6 +1218,16 @@ so any claim can be re-checked directly, grouped by the section that relies on i
 - §1 — [`learn/writing-markup-with-jsx`](https://react.dev/learn/writing-markup-with-jsx) —
   JSX transform, single-root rule, camelCase attributes and the `class`/`for` reserved-word
   reasoning, the `aria-*`/`data-*` exception.
+- §1 — [Introducing the New JSX Transform](https://legacy.reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html)
+  — the automatic runtime, and the existence of `react/jsx-runtime` vs. `react/jsx-dev-runtime`.
+  Note this post documents `jsx` but not `jsxs`/`jsxDEV` in detail; the specific claim that this
+  chapter's two-child example emits `jsxs` (and that dev builds emit `jsxDEV` with source
+  location arguments) was verified **empirically**, by running this project's own TypeScript
+  compiler over that exact snippet with `jsx: "react-jsx"` and `"react-jsxdev"` — reproduce it
+  with `ts.transpileModule` if you want to re-check it, rather than taking a doc's word for it.
+- §1 — [`@vitejs/plugin-react` README](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#jsxruntime)
+  — the plugin (not Vite itself, and not TypeScript) performs this project's JSX transform, and
+  defaults to the automatic runtime. Build-tool configuration, not a React doc.
 - §1 — [`reference/react-dom/components/common`](https://react.dev/reference/react-dom/components/common)
   — `className`/`htmlFor` as DOM property names.
 - §1, §2 — [`reference/react/createElement`](https://react.dev/reference/react/createElement) —

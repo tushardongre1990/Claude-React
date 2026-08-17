@@ -287,3 +287,54 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   return something React can display" was imprecise since `null`/`undefined`/booleans are valid
   returns but aren't actually displayed — reworded to distinguish visibly-rendered values from
   validly-empty ones.
+- **2026-08-18:** A seventh external (ChatGPT) review of ch.01, this time focused on the five
+  mermaid diagrams. Rated the chapter ~8.5-9/10 with no major conceptual flaws; four diagram
+  fixes were flagged as "definitely fix" and three prose points as "worth improving." All were
+  checked before acting on them, and all held up, so all were applied:
+  - **§1 JSX diagram** said `compiler: Vite / Babel / TS`, treating Vite as the JSX compiler.
+    Vite is the build tool that *delegates* the transform to Babel/SWC/TypeScript. Relabelled,
+    and the surrounding prose now separates build tool from transform explicitly.
+  - **§1 automatic-transform code sample** was factually wrong, which the review only gestured
+    at ("you can get `jsx()`, `jsxs()`, or development-specific transforms") without pinning
+    down. Verified empirically rather than from memory, by running this project's own TypeScript
+    compiler over the chapter's exact snippet: `<h1 className="title">Hello, {name}</h1>` has two
+    children, so it emits **`jsxs`**, not `jsx` — the sample showed `_jsx`. Fixed, and added a
+    short explanation of `jsx` vs. `jsxs` vs. dev builds' `jsxDEV`/`react/jsx-dev-runtime`
+    (also verified by compiling with `jsx: "react-jsxdev"`). The `Sources` entry records that
+    this specific claim was verified by compilation, not by a doc, since React's own JSX
+    transform post documents `jsx` but not `jsxs`/`jsxDEV` in detail.
+  - **§1 project-configuration footnote** claimed `app/tsconfig.app.json`'s `"jsx": "react-jsx"`
+    "is what actually turns this transform on for this repo." Checked the actual config: that
+    file also sets `"noEmit": true`, so `tsc -b` only type-checks — the emit is done by
+    `@vitejs/plugin-react` (whose README confirms the automatic runtime is its default).
+    Corrected to say the tsconfig setting governs type-checking, not emit.
+  - **§4 render/commit diagram** labelled its entry node
+    `Trigger (setState / parent render / context change)`, which contradicted the section's own
+    prose two paragraphs above naming exactly two root causes and explicitly saying parent
+    renders and context changes are *not* independent triggers. Relabelled to "An update occurs
+    (initial render, or a state update)".
+  - **§4 render-phase boxes** read as three strictly sequential passes (call everything → build
+    a whole tree → diff two finished trees). Kept the simplified boxes but added an explicit
+    note that calling components and reconciling their output are interleaved during traversal,
+    and that the simplified picture shouldn't be defended as literal mechanics (ch.19's subject).
+  - **§4 "a prop changing, by itself, does nothing"** was blunt enough to be wrong in the other
+    direction — different props absolutely are why a child renders *differently*. Reworded to
+    the causal claim: a prop change isn't an independent *trigger*, and tracing "why did this
+    render" always terminates at an initial render or a state update.
+  - **§4 "exactly two root causes"** — added the review's suggested honest caveat about
+    `useSyncExternalStore`, which re-renders subscribers without a `useState` setter call, plus
+    a phrasing that stays true in all cases (updates originate from state, a Provider's new
+    value, or a subscribed external store).
+  - **§5 index-as-key diagram** drew `key=0` / `key=1` / `key=2` as though React had written
+    those props onto keyless elements. React matches keyless children *by position*; it doesn't
+    synthesize key props. Redrawn as `position 0 → 'A'` etc. Note the prose itself was already
+    defensible — `learn/rendering-lists` says outright "that's what React will use if you don't
+    specify a `key` at all" (re-confirmed against the live page), so the fix was to keep that
+    quote while making clear it describes resulting *behavior*, not props React inserted.
+  - **§8 Strict Mode diagram** said "Effect setup" and "this is the one that stays." Confirmed
+    against `reference/react/StrictMode` that the docs use **Effects** as a category term
+    (`useEffect`/`useLayoutEffect`/`useInsertionEffect`), not `useEffect` alone; relabelled and
+    added a note. Replaced "the one that stays" with "simulates a remount," since the original
+    could imply React retains a particular Effect instance from the second invocation.
+  No changes were made to the parts the review rated already-correct (§3's composition diagram,
+  and the long list of concepts it signed off on).
