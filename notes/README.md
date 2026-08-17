@@ -396,3 +396,22 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   how it detects components, so it isn't asserted in the notes.
   Ch.01's notes are now considered technically settled; remaining work for `Done` is the
   exercises, `interview-questions/` entries, a verbal explain-back, and `revision.md`.
+- **2026-08-18 (fifth pass, same day):** Fixed a second mermaid parse error the user hit when
+  rendering §1's JSX pipeline diagram (`Expecting 'SEMI', 'NEWLINE'... got 'CALLBACKNAME'`).
+  Cause: the diagram's second node used the **ID `call`**, and `call` is a reserved token in
+  mermaid's flowchart grammar — it's the `click nodeId call callbackName()` syntax, and the
+  lexer switches into callback-name state on `call` followed by whitespace, so the statement
+  `call -->|returns| element` was never parsed as an edge at all. The node's *label* was fine;
+  only the ID mattered. Renamed the node to `fncall`, and simplified its label from
+  `('h1', { children: [...] })` to `(type, props)` since the exact compiled output already
+  appears in code blocks immediately above the diagram. Note this is unrelated to the earlier
+  `Note`/`\n` fix — different diagram, different failure mode, so mermaid problems in this repo
+  have now come from two independent causes.
+  **Lesson worth keeping:** balanced quotes are not a sufficient check for mermaid blocks. Node
+  IDs must also avoid mermaid keywords (`graph`, `flowchart`, `subgraph`, `end`, `click`,
+  `call`, `href`, `class`, `classDef`, `style`, `linkStyle`, `direction`, `default`, and bare
+  `o`/`x`), and sequence-diagram `Note` lines need `<br/>` rather than `\n`. A scan of every
+  mermaid block in `notes/` (20 blocks across ch.00's two subfolders and ch.01) found no other
+  instance of either problem — ch.00's `call1`/`call2` IDs are safe, since the keyword rule only
+  fires on bare `call` followed by whitespace, and the word "call" inside a quoted label is also
+  fine.

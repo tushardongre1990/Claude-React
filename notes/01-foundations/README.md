@@ -208,8 +208,8 @@ commits whatever DOM changes are actually needed.
 
 ```mermaid
 flowchart LR
-    jsx["JSX you write:\n&lt;h1&gt;Hello, {name}&lt;/h1&gt;"] -->|"JSX transform:\nBabel / SWC / TypeScript,\nrun by the build tool — Vite here"| call["Function call:\njsx / jsxs / jsxDEV\n('h1', { children: [...] })"]
-    call -->|returns| element["React element\n(a plain JS object — just a description)"]
+    jsx["JSX you write:\n&lt;h1&gt;Hello, {name}&lt;/h1&gt;"] -->|"JSX transform:\nBabel / SWC / TypeScript,\nrun by the build tool — Vite here"| fncall["Function call:\njsx / jsxs / jsxDEV\n(type, props)"]
+    fncall -->|returns| element["React element\n(a plain JS object — just a description)"]
     element -->|reconciled, then committed — §4| dom["Real DOM node\n(what you actually see on screen)"]
 ```
 
