@@ -338,8 +338,27 @@ the function runs again later (because something it depends on changed), whateve
 the essence of what a **render** is, covered precisely in §4.
 
 **Two rules that define "what makes something a valid React function component":**
-1. Its name must start with a capital letter (see the JSX capitalization rule in §1 — this is
-   why).
+1. **When used as a JSX tag, its name must be capitalized** — `<Counter />`, not `<counter />`.
+   Worth being precise about *where* that constraint actually lives, because it's a satisfying
+   detail to have right: nothing about the **function** requires a capital letter; the **JSX
+   tag** does. §1's compile step is the entire reason — a lowercase tag compiles to a *string*
+   type (meaning an intrinsic HTML element), a capitalized one compiles to a *reference* to the
+   variable of that name:
+
+   ```js
+   <Greeting />  →  jsx(Greeting, {})    // a reference to your function
+   <greeting />  →  jsx("greeting", {})  // the string "greeting" — an unknown HTML tag
+   ```
+
+   So `function greeting() { return <h1>Hi</h1>; }` is a perfectly valid component function that
+   React would render happily if handed over directly (`createElement(greeting)`) — it simply
+   can't be used as `<greeting />`, which is how you'd always actually use it in real code. That
+   gap is why react.dev states it flatly as a naming rule rather than a JSX rule: "React
+   components are regular JavaScript functions, but their names must start with a capital letter
+   or they won't work!"
+   ([`learn/your-first-component`](https://react.dev/learn/your-first-component)). Treat the
+   capital letter as required in practice; just know the mechanism is JSX tag resolution, not
+   something React inspects about your function.
 2. It must return a value React can render or treat as empty: JSX/elements, strings, and numbers
    are actually displayed; `null`, `undefined`, and booleans render nothing (they're valid
    returns, just not visible ones); an array/Fragment of any of those is also valid.
@@ -1272,6 +1291,12 @@ so any claim can be re-checked directly, grouped by the section that relies on i
   — component purity (idempotency, no side effects, no external mutation).
 - §2 — [`reference/rules/rules-of-hooks`](https://react.dev/reference/rules/rules-of-hooks) —
   the two Rules of Hooks.
+- §2 — [`learn/your-first-component`](https://react.dev/learn/your-first-component) — component
+  names "must start with a capital letter or they won't work," and capitalization being how
+  React tells an HTML tag from a component. The finer point that this constraint lives in JSX
+  tag resolution rather than in the function itself was verified **empirically** — compiling
+  `<Greeting />` and `<greeting />` shows the first emits `jsx(Greeting, {})` and the second
+  `jsx("greeting", {})`.
 - §2 — [`reference/react/Component`](https://react.dev/reference/react/Component) — Error
   Boundaries requiring a class, `getSnapshotBeforeUpdate` having no Hook equivalent.
 - §3 — [React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide) —

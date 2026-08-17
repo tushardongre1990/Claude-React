@@ -377,3 +377,22 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
     work (initial render, or an update)."
   The reviewer again recommended stopping work on ch.01's notes and moving to the exercises and
   `revision.md`, which matches the chapter's actual `Done` criteria in `CLAUDE.md`.
+- **2026-08-18 (fourth pass, same day):** A ninth external (ChatGPT) review rated the chapter
+  9.8/10 with a single remaining item, which held up and was applied. §2 listed "its name must
+  start with a capital letter" as a rule defining a valid React function component; the
+  constraint actually lives in **JSX tag resolution**, not in the function. Verified by
+  compiling both forms: `<Greeting />` emits `jsx(Greeting, {})` (a reference to the variable),
+  while `<greeting />` emits `jsx("greeting", {})` (a string type — an intrinsic HTML element),
+  so a lowercase-named function is a perfectly valid component when handed to
+  `createElement`/`jsx` directly; it just can't be written as `<greeting />`. Rewrote rule 1 to
+  put the constraint where it belongs, with the compiled-output comparison inline. Kept
+  react.dev's blunter framing quoted alongside it ("their names must start with a capital letter
+  or they won't work!", `learn/your-first-component`) rather than contradicting it, since that
+  page is stating the practical rule and is right about practice — you always use a component via
+  a JSX tag. Note §1's own capitalization bullet was already precise on this point and needed no
+  change; the imprecision was only in §2's restatement. One claim was **dropped for lack of
+  evidence** rather than written up: that `eslint-plugin-react-hooks` identifies components by
+  PascalCase name. Neither `reference/rules/rules-of-hooks` nor the plugin's own README documents
+  how it detects components, so it isn't asserted in the notes.
+  Ch.01's notes are now considered technically settled; remaining work for `Done` is the
+  exercises, `interview-questions/` entries, a verbal explain-back, and `revision.md`.
