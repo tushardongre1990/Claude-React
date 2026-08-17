@@ -350,3 +350,30 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   than an exhaustive account, and made the two downstream references to "the two root causes"
   consistent with the new phrasing. The reviewer's recommendation was to stop polishing ch.01's
   diagrams and move to the next chapter.
+- **2026-08-18 (third pass, same day):** An eighth external (ChatGPT) review rated the chapter
+  9.6/10 with no remaining major issues and four wording tweaks, all of which were checked and
+  applied:
+  - **§6's `&&` explanation** opened with a genuinely garbled sentence ("JSX renders that falsy
+    value's left-hand result directly"). Rewritten as two explicitly separated mechanisms, per
+    the project's standing rule that JS mechanics get taught in full rather than assumed: (1)
+    what `&&` does as plain JavaScript — it returns the left *operand itself* when falsy, not
+    `false`, and short-circuits without evaluating the right side; (2) what React then does with
+    that value — numbers/strings render as visible text, `false`/`null`/`undefined` are holes.
+    The bug falls out of stacking the two. The section's conclusions were already correct; only
+    the mechanism sentence was wrong.
+  - **§0's "every tag becomes a node"** oversimplified the DOM. Reworded to note that text
+    between tags becomes its own text node, comments are nodes too, and the parser may
+    insert/move things — so it isn't a strict one-tag-one-node mapping.
+  - **§0's "near-optimal DOM updates"** was an overclaim, and this one turned out to be worth
+    more than a wording fix. Checked `legacy.reactjs.org/docs/reconciliation` (not previously
+    consulted, and with no current react.dev equivalent): React explicitly does **not** do an
+    optimal diff — "state of the art algorithms have a complexity in the order of O(n³)...
+    React implements a heuristic O(n) algorithm based on two assumptions." Replaced the claim,
+    and expanded the interview-framing box to name the trade-off and connect the algorithm's two
+    assumptions to §5's keys rules, since that connection is a much stronger interview signal
+    than the word "optimal." Added the page to `## Sources`.
+  - **§4's render-diagram entry node** still said "the two reasons above," slightly narrower
+    than the robust phrasing established in the prose just above it. Changed to "React starts
+    work (initial render, or an update)."
+  The reviewer again recommended stopping work on ch.01's notes and moving to the exercises and
+  `revision.md`, which matches the chapter's actual `Done` criteria in `CLAUDE.md`.

@@ -25,8 +25,11 @@ builds directly on them.
 ### Start here: how a web page normally gets built
 
 A web page is HTML (structure), CSS (style), and JavaScript (behavior). The browser parses the
-HTML into a live, in-memory tree of objects called the **DOM (Document Object Model)** — every
-tag becomes a node in that tree, and the browser draws the page on screen by walking that tree
+HTML into a live, in-memory tree of objects called the **DOM (Document Object Model)** — each
+tag in your markup generally becomes an *element node* in that tree, and the text between tags
+becomes its own *text node* (comments become nodes too; the tree is nodes generally, not tags
+specifically, and the parser is allowed to insert or move things, so it isn't a strict
+one-tag-one-node mapping). The browser draws the page on screen by walking that tree
 (full mechanics of this rendering pipeline are in
 [`00-javascript-and-browser-fundamentals/browser-and-web/README.md`](../00-javascript-and-browser-fundamentals/browser-and-web/README.md),
 worth a look if you haven't read it — this chapter assumes you at least know "DOM = the tree of
@@ -91,9 +94,21 @@ piece small, nameable, and reusable.
 
 > **Interview framing:** if asked "why React" or "what problem does React solve," the strong
 > answer names the imperative-vs-declarative distinction specifically, plus the fact that
-> React's diffing (ch.19) means you get near-optimal DOM updates without writing that logic
-> yourself. "It's popular" or "it's component-based" alone are weak answers — they don't explain
+> React's reconciliation (ch.19) works out the DOM updates for you, so you never hand-manage
+> them. "It's popular" or "it's component-based" alone are weak answers — they don't explain
 > *why* the component model helps.
+>
+> **Don't upgrade that to "React gives you optimal DOM updates"** — it's a claim you'd lose if
+> an interviewer pushed on it. React's own reconciliation docs are explicit that a genuinely
+> optimal tree diff is *not* what React does: "the state of the art algorithms have a complexity
+> in the order of O(n³) where n is the number of elements in the tree... React implements a
+> heuristic O(n) algorithm based on two assumptions" — namely that two elements of different
+> types produce different trees, and that `key` lets the developer mark which children are
+> stable across renders (§5)
+> ([legacy `docs/reconciliation`](https://legacy.reactjs.org/docs/reconciliation.html), still the
+> clearest published statement of the algorithm's shape). Knowing React deliberately trades
+> theoretical optimality for linear time — and that the two assumptions it trades on are exactly
+> what §5's keys rules are protecting — is a much stronger signal than the word "optimal."
 
 ---
 
@@ -677,7 +692,7 @@ React splits the work of "update the screen" into two distinct phases:
 
 ```mermaid
 flowchart LR
-    trigger["An update occurs\n(initial render, or a state update —\nthe two reasons above)"] --> render
+    trigger["React starts work\n(initial render, or an update)"] --> render
     subgraph render["Render phase"]
         direction TB
         r1["React walks the tree,\ncalling component functions"]
@@ -982,9 +997,21 @@ return before you ever get to writing JSX.
 
 ### The `&&` operator's classic footgun
 
-`&&` evaluates its left side; if that's falsy, JSX renders that falsy value's left-hand result
-directly — and in JavaScript, `0` is falsy, but React **does render `0`** on screen (unlike
-`false`, `null`, and `undefined`, which JSX simply renders as nothing):
+This footgun is the result of two separate mechanisms stacking, and it's much easier to reason
+about (and to explain in an interview) once you keep them apart:
+
+1. **What `&&` does, as plain JavaScript.** It is *not* a boolean operator that returns `true`
+   or `false`. It evaluates its left operand and, if that operand is **falsy**, returns **that
+   operand itself**, unchanged, without ever evaluating the right side. Only if the left operand
+   is truthy does it evaluate and return the right one. So `0 && <span/>` doesn't evaluate to
+   `false` — it evaluates to the number `0`.
+2. **What React does with the resulting value.** React renders strings and numbers as visible
+   text, and treats `false`, `null`, and `undefined` as holes that render nothing at all.
+
+Put those together and the bug appears: a falsy *number* on the left survives step 1 as a
+number, and step 2 then dutifully renders it as text. `false`/`null`/`undefined` are also falsy
+and also survive step 1 — they just happen to be the values React renders as nothing, which is
+why `&&` seems to work fine right up until the day the left side is `0`:
 
 ```jsx
 {count && <span>{count} items</span>}
@@ -1216,6 +1243,12 @@ so any claim can be re-checked directly, grouped by the section that relies on i
 
 - §0, §4 — [`learn/render-and-commit`](https://react.dev/learn/render-and-commit) — render
   triggers, render/commit phases, "minimal necessary operations," reconciliation.
+- §0, §5 — [legacy `docs/reconciliation`](https://legacy.reactjs.org/docs/reconciliation.html) —
+  the diffing algorithm being a **heuristic O(n)** algorithm rather than an optimal O(n³) tree
+  diff, and the two assumptions it rests on (different element types produce different trees;
+  `key` marks stable children). This lives on the legacy docs site because current react.dev has
+  no equivalent algorithm-level page — it's still the clearest published statement, and ch.19
+  goes deeper.
 - §4 — [`reference/dev-tools/react-performance-tracks`](https://react.dev/reference/dev-tools/react-performance-tracks)
   — the precise Commit vs. paint vs. "Remaining Effects" (`useEffect`) ordering.
 - §1 — [`learn/writing-markup-with-jsx`](https://react.dev/learn/writing-markup-with-jsx) —
