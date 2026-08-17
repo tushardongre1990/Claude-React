@@ -117,6 +117,32 @@ When something in an already-written chapter turns out to be stale or wrong afte
 source, fix it in place and note the correction in that chapter's section of
 `notes/README.md`'s revision history, the same way prior review-driven fixes have been logged.
 
+**Standing instruction (2026-08-18): this applies to external reviews too — fact-check every
+claim in a review against the official docs before acting on it.** The user regularly has a
+chapter reviewed externally (usually ChatGPT) and pastes the review in. Treat such a review as a
+*list of things to check*, never as a list of corrections to apply. For each claim: look up the
+relevant official source (per the list above), decide whether it holds, and only then edit. Then
+report back which claims held up, which didn't, and which were directionally right but
+imprecise — don't silently apply the whole review and don't silently drop the parts you rejected.
+This is not hypothetical caution; reviews of this repo have been wrong in both directions:
+
+- One review claimed 8 stale duplicate chapter folders existed. Checked against the filesystem
+  and git history — false, the repo was already clean (see the 2026-08-11 entry in
+  `notes/README.md`). The reviewer was working from a stale copy.
+- A ch.01 diagram review *understated* a real error: it hedged that "you can get `jsx()`,
+  `jsxs()`, or development-specific transforms," when the notes' actual code sample was simply
+  wrong — the two-child example emits `jsxs`, not `jsx`. Compiling the exact snippet with the
+  project's own TypeScript settled it in one command.
+- The same review asserted React "does not use the index as the key" when you omit keys, but
+  `learn/rendering-lists` says outright: "that's what React will use if you don't specify a
+  `key` at all." The prose was fine as written; only the *diagram* (which drew fake `key=0`
+  props) needed fixing.
+
+Where a claim can be settled by *running something* rather than reading a doc (what a compiler
+emits, what a config actually does, what's installed), prefer that — it's faster and more
+conclusive than prose. Record in the chapter's `## Sources` section when a claim was verified
+that way rather than from a doc, so the user knows how to re-check it.
+
 **Standing instruction (2026-08-14): cite sources in the notes themselves, not just in
 conversation.** When a chapter's notes state a specific, checkable factual claim (an API's exact
 behavior, a version-specific change, a "this is why" explanation) that was verified against an
