@@ -365,6 +365,16 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
 - Use `coding-interviews/` and `interview-questions/` actively, not just `notes/` — the user's
   goal is interview *performance*, and drilling/output-prediction/traps are as important as
   the explanatory notes.
+- **Standing instruction (2026-08-20): format enumerated content as numbered/bulleted lists, not
+  inline prose.** When a rule, step sequence, or set of parallel items is being stated — even
+  informally, e.g. "stated as two rules: (1) ... and (2) ..." — write it as an actual markdown
+  list, not packed into a sentence. Applies both in chat responses and when writing/editing
+  content in this repo (chapter `README.md`s, `interview-qa.md`, `revision.md`, etc.). Example
+  of what to avoid, fixed in
+  [§2](notes/01-foundations/README.md#sec-2) of `notes/01-foundations/README.md` on 2026-08-20
+  after the user flagged it: the Rules of Hooks were originally packed into one sentence as
+  "(1) only call Hooks at the top level ... and (2) only call Hooks from a React function
+  component ..." and were reformatted into a two-item numbered list.
 
 ## Commands
 

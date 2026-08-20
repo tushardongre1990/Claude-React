@@ -426,11 +426,15 @@ function into something that can behave like a living, updating piece of UI.
 
 One constraint worth knowing exists even before ch.02 covers the mechanics and full reasoning —
 React's **[Rules of Hooks](https://react.dev/reference/rules/rules-of-hooks)**, stated as two
-rules: (1) only call Hooks at the top level of a
-component (never inside a loop, condition, or nested function, and never after an early
-`return`), and (2) only call Hooks from a React function component or another Hook (never from
-a regular JS function). This is *why* [§6](#sec-6)'s conditional-rendering section warns that an early
-return must come *after* all Hook calls, not before.
+rules:
+
+1. Only call Hooks at the top level of a component — never inside a loop, condition, or nested
+   function, and never after an early `return`.
+2. Only call Hooks from a React function component or another Hook — never from a regular JS
+   function.
+
+This is *why* [§6](#sec-6)'s conditional-rendering section warns that an early return must come
+*after* all Hook calls, not before.
 
 ### Class components: the older way of doing the same thing
 
