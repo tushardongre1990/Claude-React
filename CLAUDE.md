@@ -78,9 +78,21 @@ When a chapter is unlocked, do all of the following for that chapter (not future
    [`interview-questions/`](interview-questions/README.md) folder: that folder holds short-form
    "explain this output" snippets, a cross-chapter traps catalog, and open-ended debugging
    scenarios; `interview-qa.md` is one file per chapter, comprehensively covering exactly that
-   chapter's material, organized by the chapter's own section headings. Started for ch.00 and
-   ch.01 on 2026-08-20 (see `notes/README.md`'s revision history); do this for every chapter from
-   here on, same "only the unlocked chapter" scoping as everything else in this list.
+   chapter's material, organized by the chapter's own section headings.
+
+   **Format, as of the 2026-08-20 revision (after an external review of ch.00/ch.01's first-pass
+   version — see `notes/README.md`'s revision history for what was checked and adopted):** each
+   question is tagged (⭐ Core / 🔥 Frequent / 🧠 Deep / 🎯 Trap, plus a chapter-appropriate
+   version/cross-link tag — ch.00 uses 🔗 React-link, ch.01 uses ⚠️ Version; pick what fits the
+   chapter, keep it consistent within the file) and answered in two layers — a **Quick answer**
+   (15-20 seconds, what you'd actually say first) followed by the **Full answer** (the complete
+   depth layer for follow-ups). Each file ends with a **Coding & Scenario Questions** section that
+   re-presents a subset of the same material as "what does this output / find the bug" prompts
+   with code, since that's closer to how interviewers actually probe this material than a pure
+   explain-the-concept question is. See `notes/00-javascript-and-browser-fundamentals/interview-qa.md`
+   or `notes/01-foundations/interview-qa.md` for the concrete template — use one of them as the
+   pattern for every future chapter's `interview-qa.md` from here on, same "only the unlocked
+   chapter" scoping as everything else in this list.
 4. As the user works through the chapter, actively watch for mistakes, hesitations, or
    outdated mental models. Log them in
    [`improvement-tracker/weak-areas.md`](improvement-tracker/weak-areas.md) using the format

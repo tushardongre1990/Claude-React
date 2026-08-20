@@ -841,12 +841,20 @@ setCount((c) => c + 1);
 
 > **Interview framing:** "why does React batch state updates" is asking about a **performance**
 > optimization, not a correctness one — be precise about that distinction if asked. React groups
-> multiple `setState` calls that happen within the same event/tick into a single render+commit
-> pass instead of one per call, which avoids redundant re-renders. Worth naming explicitly: React
-> 18 made this automatic batching apply *everywhere* (inside promises, timeouts, native event
-> handlers — not just React's own synthetic event handlers), which is a real behavior change
-> from React 17 and earlier, where only updates inside React event handlers were batched — see
-> the [React 18 release post](https://react.dev/blog/2022/03/29/react-v18).
+> multiple `setState` calls made synchronously within the same event handler, timeout callback,
+> promise callback, or other single callback invocation into a single render+commit pass instead
+> of one per call, which avoids redundant re-renders. (Avoid the word "tick" here — it's not
+> terminology react.dev itself uses, and "same tick" reads as contradicting the very point being
+> made, since automatic batching's whole value is grouping updates from callbacks that run as
+> genuinely separate event-loop turns, e.g. a timeout callback and the code that scheduled it.)
+> Worth naming explicitly: React 18 made this automatic batching apply *everywhere* (inside
+> promises, timeouts, native event handlers — not just React's own synthetic event handlers),
+> which is a real behavior change from React 17 and earlier, where only updates inside React
+> event handlers were batched — see the exact wording, confirmed directly against the source:
+> "Before: updates inside of promises, setTimeout, native event handlers, or any other event were
+> not batched in React by default... After: updates inside of timeouts, promises, native event
+> handlers or any other event are batched"
+> ([React 18 release post](https://react.dev/blog/2022/03/29/react-v18)).
 
 ---
 

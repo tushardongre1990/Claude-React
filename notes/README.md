@@ -18,7 +18,11 @@ syntax.
   - `exercises/` — hands-on exercises for that chapter (added on unlock)
   - `interview-qa.md` — a comprehensive interview Q&A drill covering every topic in that
     chapter's notes, one complete question-and-answer per concept (written once, in full, when
-    the chapter's `README.md` is written). Distinct from the root-level
+    the chapter's `README.md` is written). Each question is tagged (⭐ Core / 🔥 Frequent /
+    🧠 Deep / 🎯 Trap / a chapter-appropriate cross-link or version tag) and answered in two
+    layers — a 15-20 second **Quick answer** followed by the complete **Full answer** — with a
+    **Coding & Scenario Questions** section at the end presenting a subset of the same material
+    as code-first "what does this output / find the bug" prompts. Distinct from the root-level
     [`interview-questions/`](../interview-questions/README.md) folder, which holds short-form
     "explain this output" snippets, a traps catalog, and open-ended debugging scenarios rather
     than a comprehensive per-chapter drill.
@@ -435,3 +439,28 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   directly from each chapter's already fact-checked notes rather than re-verified against docs
   independently, since the underlying claims had already gone through this project's accuracy
   practice when the notes themselves were written.
+- **2026-08-20 (second pass, same day):** An external (ChatGPT) review of ch.01's first-pass
+  `interview-qa.md` was checked against the standing "fact-check external reviews" policy before
+  acting. Most of the review was structural/pedagogical opinion (add priority tags, a short
+  spoken-answer layer, tiers, a coding-scenario section) rather than a checkable factual claim, so
+  it was presented to the user as a scope decision rather than auto-applied; the user chose the
+  full rework. One claim *was* independently checkable and held up: the review flagged
+  `interview-qa.md`'s (and, it turned out, the underlying [`01-foundations/README.md`](01-foundations/README.md)
+  §4 interview-framing box's) phrase "within the same event/tick" for describing React's batching
+  boundary as an imprecise, potentially self-contradicting term. Fetched the
+  [React 18 release post](https://react.dev/blog/2022/03/29/react-v18) directly for the exact
+  wording: "Before: updates inside of promises, setTimeout, native event handlers, or any other
+  event were not batched... After: updates inside of timeouts, promises, native event handlers or
+  any other event are batched" — confirming react.dev never uses "tick" as its own terminology, and
+  that automatic batching's entire point is grouping updates from callbacks that run as genuinely
+  separate event-loop turns (a timeout callback vs. the code that scheduled it), which "same tick"
+  reads as contradicting. Fixed in both `01-foundations/README.md`'s §4 interview-framing box and
+  `01-foundations/interview-qa.md`, replacing "tick" with "a single callback invocation" and adding
+  the exact quoted wording. Applied the full structural rework the user chose to both chapters'
+  `interview-qa.md` files: every question now carries priority tags (⭐ Core / 🔥 Frequent /
+  🧠 Deep / 🎯 Trap, plus 🔗 React-link for ch.00 and ⚠️ Version for ch.01) and a short **Quick
+  answer** layer above the existing **Full answer**, and each file gained a **Coding & Scenario
+  Questions** section (8 prompts each) converting the chapter's concepts into code-first "what does
+  this output / find the bug" prompts rather than pure explain-the-concept questions. This format
+  is now the standing template for every future chapter's `interview-qa.md` — see `CLAUDE.md`'s
+  working-rule step 3.
