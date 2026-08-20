@@ -150,7 +150,8 @@ an older codebase is the classic transform's fingerprint, not dead code.
 **Q: What's the precise difference between a component, a React element, and a DOM node?** *(⭐ Core · 🔥 Frequent · 🎯 Trap)*
 
 **Quick answer:** Component = the function you wrote; React element = the plain-object description
-returned by calling it; DOM node = the actual browser object React creates/updates to match it.
+of what to render, produced by the JSX transform, **not** by calling the component; DOM node = the
+actual browser object React creates/updates to match it.
 
 **Full answer:**
 | Term | What it actually is |
