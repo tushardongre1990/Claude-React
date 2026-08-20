@@ -521,3 +521,53 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   both failure modes this repo has already hit — reserved node IDs and literal `\n` in labels — and
   `#` was kept out of sequence-diagram participant names, since mermaid treats it as the start of an
   entity code.
+- **2026-08-20 (sixth pass, same day):** An external (ChatGPT) review of ch.02 rated it ~9/10 with
+  no major conceptual error, and was fact-checked claim by claim before anything was applied.
+  **Genuinely wrong and fixed — the review's most valuable catch:** [§7](02-state-and-events/README.md#sec-7)
+  said React's `onChange` "is really the native `input` event, renamed." Re-fetching
+  `reference/react-dom/components/input` confirmed the docs say it *behaves like* the browser `input`
+  event, and separately document an `onInput` prop with "For historical reasons, in React it is
+  idiomatic to use `onChange` instead which works similarly" — so an identity claim is wrong and the
+  word "renamed" is actively misleading. **Also genuinely wrong:** the same section's "the native
+  `change` event on a text input fires only when the field loses focus" was stated too broadly;
+  [MDN's `change` event page](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event)
+  (a new source for this repo) lists four distinct firing moments — immediately for checkbox/radio,
+  on explicit commit for `<select>`/date/file, and on blur only for `<textarea>` and the typing input
+  types. Replaced with a table. **Genuinely missing and added, each verified first:** `useState`
+  **replaces** rather than merges state, contrasted against class `setState`'s documented shallow
+  merge (`reference/react/Component`); the setter's **stable identity** (already in the `useState`
+  caveats, unused until now); a table separating the three positions a function can appear in
+  (initializer vs. updater vs. storing a function as state); an explicit setter → queue → render →
+  reconciliation → commit → paint diagram tying [§2](02-state-and-events/README.md#sec-2) back to
+  ch.01; the docs' own controlled-input performance guidance (move input state into its own
+  component; `useDeferredValue`), which is a better answer than "go uncontrolled." **Softened as
+  overclaims:** "nearly every" uncontrolled→controlled warning has one cause → "the most common
+  cause"; uncontrolled being "faster" → framed as avoided re-renders, not an inherent property;
+  "avoid the word asynchronous entirely" → don't use it as the *explanation* (the word isn't wrong,
+  the explanation is), with the concrete reason added that the setter returns `undefined` rather
+  than a Promise; `Object.is` as "reference equality" → SameValue semantics, identity for objects;
+  the state-preservation rule restated to include `key` in the primary sentence rather than only in
+  the diagram; "re-renders everything below it" given its `memo` caveat; "make illegal states
+  unrepresentable" labelled a general type-design principle rather than a React one; and the
+  interview-frequency claims ("by a wide margin," "close to a guaranteed question") marked as
+  judgment, not fact.
+  **Rejected after checking, with reasons:** (1) that "batching = grouping updates into a single
+  re-render" is too absolute — this is react.dev's *own verbatim definition* in the React 18 post
+  ("Batching is when React groups multiple state updates into a single re-render for better
+  performance"), so softening it would move away from the source, not toward it. (2) That "Context
+  re-renders every consumer when the value changes" needs hedging to "scheduled to update" — the
+  `useContext` reference states React "automatically re-renders all the children that use a
+  particular context starting from the provider that receives a different `value`"; the proposed
+  rewording is vaguer without being more accurate. (3) That the version note shouldn't cite
+  `app/package.json` — that's a repo-local fact that *is* verifiable here (`react: ^19.2.8`), and
+  citing it is exactly this project's practice. (4) That describing SyntheticEvent as
+  cross-browser-normalized is dated — it's the docs' own framing ("fixes some browser
+  inconsistencies"). (5) That "store an ID, not the object" was being taught as absolute — it was
+  already scoped to "a copy of something that already lives elsewhere."
+  Separately, the review's **`## Sources` preamble critique was correct and applied**: the blanket
+  "every specific, checkable claim above was verified" overstated the method, since the chapter also
+  contains mental models and interview judgment that aren't doc-derived. The preamble now separates
+  cited React behavior from explanatory framing and interview guidance — worth mirroring into ch.00
+  and ch.01's Sources sections when either is next revised. Finally, the diagram added in this pass
+  initially used the node ID `call`, reproducing the exact mermaid reserved-word bug logged on
+  2026-08-18 (fifth pass); the standing scan caught it pre-commit and it was renamed to `setterCall`.

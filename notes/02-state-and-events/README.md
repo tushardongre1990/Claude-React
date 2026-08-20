@@ -4,13 +4,18 @@
 **Folder:** `notes/02-state-and-events/`
 
 ## Why this chapter matters for a React interview
-Chapter 01 explained what React *renders*. This chapter explains what makes it render again —
-and it is, by a wide margin, the most heavily-probed chapter in a mid-to-senior React interview.
-"What does this log?" questions about `setCount(count + 1)` called three times, "why is my state
-one step behind?", "controlled or uncontrolled?", and "why didn't the UI update when I pushed
-into the array?" are all *this* chapter, and all four are asked constantly. The reason they're
-asked is that each one has a plausible-sounding wrong answer ("state updates are asynchronous")
-that a candidate can carry for years without it ever breaking anything visible.
+Chapter 01 explained what React *renders*. This chapter explains what makes it render again — and
+its material comes up heavily in React interviews at the mid-to-senior level. "What does this log?"
+questions about `setCount(count + 1)` called three times, "why is my state one step behind?",
+"controlled or uncontrolled?", and "why didn't the UI update when I pushed into the array?" are all
+*this* chapter. Each has a plausible-sounding wrong answer ("state updates are asynchronous") that a
+candidate can carry for years without it ever visibly breaking anything, which is what makes them
+useful questions to ask.
+
+> Interview-frequency remarks like the one above are practical guidance based on how these topics
+> tend to be probed — not verifiable facts about React. The technical claims in this chapter are
+> cited; the interview advice is judgment, and is flagged as such wherever it appears in an
+> **Interview framing** box.
 
 The single mental model this chapter is built around, and the one worth being able to state
 cleanly on demand:
@@ -219,7 +224,7 @@ const [todos, setTodos] = useState(() => loadTodosFromLocalStorage('todos-v2'));
 flowchart TD
     q{"useState(arg)<br/>is arg a function?"}
     q -->|"no — useState(expensiveCall())"| eager["The call already ran, on every render.<br/>React keeps the result only on the first render."]
-    q -->|"yes — useState(expensiveCall)"| lazy["React calls it ONLY during initialization.<br/>Skipped entirely on re-renders."]
+    q -->|"yes — useState(expensiveCall)"| lazy["React calls it during initialization only —<br/>skipped entirely on re-renders.<br/>(In Strict Mode, called twice in dev to check purity.)"]
 ```
 
 **The trap this creates:** what if the state you *want* to store is genuinely a function? Then
@@ -240,9 +245,12 @@ component function won't run. React may call it once and then discard the result
 propagating work to children. So "setting the same value guarantees zero renders" is an
 overclaim, and an interviewer who knows the docs may push on it.
 
-`Object.is` is *reference* equality for objects (with two special cases versus `===`: it treats
-`NaN` as equal to itself, and `+0` as distinct from `-0`). Which produces the single most
-common "why didn't my UI update?" bug in React:
+`Object.is` compares values using JavaScript's **SameValue** semantics, which for objects and
+functions means identity — the same reference, not an equivalent shape. (For primitives it matches
+`===` except in two cases: it treats `NaN` as equal to itself, and `+0` as distinct from `-0`. The
+`NaN` case is the one that occasionally matters, since `===` would report a `NaN` state as
+"changed" on every set.) That identity comparison produces the single most common "why didn't my UI
+update?" bug in React:
 
 ```jsx
 const [user, setUser] = useState({ name: 'Ada', age: 36 });
@@ -259,6 +267,34 @@ function haveBirthdayFixed() {
 
 This is why immutability is not a style preference in React — it's load-bearing. Full treatment
 in [§6](#sec-6).
+
+### Three places a function can appear, meaning three different things
+
+`useState` and its setter both accept functions, and they mean completely different things
+depending on *where* the function sits. This trips people up often enough to be worth a table you
+can recall directly:
+
+| Written as | The function is | React calls it |
+|---|---|---|
+| `useState(() => initialValue)` | an **initializer** ([§1](#sec-1)) | once, during initialization (twice in Strict Mode dev) |
+| `setState(prev => next)` | an **updater** ([§3](#sec-3)) | while processing the queue, at render time |
+| `setState(() => someFunction)` | neither — it **stores a function as state** | it calls the outer arrow, and stores what it returns |
+
+That third row is the escape hatch for the trap noted above: since `setState(myFn)` would treat
+`myFn` as an updater and call it, storing a function in state requires wrapping it.
+
+### The setter has a stable identity
+
+One small guarantee that pays off in later chapters:
+
+> "The `set` function has a stable identity, so you will often see it omitted from Effect
+> dependencies, but including it will not cause the Effect to fire."
+> — [`reference/react/useState`](https://react.dev/reference/react/useState)
+
+React returns the *same* setter function on every render of that component instance. So passing
+`setCount` down as a prop won't defeat a child's `memo`, and omitting it from a `useEffect`
+dependency array (ch.03) is safe. Contrast that with an inline arrow, which is a new function
+identity every render — that distinction is the whole subject of `useCallback` in ch.06.
 
 > **Interview framing:** two sub-questions hide in here and both come up. (1) "What's the
 > difference between `useState(compute())` and `useState(compute)`?" — the first calls `compute`
@@ -277,10 +313,17 @@ in [§6](#sec-6).
 
 ### Start here: "state updates are asynchronous" is a misleading shorthand
 
-You'll hear this constantly, and it produces wrong predictions. `setCount` isn't asynchronous in
-the sense that `fetch` or `setTimeout` is — there's no promise, nothing is deferred to a later
-event-loop turn *within the setter itself*, and `await`ing it would be meaningless. The accurate
-framing has two halves:
+You'll hear this constantly, and it produces wrong predictions. The problem isn't the word
+*asynchronous* itself — React genuinely does schedule work, and state updates genuinely do interact
+with async code, transitions, and concurrent rendering. The problem is using "it's asynchronous" as
+the **explanation** for the behavior below, because that explanation predicts things that aren't
+true: it suggests the value will arrive shortly if you wait for it, that `await` might help, or
+that a `setTimeout` would see the fresh value. None of those hold.
+
+Concretely, `setCount` isn't asynchronous in the sense that `fetch` is: it returns `undefined`, not
+a Promise, so `await setCount(1)` doesn't wait for anything — `await` on a non-thenable just resumes
+on the next microtask, long before React has necessarily rendered. There's no callback argument and
+no "after it's applied" hook either. The accurate framing has two halves:
 
 1. A setter **schedules an update** — it requests a future render; it does not assign to your
    local variable.
@@ -289,6 +332,22 @@ framing has two halves:
 > "**A state variable's value never changes within a render,** even if its event handler's code
 > is asynchronous."
 > — [`learn/state-as-a-snapshot`](https://react.dev/learn/state-as-a-snapshot)
+
+Worth connecting this to chapter 01 explicitly, because "schedules an update" is vague on its own.
+Calling a setter never touches the DOM directly; it enters a pipeline whose far end is the commit
+phase from ch.01 ([§4](../01-foundations/README.md#sec-4)):
+
+```mermaid
+flowchart LR
+    setterCall["setCount(1)"] --> queue["queue the update<br/>+ schedule a render"]
+    queue --> rerender["React calls your component again<br/>(render phase)"]
+    rerender --> recon["reconciliation:<br/>diff against the previous tree"]
+    recon --> commit["commit phase:<br/>minimal DOM mutations"]
+    commit --> paint["browser paints —<br/>the user finally sees the new number"]
+```
+
+Everything in this chapter happens in the first two boxes. Everything in chapter 01 happens in the
+last three.
 
 ### The puzzle every interviewer uses
 
@@ -381,13 +440,16 @@ React frames the resulting guarantee as a *feature*:
 That's genuinely valuable: an event handler that reads `count` in five places is guaranteed to
 see the same `count` in all five, with no possibility of a half-updated read partway through.
 
-> **Interview framing:** when asked "why doesn't the state update immediately?", avoid the word
-> "asynchronous" entirely and say this instead: *"A state variable is a snapshot for the render
-> that read it. `setCount` doesn't assign to that variable — it can't, it's a `const` in a
-> function that's already running — it schedules the next render. Reading `count` right after
-> calling `setCount` reads the old snapshot by definition, and so does any closure that render
-> created, including a `setTimeout` callback."* Then, if pushed on how to get the up-to-date
-> value, go to [§3](#sec-3) — updater functions — rather than reaching for a ref or an Effect.
+> **Interview framing:** when asked "why doesn't the state update immediately?", don't lead with
+> "it's asynchronous" — it's the answer that sounds right and explains nothing. Say this instead:
+> *"A state variable is a snapshot for the render that read it. `setCount` doesn't assign to that
+> variable — it can't, it's a `const` in a function that's already running — it schedules the next
+> render. Reading `count` right after calling `setCount` reads the old snapshot by definition, and
+> so does any closure that render created, including a `setTimeout` callback."* Then, if pushed on
+> how to get the up-to-date value, go to [§3](#sec-3) — updater functions — rather than reaching
+> for a ref or an Effect. A good bonus, if the interviewer used the word first: note that the
+> setter returns `undefined`, not a Promise, so `await`ing it is a no-op — which is exactly why
+> "asynchronous" is a misleading label for it.
 
 ---
 
@@ -657,8 +719,8 @@ Knowing it exists is a plus; reaching for it casually is a minus. If an intervie
 you opt out of batching," naming `flushSync` *and* immediately noting that it's a last resort
 which can hurt performance and trip Suspense fallbacks is the complete answer.
 
-> **Interview framing:** "What is batching, and what changed in React 18?" is close to a
-> guaranteed question for this experience level. Hit four beats: (1) batching = multiple state
+> **Interview framing:** "What is batching, and what changed in React 18?" is a common question at
+> this experience level. Hit four beats: (1) batching = multiple state
 > updates → one re-render; (2) pre-18, only inside React event handlers; (3) React 18's automatic
 > batching extended it to timeouts, promises, and native handlers, tied to `createRoot`; (4)
 > React still doesn't batch across separate user interactions, and `flushSync` is the deliberate
@@ -909,6 +971,32 @@ flowchart TD
     n["setUser({ ...user, age: 37 })"] --> cmp2{"Object.is(newValue, oldValue)?"}
     cmp2 -->|"false — new object"| render["React re-renders. Screen updates."]
 ```
+
+### First: a `useState` setter **replaces**, it doesn't merge
+
+Before the spread patterns make sense, one thing has to be explicit, because it's the other half of
+why you spread at all:
+
+```jsx
+const [person, setPerson] = useState({ name: 'Ada', age: 36 });
+
+setPerson({ name: 'Grace' });
+// person is now { name: 'Grace' } — `age` is GONE, not preserved.
+```
+
+The setter swaps in whatever value you hand it. It does not merge your object into the existing
+one. So `{ ...person, name: 'Grace' }` isn't ceremony for React's benefit — the spread is how you
+carry the other fields forward, and dropping it silently deletes them.
+
+This is a genuine behavioral difference from class components, and it's a fair interview question
+for anyone who might touch legacy code. Class `setState` **does** merge:
+
+> "If you pass an object as `nextState`, it will be **shallowly merged into `this.state`.**"
+> — [`reference/react/Component`](https://react.dev/reference/react/Component)
+
+So `this.setState({ name: 'Grace' })` in a class leaves `age` intact, while the identical-looking
+`setPerson({ name: 'Grace' })` in a function component throws it away. Same for arrays and any
+other value: `useState` replaces, always.
 
 ### Objects: spread, and the shallow-copy trap
 
@@ -1172,8 +1260,8 @@ Note `defaultValue`, not `value`. Passing `value` here would control the input a
 > between being controlled or uncontrolled over its lifetime."
 > — [`reference/react-dom/components/input`](https://react.dev/reference/react-dom/components/input)
 
-Nearly every occurrence of React's "A component is changing an uncontrolled input to be
-controlled" warning has the same cause: the state started as `undefined` or `null`.
+The most common cause of React's "A component is changing an uncontrolled input to be controlled"
+warning — common enough to check first — is state that started as `undefined` or `null`.
 
 ```jsx
 const [name, setName] = useState();          // ❌ undefined → value={undefined} → uncontrolled
@@ -1184,7 +1272,7 @@ const [name, setName] = useState(user?.name);        // ❌ undefined until the 
 const [name, setName] = useState(user?.name ?? '');  // ✅
 ```
 
-### `onChange` is not the DOM's `change` event
+### `onChange` doesn't behave like the DOM's `change` event
 
 A genuinely useful piece of trivia, and a real behavioral difference:
 
@@ -1192,9 +1280,32 @@ A genuinely useful piece of trivia, and a real behavioral difference:
 > keystroke). Behaves like the browser `input` event."
 > — [`reference/react-dom/components/input`](https://react.dev/reference/react-dom/components/input)
 
-The native DOM `change` event on a text input fires only when the field *loses focus*. React's
-`onChange` is really the native `input` event, renamed. This is why controlled inputs work
-keystroke-by-keystroke, and it's a small detail that reliably impresses when it comes up.
+Note the docs' exact verb: React's `onChange` **behaves like** the browser's `input` event. Don't
+upgrade that to "it *is* the native `input` event, renamed" — React also exposes a separate
+`onInput` prop, and the docs describe the relationship between the two as historical rather than
+identity: "For historical reasons, in React it is idiomatic to use `onChange` instead which works
+similarly." So the accurate statement is that React's `onChange` fires during editing, unlike the
+native `change` event — which is precisely why a controlled input can sync state keystroke by
+keystroke at all.
+
+Be equally careful about the other half of the comparison. "The native `change` event fires on
+blur" is only true for the *typing* inputs; MDN lists four distinct timings:
+
+| Native `change` fires… | …for |
+|---|---|
+| immediately on check/uncheck | `<input type="checkbox">` |
+| immediately on check (not uncheck) | `<input type="radio">` |
+| when the user commits explicitly | `<select>`, `<input type="date">`, `<input type="file">` |
+| when the element loses focus after its value changed | `<textarea>` and the `text`, `search`, `url`, `tel`, `email`, `password` input types |
+
+> "Unlike the `input` event, the `change` event is not necessarily fired for each alteration to an
+> element's `value`."
+> — [MDN, `change` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event)
+
+So the safe interview sentence is: *"For text inputs, the native `change` event fires when the
+value is committed — typically on blur — whereas React's `onChange` fires during editing, like the
+native `input` event."* Stating it that precisely, rather than as a flat "change fires on blur," is
+what separates a memorized fact from an understood one.
 
 ### Choosing between them
 
@@ -1205,13 +1316,23 @@ keystroke-by-keystroke, and it's a small detail that reliably impresses when it 
 | Conditionally disable a submit button | ✅ natural | ❌ needs extra state anyway |
 | Two inputs that must stay in sync | ✅ | ❌ |
 | Re-renders per keystroke | one | none |
-| Big form, values only needed on submit | overkill | ✅ simpler and faster |
-| Integrating a non-React widget / file input | ❌ | ✅ (file inputs *must* be uncontrolled) |
+| Big form, values only needed on submit | overkill | ✅ often simpler, and avoids a re-render per keystroke |
+| Integrating a non-React widget / file input | ❌ | ✅ (a file input's `value` can't be driven from state, so it's always uncontrolled) |
 
 Default to controlled — it's what most React code does, and it keeps UI-as-a-function-of-state
 intact. Reach for uncontrolled when you only need values at submit time, when per-keystroke
 re-renders of a large form actually show up in a profile, or when the DOM must own the value (file
 inputs, third-party widgets).
+
+Note the "faster" column is about *avoided re-renders*, not an inherent property of uncontrolled
+inputs — and if per-keystroke renders are the actual problem, the docs' first two answers aren't
+"go uncontrolled" at all. They're structural: **move the input's state into its own small
+component** so a keystroke only re-renders that component rather than the whole page, and if some
+expensive sibling genuinely depends on the value, reach for `useDeferredValue` (ch.06) to keep the
+input responsive during the large re-render
+([`reference/react-dom/components/input`](https://react.dev/reference/react-dom/components/input)).
+Naming those two before reaching for uncontrolled is the stronger answer, because it keeps the
+controlled model intact instead of trading it away for performance.
 
 **React 19 note:** React 19 added form Actions — passing a function to `<form action={...}>` —
 which makes the uncontrolled + `FormData` pattern substantially more attractive than it used to
@@ -1360,8 +1481,9 @@ const isSending = status === 'sending';         // derive the booleans you need
 const isSent = status === 'sent';
 ```
 
-This is the "make illegal states unrepresentable" idea, and it pays off enormously in TypeScript
-(ch.14) where the union type makes the compiler enforce it. It's also the natural bridge to
+This is the "make illegal states unrepresentable" idea — a general state-modeling principle from
+type-driven design rather than a React-specific one, though React state benefits from it directly.
+It pays off enormously in TypeScript (ch.14), where the union type makes the compiler enforce it. It's also the natural bridge to
 `useReducer` (ch.05), which exists for exactly the case where state transitions get complex enough
 that you want them written down in one place.
 
@@ -1510,10 +1632,14 @@ bugs.
 > discards its state."
 > — [`learn/preserving-and-resetting-state`](https://react.dev/learn/preserving-and-resetting-state)
 
-Two rules follow, and both are commonly tested:
+Stated as one rule: **React preserves state when the same component type is rendered at the same
+position with the same identity — where identity means its `key`, if it has one.** Change the type
+or change the key, and that state is discarded. Broken into the two halves that get tested
+separately:
 
-1. **Same component type at the same position → state is preserved.**
-2. **Different component type at the same position → state is destroyed and re-created.**
+1. **Same component type at the same position (and same/absent `key`) → state is preserved.**
+2. **Different component type at the same position, or a changed `key` → state is destroyed and
+   re-created.**
 
 ```jsx
 {isFancy ? <Counter isFancy={true} /> : <Counter isFancy={false} />}
@@ -1554,9 +1680,11 @@ is the pattern people reach for and which React's docs specifically steer away f
 
 ### How far to lift
 
-Lifting has a cost: state that lives high in the tree re-renders everything below it by default
-(chapter 01, [§4](../01-foundations/README.md#sec-4)), and passing it down through many
-intermediate components that don't care about it is "prop drilling."
+Lifting has a cost: an update to state that lives high in the tree puts the whole subtree below it
+to work by default (chapter 01, [§4](../01-foundations/README.md#sec-4)) — "by default" because
+descendants can opt out via `memo` (ch.06), so it isn't an unconditional "everything below
+re-renders." And passing the value down through many intermediate components that don't care about
+it is "prop drilling."
 
 The progression to know, and to name in a system-design conversation:
 
@@ -1585,9 +1713,18 @@ needless re-renders and couples unrelated parts of the app together.
 
 ## Sources
 
-Every specific, checkable claim above was verified against these official docs before being
-written (see `CLAUDE.md`'s "Accuracy & currency practice" for the standing policy). Listed here
-so any claim can be re-checked directly, grouped by the section that relies on it:
+The official documentation below was used to verify this chapter's **React-specific technical
+claims** before they were written (see `CLAUDE.md`'s "Accuracy & currency practice" for the standing
+policy), and is listed so any claim can be re-checked directly, grouped by the section that relies
+on it.
+
+Two things this list deliberately does *not* cover, so the methodology isn't overstated. The
+**mental models** — "state lives on a shelf outside your component," "read `setNumber(n + 5)` as
+'replace with 5'" — are explanatory framings built on top of the cited behavior, some borrowed from
+the docs' own analogies, rather than claims the docs make literally about React's internals. And the
+**interview guidance** in the framing boxes (what to lead with, what an interviewer is likely
+probing for, how common a question is) is judgment, not documented fact. Where those appear, they're
+marked as framing; everything stated as React *behavior* traces to a source below.
 
 - [§0](#sec-0), [§2](#sec-2) — [`learn/state-as-a-snapshot`](https://react.dev/learn/state-as-a-snapshot)
   — state living outside the component ("as if on a shelf"), a state variable's value never
@@ -1596,8 +1733,11 @@ so any claim can be re-checked directly, grouped by the section that relies on i
 - [§1](#sec-1), [§3](#sec-3) — [`reference/react/useState`](https://react.dev/reference/react/useState)
   — `initialState` ignored after the initial render, initializer functions (pure, no arguments),
   the `Object.is` bail-out and its "may still need to call your component" caveat, batching and
-  `flushSync`, calling a setter during rendering, Strict Mode double-invoking initializer and
-  updater functions.
+  `flushSync`, calling a setter during rendering, the setter's **stable identity**, and Strict Mode
+  double-invoking initializer and updater functions.
+- [§6](#sec-6) — [`reference/react/Component`](https://react.dev/reference/react/Component) — class
+  `setState` shallowly merging an object into `this.state`, which is what a `useState` setter
+  (which replaces the value outright) is being contrasted against.
 - [§2](#sec-2), [§3](#sec-3), [§4](#sec-4) — [`learn/queueing-a-series-of-state-updates`](https://react.dev/learn/queueing-a-series-of-state-updates)
   — the definition of batching, updater functions and how the queue is processed, "any other
   value... adds 'replace with X' to the queue, ignoring what's already queued," the updater
@@ -1628,8 +1768,15 @@ so any claim can be re-checked directly, grouped by the section that relies on i
 - [§7](#sec-7) — [`reference/react-dom/components/input`](https://react.dev/reference/react-dom/components/input)
   — `value` requiring `onChange`, the "impossible to type" pitfall, an input never being both
   controlled and uncontrolled or switching between them, `defaultValue`/`defaultChecked`,
-  checkboxes needing `checked` not `value`, and `onChange` firing on every keystroke like the
-  native `input` event.
+  checkboxes needing `checked` not `value`, `onChange` firing on every keystroke and *behaving
+  like* (not being) the native `input` event, the separate `onInput` prop and the "for historical
+  reasons" note about preferring `onChange`, and the controlled-input performance guidance (move
+  the input's state into its own component; `useDeferredValue` when a sibling genuinely depends on
+  the value).
+- [§7](#sec-7) — [MDN, `change` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event)
+  — the four distinct moments the native `change` event fires depending on element type, which is
+  why "native `change` fires on blur" is only true for the typing inputs. A browser-platform fact
+  rather than a React one, so MDN is the authority here per `CLAUDE.md`'s source list.
 - [§7](#sec-7) — [React 19 release post](https://react.dev/blog/2024/12/05/react-19) — form
   Actions (`<form action={fn}>`), `useActionState`, and React resetting uncontrolled forms after
   a successful Action. Covered properly in ch.07/ch.09; referenced here only for the
