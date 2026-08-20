@@ -352,6 +352,16 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
   relationship, a tree/hierarchy, or a decision flowchart (closures/scope, the event loop,
   Promise states, prototype chains, request lifecycles, `this`-binding rules, etc.). Applies
   to every chapter's notes going forward.
+  **Reinforced 2026-08-20, after ch.01's "what triggers a render" section (§4) was found too
+  prose-heavy on a re-read:** don't treat "state machine / sequence / tree / decision flowchart"
+  as an exhaustive checklist that gates whether a diagram is worth adding — treat it as examples
+  of the kind of relationship that usually benefits from one. Default to *more* code snippets and
+  diagrams than feels strictly necessary, not the minimum that technically satisfies the rule:
+  a short, runnable-looking code example for each distinct behavior being described (not just
+  one example for the whole section), and a diagram wherever it would make a relationship
+  click faster than another paragraph of prose would — including simple cascades (e.g. "parent
+  re-renders → children re-render by default") and decision trees (e.g. "how to trace backwards
+  from a render to its trigger"), not only the more obviously diagram-shaped topics named above.
 - Prioritize *interview framing*: for every concept, be explicit about how it could show up as
   an interview question and what a strong answer sounds like, not just how the API works.
 - Be explicit about what changed in **React 19 / 19.2** specifically vs older React the user

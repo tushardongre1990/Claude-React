@@ -688,6 +688,31 @@ reasons, or something that shapes *which* components a state update actually rea
    in the component itself, or in an ancestor (an ancestor's state update is what "a parent
    re-renders" means in practice).
 
+**Seeing both triggers in code:**
+
+```jsx
+// main.tsx
+createRoot(document.getElementById('root')!).render(<App />);
+// Everything under <App/> renders here for the very first time — trigger #1,
+// initial render. No state exists yet to have "changed"; the tree is simply appearing.
+```
+
+```jsx
+function Counter() {
+  const [count, setCount] = useState(0); // useState itself is covered in depth in ch.02
+
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Clicked {count} times
+    </button>
+  );
+}
+```
+
+Clicking the button calls `setCount` with a value different from the current `count` — that's
+trigger #2, a state update, and it's the *only* reason `Counter` ever renders again after it
+mounts.
+
 Once a state update happens somewhere, two more things shape what actually renders as a result,
 neither of which is an independent trigger on its own:
 
@@ -701,6 +726,67 @@ neither of which is an independent trigger on its own:
   starting from the provider that receives a different `value`"
   ([`reference/react/useContext`](https://react.dev/reference/react/useContext)).
 
+**Seeing the parent → child cascade in code:**
+
+```jsx
+function Parent() {
+  const [count, setCount] = useState(0);
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>+1</button>
+      <Child />
+    </>
+  );
+}
+
+function Child() {
+  console.log('Child rendered');
+  return <p>I own no state or props that changed, yet I render on every click above.</p>;
+}
+```
+
+Every click logs `Child rendered` again, even though `Child` has nothing of its own that
+changed — `Parent`'s state update is what put `Child` to work, per the "children re-render by
+default" rule above:
+
+```mermaid
+flowchart TD
+    trigger["setCount(...) called inside Parent"] --> parentRender["Parent re-renders"]
+    parentRender --> childRender["Child renders too\n(default: a re-rendering parent renders all its children)"]
+    childRender --> grandchildRender["GrandChild renders too"]
+    parentRender -.->|"memo(Child) (ch.06) could stop this\nif Child's own props hadn't changed"| childRender
+```
+
+Context works differently — a consumer re-renders **because of the Provider directly**, not
+merely because it happens to sit under a re-rendering parent:
+
+```jsx
+const ThemeContext = createContext<'light' | 'dark'>('light');
+
+function App() {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  return (
+    <ThemeContext.Provider value={theme}>
+      <Toolbar /> {/* renders only because App, its parent, re-rendered */}
+    </ThemeContext.Provider>
+  );
+}
+
+function Toolbar() {
+  return <ThemedButton />;
+}
+
+function ThemedButton() {
+  const theme = useContext(ThemeContext); // subscribes directly to ThemeContext
+  return <button className={theme}>Click me</button>;
+}
+```
+
+When `setTheme` runs, `ThemedButton` re-renders for two independent reasons stacked on top of
+each other: its parent chain re-rendered (same cascade as `Child` above), *and* it's directly
+subscribed to the Context value that changed. `Toolbar`, in between, only has the first reason —
+it never reads `ThemeContext` itself.
+
 Notice what's **not** on this list as a cause of its own: **a prop change is not an independent
 trigger.** Be careful how you phrase this, because the sloppy version ("props changing does
 nothing") is wrong in the other direction — from inside the child, receiving different props is
@@ -709,6 +795,23 @@ relevance: the thing that caused the child to render *at all* was its parent re-
 that parent's own state update, or from being re-rendered by *its* parent), which then passed a
 different value down. Tracing "why did this component render?" backwards always terminates at an
 initial render or a state update — never at "a prop changed."
+
+**A decision tree for "why did this render?"** — useful both for debugging a real app and for
+tracing an answer out loud in an interview:
+
+```mermaid
+flowchart TD
+    Q["Why did this component render?"] --> A{"Did its own\nstate change?"}
+    A -->|yes| stateAns["Trigger: a state update"]
+    A -->|no| B{"Does it read a Context\nwhose value changed?"}
+    B -->|yes| ctxAns["Trigger: a Provider update"]
+    B -->|no| C{"Did its parent\nre-render?"}
+    C -->|yes| recurse["Ask the same question\nabout the parent"]
+    C -->|no| initAns["Trigger: initial render"]
+```
+
+Following these arrows backwards always bottoms out at an initial render or a state update —
+never at "a prop changed" sitting there on its own.
 
 **One honest caveat on that two-reason model,** worth having so the model doesn't
 break the first time you meet an external store: components subscribed via `useSyncExternalStore`

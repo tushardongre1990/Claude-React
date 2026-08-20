@@ -480,3 +480,16 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   reworded `interview-qa.md`'s "props are read-only" Quick Answer, which used "frozen for a given
   render" — risking a reader inferring literal `Object.freeze()` semantics — to match the Full
   Answer's more accurate "immutable snapshot" wording instead.
+- **2026-08-20 (fourth pass, same day):** At the user's request, reworked ch.01's "what triggers
+  a render" subsection of [§4](01-foundations/README.md#sec-4) to lean much more heavily on code
+  examples and Mermaid diagrams rather than prose alone — no factual changes, purely a
+  clarity/pedagogy pass. Added: a minimal `createRoot`/`Counter` code pair illustrating the two
+  root triggers directly; a `Parent`/`Child` code example plus a cascade diagram showing "a
+  re-rendering parent renders all its children by default" concretely, with `memo` named as the
+  escape hatch; a `ThemeContext`/`Toolbar`/`ThemedButton` code example contrasting "renders
+  because its parent re-rendered" against "renders because it's a direct Context subscriber"; and
+  a decision-tree diagram for tracing "why did this component render?" backwards to its root
+  cause. Also strengthened the standing "explain via code/diagrams" instruction in `CLAUDE.md`'s
+  "User preferences" section: the four named diagram-shapes (state machine/sequence/tree/decision
+  flowchart) are examples of when a diagram helps, not an exhaustive gate on when one is allowed —
+  default to more code and diagrams than feels strictly required, going forward for every chapter.
