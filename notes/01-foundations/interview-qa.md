@@ -156,7 +156,7 @@ returned by calling it; DOM node = the actual browser object React creates/updat
 | Term | What it actually is |
 |---|---|
 | **Component** | A JS function (or class) you write, that *describes* UI — the blueprint. |
-| **React element** | The plain-object output of calling that description (`{ type, props }`) for one render — inert data, not yet on screen. |
+| **React element** | A plain JavaScript object describing what should be rendered (`{ type, props }`, plus internal metadata) for one render — produced by the JSX transform/`createElement`, **not** by calling the component itself; inert data, not yet on screen. |
 | **DOM node** | The actual browser object rendered on screen, which React creates/updates to match the element tree. |
 
 `<Counter />` refers to the *component*; it compiles to a React *element* whose `type` points at
@@ -338,9 +338,9 @@ which is plain JS destructuring, not a React feature.
 
 **Q: Why are props described as "read-only" or "an immutable snapshot"? What's the correct pattern if a child needs to change something conceptually given to it by a parent?** *(⭐ Core · 🔥 Frequent)*
 
-**Quick answer:** Props flow one direction, parent to child, and are frozen for a given render; if
-a child needs to change something, the parent passes a callback prop down instead — lifting state
-up.
+**Quick answer:** Props are read-only inputs — an immutable snapshot for a particular render,
+flowing one direction, parent to child; if a child needs to change something, the parent passes a
+callback prop down instead — lifting state up.
 
 **Full answer:** Props (like state) are an immutable snapshot for a given render — a value
 reflecting what was true at the moment this particular render started, which the child is never

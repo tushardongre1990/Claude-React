@@ -238,7 +238,7 @@ interface... creating this object does not render the component or create any DO
 | Term | What it actually is |
 |---|---|
 | **Component** | A JS function (or class) you write, that *describes* UI — the blueprint. |
-| **React element** | The plain-object output of calling that description (`{ type, props }`) for one specific render — inert data, not yet on screen. |
+| **React element** | A plain JavaScript object describing what should be rendered (`{ type, props }`, plus internal metadata) for one specific render — produced by the JSX transform/`createElement`, **not** by calling the component itself; inert data, not yet on screen. |
 | **DOM node** | The actual browser object that ends up rendered on screen, which React creates/updates to match the element tree. |
 
 `<Counter />` refers to the *component*, and (per [§1](#sec-1)'s compile step) it immediately produces a

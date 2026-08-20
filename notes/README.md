@@ -464,3 +464,19 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   this output / find the bug" prompts rather than pure explain-the-concept questions. This format
   is now the standing template for every future chapter's `interview-qa.md` — see `CLAUDE.md`'s
   working-rule step 3.
+- **2026-08-20 (third pass, same day):** A follow-up ChatGPT review of the reworked
+  `01-foundations/interview-qa.md` rated it ready to use as-is, with two small wording fixes and
+  guidance to stop expanding the file further (focus remaining effort on scenario-question quality
+  and spoken-delivery practice, not more theoretical questions — accepted as guidance for future
+  chapters, no action needed now). Both wording fixes checked out and were applied to **both**
+  `01-foundations/README.md`'s component/element/DOM-node table ([§1](01-foundations/README.md#sec-1))
+  and its `interview-qa.md` mirror: the "React element" row said "the plain-object output of
+  calling that description," which — read in isolation from the table — reads as "produced by
+  calling the component," directly contradicting the surrounding prose's own point that
+  `<Counter />` produces an element *without* calling `Counter`. This was a residual of the exact
+  wording the 2026-08-14 sixth-pass entry above already fixed once in the surrounding prose but not
+  in the table's own phrasing; reworded the table row to state directly that the element is
+  "produced by the JSX transform/`createElement`, **not** by calling the component itself." Also
+  reworded `interview-qa.md`'s "props are read-only" Quick Answer, which used "frozen for a given
+  render" — risking a reader inferring literal `Object.freeze()` semantics — to match the Full
+  Answer's more accurate "immutable snapshot" wording instead.
