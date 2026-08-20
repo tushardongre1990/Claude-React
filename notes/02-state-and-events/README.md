@@ -247,10 +247,9 @@ overclaim, and an interviewer who knows the docs may push on it.
 
 `Object.is` compares values using JavaScript's **SameValue** semantics, which for objects and
 functions means identity — the same reference, not an equivalent shape. (For primitives it matches
-`===` except in two cases: it treats `NaN` as equal to itself, and `+0` as distinct from `-0`. The
-`NaN` case is the one that occasionally matters, since `===` would report a `NaN` state as
-"changed" on every set.) That identity comparison produces the single most common "why didn't my UI
-update?" bug in React:
+`===` except in two cases: `Object.is` treats `NaN` as equal to itself while `===` does not, and
+`Object.is` treats `+0` and `-0` as distinct while `===` treats them as equal.) That identity
+comparison produces the single most common "why didn't my UI update?" bug in React:
 
 ```jsx
 const [user, setUser] = useState({ name: 'Ada', age: 36 });
@@ -278,10 +277,21 @@ can recall directly:
 |---|---|---|
 | `useState(() => initialValue)` | an **initializer** ([§1](#sec-1)) | once, during initialization (twice in Strict Mode dev) |
 | `setState(prev => next)` | an **updater** ([§3](#sec-3)) | while processing the queue, at render time |
-| `setState(() => someFunction)` | neither — it **stores a function as state** | it calls the outer arrow, and stores what it returns |
+| `setState(() => someFunction)` | still an **updater** — one whose *return value* happens to be a function | it calls the outer arrow and stores what it returns, i.e. `someFunction` |
 
-That third row is the escape hatch for the trap noted above: since `setState(myFn)` would treat
-`myFn` as an updater and call it, storing a function in state requires wrapping it.
+Note what the third row is and isn't. It's not a third category — it's the same updater mechanism,
+used deliberately: React calls your arrow, the arrow returns `someFunction`, and *that* becomes the
+state. Which is exactly why the wrapper is needed at all:
+
+> "Because you're passing a function, React assumes that `someFunction` is an initializer function,
+> and that `someOtherFunction` is an updater function, so it tries to call them and store the
+> result. To actually *store* a function, you have to put `() =>` before them in both cases. Then
+> React will store the functions you pass."
+> — [`reference/react/useState`](https://react.dev/reference/react/useState)
+
+So `setFn(someOtherFunction)` calls it and stores its return value; `setFn(() => someOtherFunction)`
+stores the function itself. Same rule on the `useState` side, with "initializer" in place of
+"updater."
 
 ### The setter has a stable identity
 
@@ -507,7 +517,8 @@ flowchart LR
     p3 --> d2(["next state: 1<br/>→ one re-render"])
 ```
 
-Note that **both** versions produce exactly *one* re-render. Batching ([§4](#sec-4)) is about how
+Note that in this example **both** versions are batched into a single re-render — the difference is
+purely in the resulting value. Batching ([§4](#sec-4)) is about how
 many renders happen; updater functions are about what value you end up with. Interviewers
 sometimes conflate them, and separating the two cleanly is a good signal.
 
@@ -579,7 +590,7 @@ setItems(prev => [...prev, newItem]); // ✅ pure: returns a new array
 |---|---|
 | Multiple updates to the same state in one handler | **Updater** — `setCount(c => c + 1)` |
 | The new value is computed from the current value | **Updater** — safest default |
-| Updating from an async callback (`setTimeout`, `await`, a subscription) | **Updater** — the snapshot is stale by then |
+| Updating from an async callback (`setTimeout`, `await`, a subscription) **when the next value depends on the previous one** | **Updater** — that render's snapshot is stale by the time the callback runs |
 | Setting a value that doesn't depend on the old one (`setName(inputValue)`) | Plain value is fine and reads better |
 
 A reasonable rule to state in an interview: *"If the next value depends on the previous value,
@@ -1077,7 +1088,9 @@ Two specific traps in that table:
    a part of it. `splice` **mutates** the array." One letter apart, opposite safety. In React you
    want `slice` (no `p`) almost every time.
 2. **`sort` and `reverse` mutate in place** and return the same array reference — so
-   `setTodos(todos.sort(...))` both mutates state *and* hits the `Object.is` bail-out. Copy first.
+   `setTodos(todos.sort(...))` mutates the array already in state *and* hands the setter that same
+   reference back, so `Object.is` sees no change and React can bail out of the re-render. Copy
+   first.
    (Modern JS also has non-mutating `toSorted`/`toReversed`/`with`/`toSpliced`, available in
    current browsers and in Node 20+; `[...arr].sort()` remains the maximally-compatible form.)
 
@@ -1335,12 +1348,13 @@ Naming those two before reaching for uncontrolled is the stronger answer, becaus
 controlled model intact instead of trading it away for performance.
 
 **React 19 note:** React 19 added form Actions — passing a function to `<form action={...}>` —
-which makes the uncontrolled + `FormData` pattern substantially more attractive than it used to
-be, with `useActionState` handling pending and error state for you. React also automatically
-resets the form for uncontrolled components when a form Action succeeds
-([React 19 release post](https://react.dev/blog/2024/12/05/react-19)). That whole story is ch.07
-and ch.09; what matters here is knowing that "always controlled" is not the settled answer it was
-in the React 16 era.
+which provides another way to handle forms built around `FormData`, with `useActionState` managing
+pending and error state. React also automatically resets the form for uncontrolled components when
+a form Action succeeds ([React 19 release post](https://react.dev/blog/2024/12/05/react-19)). The
+full treatment is ch.07 and ch.09. What matters here is just that a modern, first-class path exists
+that doesn't route every keystroke through state — so "always controlled," a reasonable default in
+the React 16 era, is worth re-examining rather than assumed. (That last clause is judgment, not a
+documented claim.)
 
 > **Interview framing:** "Controlled vs. uncontrolled — which do you use and why?" wants a
 > trade-off, not a preference. Strong answer: define both by *who owns the value*, say you default

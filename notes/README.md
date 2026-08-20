@@ -571,3 +571,38 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   and ch.01's Sources sections when either is next revised. Finally, the diagram added in this pass
   initially used the node ID `call`, reproducing the exact mermaid reserved-word bug logged on
   2026-08-18 (fifth pass); the standing scan caught it pre-commit and it was renamed to `setterCall`.
+- **2026-08-20 (seventh pass, same day):** The reviewer re-checked ch.02 against the corrected
+  version, rated it ~9.5/10, and — notably — **confirmed all five of the previous pass's rejections
+  were correct**, explicitly withdrawing its own earlier suggestions on batching wording and Context
+  consumers ("I would not change this merely because of my previous review"). That's the first time
+  in this project a review has reversed itself in the *repo's* favor, and it's evidence the standing
+  "fact-check the review, don't apply it" policy is doing real work rather than just adding friction.
+  Four remaining items were raised; all four held up and were applied:
+  - **The initializer/updater/function-state table was mechanically wrong.** It labelled
+    `setState(() => someFunction)` as "neither" of the two categories. It is in fact still an
+    **updater** — one whose return value happens to be a function. Verified against `useState`'s
+    troubleshooting section, which was fetched for the first time in this chapter's work and states
+    it directly: "React assumes that `someFunction` is an initializer function, and that
+    `someOtherFunction` is an updater function, so it tries to call them and store the result. To
+    actually *store* a function, you have to put `() =>` before them in both cases." Table row
+    corrected and the quote added, since the wrapper only makes sense once you see that the
+    mechanism is the same one, used deliberately.
+  - **The "use an updater in async callbacks" rule was overbroad.** `setTimeout(() => setName('x'))`
+    needs no updater — the actual condition is that the *next value depends on the previous one*.
+    The table row now says so; the async part is what makes the stale snapshot likely, not what
+    makes the updater necessary.
+  - **The `NaN` clause was awkwardly phrased** ("`===` would report a `NaN` state as changed"),
+    since `===` doesn't "report" anything about state. Restated as a direct comparison of the two
+    operators.
+  - **"`setTodos(todos.sort(...))` hits the `Object.is` bail-out" was too deterministic** and
+    contradicted this chapter's own [§1](02-state-and-events/README.md#sec-1) caveat that the
+    bail-out isn't an absolute guarantee. Reworded to "hands the setter that same reference back, so
+    `Object.is` sees no change and React *can* bail out."
+  Two further items the review raised in its body but left off its final list were also applied,
+  since both are consistency failures against the `## Sources` methodology adopted in the previous
+  pass: "both versions produce exactly *one* re-render" is now scoped to the example rather than
+  stated as a universal guarantee, and the React 19 form-Actions paragraph no longer asserts the
+  uncontrolled pattern is "substantially more attractive" inside technical prose — it states what
+  Actions provide, and marks the recommendation that follows as judgment.
+  Ch.02's notes are now considered technically settled. Remaining work for `Done`: the exercises,
+  `interview-questions/` entries, a verbal explain-back, and `revision.md`.
