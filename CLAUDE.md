@@ -157,6 +157,34 @@ revisit. Apply this to every chapter going forward, and retrofit it into already
 chapters' notes when next touching them (don't do a one-off pass across untouched chapters
 purely to backfill citations — add them as chapters are written or revised).
 
+**Standing instruction (2026-08-20): numbered in-chapter section references (`§N`) must be
+clickable links, not plain text — a project-wide rule, not specific to any one chapter.** Every
+chapter's `README.md` numbers its major sections (`## 0. ...`, `## 1. ...`, etc.); *anywhere in
+the repo* — that chapter's own notes, another chapter's notes, `notes/README.md`'s revision
+history, `revision-notes/`, `improvement-tracker/weak-areas.md`, `assessment/`, wherever — prose
+that says "see §4" or "(§6)" must link to that section, not just name it. This applies to every
+current and future chapter equally; it isn't a one-off fixup that only ch.01 needs.
+
+Mechanism: put `<a id="sec-N"></a>` on its own line immediately above each `## N. ...` heading in
+the chapter file, then write every `§N` reference as `[§N](#sec-N)` when linking from within that
+same chapter file, or `[§N](<relative-path-to-chapter>/README.md#sec-N)` when linking from a
+different file (e.g. `notes/README.md`'s revision history referencing a ch.01 section uses
+`[§4](01-foundations/README.md#sec-4)`; a hypothetical ch.05 reference from ch.07's notes would
+use `[§2](../05-context-and-usereducer/README.md#sec-2)`). Anchor IDs use a `sec-` prefix rather
+than relying on GitHub's auto-generated heading slugs, which are fragile — they change if the
+heading wording changes later, whereas an explicit `<a id>` doesn't.
+
+**Exception:** don't linkify `§N` text that appears inside a Mermaid diagram's node/label text
+(fenced ` ```mermaid ` blocks) — Mermaid renders labels as plain text, so embedded Markdown link
+syntax would show up literally instead of rendering as a link; leave those as plain `§N`.
+
+Applied retroactively to ch.01 (`notes/01-foundations/README.md`) and its cross-references in
+`notes/README.md`'s revision history on 2026-08-20, the only chapter with numbered-section
+content so far. As each future chapter is unlocked and gets its `README.md` written (per the
+single most important working rule, above), add its `sec-N` anchors and linkify its `§N`
+references as part of writing that chapter — same "apply as you go, don't backfill in one pass"
+approach already used for source citations, immediately above.
+
 ## Repo structure
 
 ```

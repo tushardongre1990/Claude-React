@@ -20,6 +20,8 @@ builds directly on them.
 
 ---
 
+<a id="sec-0"></a>
+
 ## 0. What React actually is, and the problem it solves
 
 ### Start here: how a web page normally gets built
@@ -104,13 +106,15 @@ piece small, nameable, and reusable.
 > in the order of O(n³) where n is the number of elements in the tree... React implements a
 > heuristic O(n) algorithm based on two assumptions" — namely that two elements of different
 > types produce different trees, and that `key` lets the developer mark which children are
-> stable across renders (§5)
+> stable across renders ([§5](#sec-5))
 > ([legacy `docs/reconciliation`](https://legacy.reactjs.org/docs/reconciliation.html), still the
 > clearest published statement of the algorithm's shape). Knowing React deliberately trades
 > theoretical optimality for linear time — and that the two assumptions it trades on are exactly
-> what §5's keys rules are protecting — is a much stronger signal than the word "optimal."
+> what [§5](#sec-5)'s keys rules are protecting — is a much stronger signal than the word "optimal."
 
 ---
+
+<a id="sec-1"></a>
 
 ## 1. JSX: syntax, expressions, and how it compiles
 
@@ -141,7 +145,7 @@ The important restriction: `{}` accepts an **expression** (something that produc
 not a **statement**. `if`, `for`, and variable declarations (`const x = 1`) are statements —
 they don't produce a value — so none of them are legal directly inside `{}`. This is exactly
 why "conditional rendering" in React uses expression-shaped tools like the ternary operator
-(`? :`) and `&&` instead of an `if` block written inline in JSX — more on this in §6.
+(`? :`) and `&&` instead of an `if` block written inline in JSX — more on this in [§6](#sec-6).
 
 ### How JSX actually becomes DOM: the compile step
 
@@ -203,7 +207,7 @@ something shaped roughly like `{ type: 'h1', props: { className: 'title', childr
 This is called a **React element**. It is inert data, nothing more — not a DOM node, and it
 doesn't render anything by itself just by existing. It only becomes real DOM once React's
 renderer (`react-dom`) uses that element tree as the description of the UI, compares it against
-what's already on screen (§4 covers this comparison — **reconciliation** — precisely), and
+what's already on screen ([§4](#sec-4) covers this comparison — **reconciliation** — precisely), and
 commits whatever DOM changes are actually needed.
 
 ```mermaid
@@ -218,7 +222,7 @@ a two-step process, not one, explains a lot of things that otherwise look magica
 - You can store a piece of JSX in a variable, put it in an array, pass it around as a function
   argument or prop, or even `console.log` it and see a plain object — because it *is* one.
 - "Conditionally rendering JSX" is really just "conditionally producing a value," exactly like
-  any other expression in JS — there's no special React syntax for it (§6).
+  any other expression in JS — there's no special React syntax for it ([§6](#sec-6)).
 - The **old-style transform requiring `import React from 'react'` in every file** exists because
   `React.createElement(...)` needs `React` to be in scope; the modern automatic transform
   imports `jsx`/`jsxs` from `react/jsx-runtime` for you instead, so that import is no longer
@@ -237,9 +241,9 @@ interface... creating this object does not render the component or create any DO
 | **React element** | The plain-object output of calling that description (`{ type, props }`) for one specific render — inert data, not yet on screen. |
 | **DOM node** | The actual browser object that ends up rendered on screen, which React creates/updates to match the element tree. |
 
-`<Counter />` refers to the *component*, and (per §1's compile step) it immediately produces a
+`<Counter />` refers to the *component*, and (per [§1](#sec-1)'s compile step) it immediately produces a
 *React element* — an object whose `type` points at the `Counter` function — without calling
-`Counter` itself. React only calls `Counter` later, during its own render process (§2 explains
+`Counter` itself. React only calls `Counter` later, during its own render process ([§2](#sec-2) explains
 this `<Counter />` vs. `Counter()` distinction precisely). Once React has done that and knows
 what the tree should look like, it reconciles the result and commits the resulting *DOM nodes*.
 All three — component, element, DOM node — are related but distinct, and each has already come
@@ -264,9 +268,9 @@ up separately above.
 - **Attributes use `camelCase`** — `strokeWidth` instead of `stroke-width`, `onClick`
   instead of `onclick`, and — the one worth having precise — `className` instead of `class` and
   `htmlFor` instead of `for`. React's own docs give the exact reason directly: JSX attributes
-  become the keys of a JavaScript object (the props object, from §1's compile step), and you
+  become the keys of a JavaScript object (the props object, from [§1](#sec-1)'s compile step), and you
   will very often want to pull those attributes out into plain variables — most commonly via
-  destructuring a component's props, exactly like `function Greeting({ name })` in §2/§3 below.
+  destructuring a component's props, exactly like `function Greeting({ name })` in [§2](#sec-2)/[§3](#sec-3) below.
   JavaScript variable/binding names have real restrictions that object property *keys* don't:
   they can't contain dashes (`stroke-width` isn't a legal identifier, hence `strokeWidth`), and
   they can't be reserved words like `class`
@@ -300,13 +304,15 @@ up separately above.
 > **Interview framing:** "how does JSX become the DOM" is a favorite basic-but-revealing
 > question. A strong answer chains all four steps explicitly — compiles to `createElement`/
 > `jsx()` calls → produces a plain-object element tree → React renders/reconciles that tree
-> against the previous one (§4's **render phase**) → commits the resulting DOM mutations (§4's
+> against the previous one ([§4](#sec-4)'s **render phase**) → commits the resulting DOM mutations ([§4](#sec-4)'s
 > **commit phase**). Answering "JSX gets turned into HTML" conflates two different things (a JS
 > object vs. actual DOM) and is the tell of someone who hasn't looked underneath the syntax;
 > collapsing reconciliation and commit into a single unnamed step is the next most common
-> imprecision, worth avoiding now that §4 gives you the vocabulary to be exact about it.
+> imprecision, worth avoiding now that [§4](#sec-4) gives you the vocabulary to be exact about it.
 
 ---
+
+<a id="sec-2"></a>
 
 ## 2. Components: functional components + hooks vs. class components
 
@@ -326,22 +332,22 @@ function with the right arguments — this is one of the things the JSX compile 
 difference between these two is worth having explicit, since it's a real interview distinction,
 not just a stylistic one: `Greeting()` is an ordinary synchronous function call — it runs
 immediately, right where it's written, and you get back whatever it returns. `<Greeting />`
-compiles to `jsx(Greeting, {...})` (§1) — it does **not** call `Greeting` itself; it produces a
+compiles to `jsx(Greeting, {...})` ([§1](#sec-1)) — it does **not** call `Greeting` itself; it produces a
 React element that *describes* "render `Greeting` here," and React decides if/when to actually
 call the function, as part of its own render process. This is exactly why React can do things
 like skip calling a component entirely (`memo`, ch.06) or call it twice on purpose (Strict Mode,
-§8) — those are only possible because *React*, not your code, controls the call.
+[§8](#sec-8)) — those are only possible because *React*, not your code, controls the call.
 
 Whatever JSX the function returns is what gets shown on screen for that piece of the page. If
 the function runs again later (because something it depends on changed), whatever it returns
 *this* time replaces what was shown before — this "run the function again to get updated UI" is
-the essence of what a **render** is, covered precisely in §4.
+the essence of what a **render** is, covered precisely in [§4](#sec-4).
 
 **Two rules that define "what makes something a valid React function component":**
 1. **When used as a JSX tag, its name must be capitalized** — `<Counter />`, not `<counter />`.
    Worth being precise about *where* that constraint actually lives, because it's a satisfying
    detail to have right: nothing about the **function** requires a capital letter; the **JSX
-   tag** does. §1's compile step is the entire reason — a lowercase tag compiles to a *string*
+   tag** does. [§1](#sec-1)'s compile step is the entire reason — a lowercase tag compiles to a *string*
    type (meaning an intrinsic HTML element), a capitalized one compiles to a *reference* to the
    variable of that name:
 
@@ -401,7 +407,7 @@ function FriendList({ friends }) {
 
 Why this matters mechanically, not just as a style rule: React is free to call your component
 function more than once for a single logical render (exactly what Strict Mode does on purpose in
-development — §8 — and what concurrent features may do for real in production), so any state
+development — [§8](#sec-8) — and what concurrent features may do for real in production), so any state
 your render logic leaves behind in shared, external storage will double up, or worse, silently
 diverge from what's on screen.
 
@@ -423,7 +429,7 @@ React's **[Rules of Hooks](https://react.dev/reference/rules/rules-of-hooks)**, 
 rules: (1) only call Hooks at the top level of a
 component (never inside a loop, condition, or nested function, and never after an early
 `return`), and (2) only call Hooks from a React function component or another Hook (never from
-a regular JS function). This is *why* §6's conditional-rendering section warns that an early
+a regular JS function). This is *why* [§6](#sec-6)'s conditional-rendering section warns that an early
 return must come *after* all Hook calls, not before.
 
 ### Class components: the older way of doing the same thing
@@ -447,7 +453,7 @@ class Counter extends React.Component {
 }
 ```
 
-This is equivalent in behavior to the function + `useState` version shown earlier in §0. Modern
+This is equivalent in behavior to the function + `useState` version shown earlier in [§0](#sec-0). Modern
 React code (and this entire curriculum) uses functions + hooks, not classes — but you're
 expected to recognize class syntax at this level, both because a lot of production code you'll
 encounter in the wild still uses it, and because one specific case (Error Boundaries, ch.16)
@@ -497,6 +503,8 @@ confirms `getSnapshotBeforeUpdate` currently has no Hook equivalent).
 > this distinction in practice.
 
 ---
+
+<a id="sec-3"></a>
 
 ## 3. Props: passing data into components, defaults, `children`, and composition
 
@@ -643,6 +651,8 @@ flowchart TB
 
 ---
 
+<a id="sec-4"></a>
+
 ## 4. What triggers a render; render phase vs. commit phase
 
 ### Start here: what "render" actually means in React
@@ -664,10 +674,10 @@ common case that doesn't fit the wording literally). Everything else is either o
 reasons, or something that shapes *which* components a state update actually reaches:
 
 1. **Initial render** — the very first time a component tree is displayed, kicked off by the
-   `createRoot(...).render(<App />)` call covered in §7. Every component in the tree participates
+   `createRoot(...).render(<App />)` call covered in [§7](#sec-7). Every component in the tree participates
    in this initial render simply because the app is starting up, before any state has changed at
    all (in development, under Strict Mode, the render logic for that initial pass may itself be
-   invoked twice per component — §8 — but that's a dev-only stress test of the same initial
+   invoked twice per component — [§8](#sec-8) — but that's a dev-only stress test of the same initial
    render, not a second independent trigger).
 2. **State update** — calling a `useState` setter, or dispatching to a `useReducer` (ch.02/05),
    with a value that's actually different from the current one (see the bail-out note below) —
@@ -745,7 +755,7 @@ flowchart LR
   (no mutating variables outside the function, no network calls, no touching the DOM directly)
   — because React is allowed to start, throw away, and restart a render without warning if it
   decides to (this is exactly what Strict Mode's double-invoke in development is designed to
-  catch — see §8 — and it's also what makes advanced features like `useTransition`, ch.06, safe:
+  catch — see [§8](#sec-8) — and it's also what makes advanced features like `useTransition`, ch.06, safe:
   an in-progress render can be abandoned mid-flight with no harm done).
 - **Commit phase**: React actually touches the real DOM here, to match what the render phase
   just computed, and runs layout Effects (`useLayoutEffect`) synchronously as part of the same
@@ -839,6 +849,8 @@ setCount((c) => c + 1);
 > the [React 18 release post](https://react.dev/blog/2022/03/29/react-v18).
 
 ---
+
+<a id="sec-5"></a>
 
 ## 5. Keys and lists: why they matter, and the index-as-key trap
 
@@ -974,6 +986,8 @@ answer, with the static-list case named as the explicit exception rather than le
 
 ---
 
+<a id="sec-6"></a>
+
 ## 6. Conditional rendering patterns and their trade-offs
 
 ### Start here: there's no JSX-specific conditional syntax
@@ -983,7 +997,7 @@ ordinary JavaScript, and React's own docs confirm this directly: "you can condit
 JSX using JavaScript syntax like `if` statements, `&&`, and `? :` operators"
 ([`learn/conditional-rendering`](https://react.dev/learn/conditional-rendering)). What doesn't
 exist is a *JSX-specific* conditional tag or syntax
-inside the markup itself — recall from §1: `{}` in JSX is an **expression slot**, and `if` is a
+inside the markup itself — recall from [§1](#sec-1): `{}` in JSX is an **expression slot**, and `if` is a
 statement, not an expression, so you can't write `{if (x) { ... }}` directly inside a JSX tree.
 "Conditional rendering" in React is really just "which value do I put in this expression slot
 (or what do I choose to return before I get there)," using ordinary JS tools:
@@ -1059,6 +1073,8 @@ favorite "spot the bug" interview snippet for exactly that reason — see
 
 ---
 
+<a id="sec-7"></a>
+
 ## 7. `createRoot`: how a React app actually ends up on screen
 
 ### Start here: from `index.html` to pixels on screen
@@ -1108,7 +1124,7 @@ React-19-specific.** It replaced the older, legacy `ReactDOM.render()` call. Rea
 [React 18 release post](https://react.dev/blog/2022/03/29/react-v18) states it plainly: "new
 features in React 18 don't work without it" — but be
 precise about what that means, rather than picturing `createRoot` as one big switch that turns
-concurrency on everywhere. Automatic batching (§4) applies automatically to every update once
+concurrency on everywhere. Automatic batching ([§4](#sec-4)) applies automatically to every update once
 you're on `createRoot`, with nothing further to opt into. Concurrent-rendering features like
 transitions, by contrast, remain **opt-in** — using `createRoot` makes those APIs *available*,
 but a component tree mounted with `createRoot` doesn't start rendering concurrently on its own;
@@ -1143,6 +1159,8 @@ do *inside* the mounted tree changed (Actions, the `use` API, etc. — ch.07).
 > but real precision signal.
 
 ---
+
+<a id="sec-8"></a>
 
 ## 8. Strict Mode: why effects/renders double-invoke in development
 
@@ -1260,66 +1278,66 @@ Every specific, checkable claim above was verified against these official docs b
 written (see `CLAUDE.md`'s "Accuracy & currency practice" for the standing policy). Listed here
 so any claim can be re-checked directly, grouped by the section that relies on it:
 
-- §0, §4 — [`learn/render-and-commit`](https://react.dev/learn/render-and-commit) — render
+- [§0](#sec-0), [§4](#sec-4) — [`learn/render-and-commit`](https://react.dev/learn/render-and-commit) — render
   triggers, render/commit phases, "minimal necessary operations," reconciliation.
-- §0, §5 — [legacy `docs/reconciliation`](https://legacy.reactjs.org/docs/reconciliation.html) —
+- [§0](#sec-0), [§5](#sec-5) — [legacy `docs/reconciliation`](https://legacy.reactjs.org/docs/reconciliation.html) —
   the diffing algorithm being a **heuristic O(n)** algorithm rather than an optimal O(n³) tree
   diff, and the two assumptions it rests on (different element types produce different trees;
   `key` marks stable children). This lives on the legacy docs site because current react.dev has
   no equivalent algorithm-level page — it's still the clearest published statement, and ch.19
   goes deeper.
-- §4 — [`reference/dev-tools/react-performance-tracks`](https://react.dev/reference/dev-tools/react-performance-tracks)
+- [§4](#sec-4) — [`reference/dev-tools/react-performance-tracks`](https://react.dev/reference/dev-tools/react-performance-tracks)
   — the precise Commit vs. paint vs. "Remaining Effects" (`useEffect`) ordering.
-- §1 — [`learn/writing-markup-with-jsx`](https://react.dev/learn/writing-markup-with-jsx) —
+- [§1](#sec-1) — [`learn/writing-markup-with-jsx`](https://react.dev/learn/writing-markup-with-jsx) —
   JSX transform, single-root rule, camelCase attributes and the `class`/`for` reserved-word
   reasoning, the `aria-*`/`data-*` exception.
-- §1 — [Introducing the New JSX Transform](https://legacy.reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html)
+- [§1](#sec-1) — [Introducing the New JSX Transform](https://legacy.reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html)
   — the automatic runtime, and the existence of `react/jsx-runtime` vs. `react/jsx-dev-runtime`.
   Note this post documents `jsx` but not `jsxs`/`jsxDEV` in detail; the specific claim that this
   chapter's two-child example emits `jsxs` (and that dev builds emit `jsxDEV` with source
   location arguments) was verified **empirically**, by running this project's own TypeScript
   compiler over that exact snippet with `jsx: "react-jsx"` and `"react-jsxdev"` — reproduce it
   with `ts.transpileModule` if you want to re-check it, rather than taking a doc's word for it.
-- §1 — [`@vitejs/plugin-react` README](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#jsxruntime)
+- [§1](#sec-1) — [`@vitejs/plugin-react` README](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#jsxruntime)
   — the plugin (not Vite itself, and not TypeScript) performs this project's JSX transform, and
   defaults to the automatic runtime. Build-tool configuration, not a React doc.
-- §1 — [`reference/react-dom/components/common`](https://react.dev/reference/react-dom/components/common)
+- [§1](#sec-1) — [`reference/react-dom/components/common`](https://react.dev/reference/react-dom/components/common)
   — `className`/`htmlFor` as DOM property names.
-- §1, §2 — [`reference/react/createElement`](https://react.dev/reference/react/createElement) —
+- [§1](#sec-1), [§2](#sec-2) — [`reference/react/createElement`](https://react.dev/reference/react/createElement) —
   a React element as an immutable, lightweight description, distinct from rendering/DOM nodes.
-- §2 — [`reference/rules/components-and-hooks-must-be-pure`](https://react.dev/reference/rules/components-and-hooks-must-be-pure)
+- [§2](#sec-2) — [`reference/rules/components-and-hooks-must-be-pure`](https://react.dev/reference/rules/components-and-hooks-must-be-pure)
   — component purity (idempotency, no side effects, no external mutation).
-- §2 — [`reference/rules/rules-of-hooks`](https://react.dev/reference/rules/rules-of-hooks) —
+- [§2](#sec-2) — [`reference/rules/rules-of-hooks`](https://react.dev/reference/rules/rules-of-hooks) —
   the two Rules of Hooks.
-- §2 — [`learn/your-first-component`](https://react.dev/learn/your-first-component) — component
+- [§2](#sec-2) — [`learn/your-first-component`](https://react.dev/learn/your-first-component) — component
   names "must start with a capital letter or they won't work," and capitalization being how
   React tells an HTML tag from a component. The finer point that this constraint lives in JSX
   tag resolution rather than in the function itself was verified **empirically** — compiling
   `<Greeting />` and `<greeting />` shows the first emits `jsx(Greeting, {})` and the second
   `jsx("greeting", {})`.
-- §2 — [`reference/react/Component`](https://react.dev/reference/react/Component) — Error
+- [§2](#sec-2) — [`reference/react/Component`](https://react.dev/reference/react/Component) — Error
   Boundaries requiring a class, `getSnapshotBeforeUpdate` having no Hook equivalent.
-- §3 — [React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide) —
+- [§3](#sec-3) — [React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide) —
   `defaultProps` removed for function components.
-- §4 — [`reference/react/useEffect`](https://react.dev/reference/react/useEffect) — Effect
+- [§4](#sec-4) — [`reference/react/useEffect`](https://react.dev/reference/react/useEffect) — Effect
   timing relative to browser paint.
-- §4 — [React 18 release post](https://react.dev/blog/2022/03/29/react-v18) — automatic
+- [§4](#sec-4) — [React 18 release post](https://react.dev/blog/2022/03/29/react-v18) — automatic
   batching everywhere, what `createRoot` unlocks.
-- §4 — [`learn/queueing-a-series-of-state-updates`](https://react.dev/learn/queueing-a-series-of-state-updates)
+- [§4](#sec-4) — [`learn/queueing-a-series-of-state-updates`](https://react.dev/learn/queueing-a-series-of-state-updates)
   — the snapshot/updater-function batching example.
-- §4 — [`reference/react/useContext`](https://react.dev/reference/react/useContext) — Context
+- [§4](#sec-4) — [`reference/react/useContext`](https://react.dev/reference/react/useContext) — Context
   consumers re-rendering when their Provider's value changes.
-- §5 — [`learn/rendering-lists`](https://react.dev/learn/rendering-lists) — keys, the
+- [§5](#sec-5) — [`learn/rendering-lists`](https://react.dev/learn/rendering-lists) — keys, the
   index-as-key trap, `key` not being forwarded as a prop.
-- §5 — [React 19 release post](https://react.dev/blog/2024/12/05/react-19) — `ref` as a regular
+- [§5](#sec-5) — [React 19 release post](https://react.dev/blog/2024/12/05/react-19) — `ref` as a regular
   prop for function components.
-- §6 — [`learn/conditional-rendering`](https://react.dev/learn/conditional-rendering) — no
+- [§6](#sec-6) — [`learn/conditional-rendering`](https://react.dev/learn/conditional-rendering) — no
   JSX-specific conditional syntax.
-- §7 — [`reference/react-dom/client/createRoot`](https://react.dev/reference/react-dom/client/createRoot)
+- [§7](#sec-7) — [`reference/react-dom/client/createRoot`](https://react.dev/reference/react-dom/client/createRoot)
   — `createRoot`/`root.render()` behavior, error-handling options.
-- §8 — [`reference/react/StrictMode`](https://react.dev/reference/react/StrictMode) — what
+- [§8](#sec-8) — [`reference/react/StrictMode`](https://react.dev/reference/react/StrictMode) — what
   double-invokes, the setup→cleanup→setup stress-test framing.
-- §8 — [React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide) —
+- [§8](#sec-8) — [React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide) —
   "StrictMode changes": `useMemo`/`useCallback` reusing the first render's memoized result on
   the second Strict Mode render.
 

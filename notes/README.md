@@ -203,13 +203,13 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   `rules/rules-of-hooks`); `ref`-as-a-prop in React 19 tied explicitly to the `key`-is-not-a-prop
   section, since it's the same "exception to normal prop flow" pattern (confirmed on the React
   19 blog). Added within existing topics, not new ones: a component/React-element/DOM-node
-  comparison table in §1; an explicit `<Greeting />` vs. `Greeting()` distinction in §2; a
-  render/re-render/reconciliation/commit glossary and a mount/update/unmount subsection in §4;
-  a brief `setCount(count + 1)` vs. `setCount(c => c + 1)` batching preview in §4 (full mechanics
+  comparison table in [§1](01-foundations/README.md#sec-1); an explicit `<Greeting />` vs. `Greeting()` distinction in [§2](01-foundations/README.md#sec-2); a
+  render/re-render/reconciliation/commit glossary and a mount/update/unmount subsection in [§4](01-foundations/README.md#sec-4);
+  a brief `setCount(count + 1)` vs. `setCount(c => c + 1)` batching preview in [§4](01-foundations/README.md#sec-4) (full mechanics
   still deferred to ch.02); minor wording softenings (commit-phase "not interruptible" reframed
   as "not treated as discardable," the index-as-key fallback phrased as "implicit identity"
   rather than implying React literally writes `key={index}`); and a top-of-chapter React-version
-  note. Rejected as already accurate on re-verification: the "minimal DOM changes" wording (§0)
+  note. Rejected as already accurate on re-verification: the "minimal DOM changes" wording ([§0](01-foundations/README.md#sec-0))
   — react.dev's own `render-and-commit` page uses the phrase "minimal necessary operations," so
   softening it further would have been a regression, not a fix.
 - **2026-08-14 (fifth pass, same day):** New standing instruction from the user: verified claims
@@ -242,7 +242,7 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   same as confirming the claim is unsupported. Fixed ch.01's Strict Mode section accordingly, with
   the exact upgrade-guide quote. Also fixed in this pass: a real internal contradiction where the
   new component/element/DOM comparison table said "`<Counter />` ... calling it ... produces a
-  React element" — directly contradicting §1's own (correct) explanation that `<Counter />`
+  React element" — directly contradicting [§1](01-foundations/README.md#sec-1)'s own (correct) explanation that `<Counter />`
   produces an element *without* calling `Counter`; reworded so the two sections agree. Softened
   the Strict Mode WebSocket cleanup example, which read as "you'll always see two connections"
   when the accurate framing is "two connections only if cleanup is actually broken — that's the
@@ -254,12 +254,12 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   `reference/react/useContext` (context consumers re-rendering).
 - **2026-08-14 (seventh pass, same day):** A fifth external (ChatGPT) review, run against the
   fully-cited version, found the chapter at ~9.5/10 with one genuine internal inconsistency and
-  a few wording refinements. Fixed: §1's "how does JSX become the DOM" interview-framing box
-  said React's renderer "walks that tree during the commit phase" — contradicting §4's own
+  a few wording refinements. Fixed: [§1](01-foundations/README.md#sec-1)'s "how does JSX become the DOM" interview-framing box
+  said React's renderer "walks that tree during the commit phase" — contradicting [§4](01-foundations/README.md#sec-4)'s own
   (correct) explanation that reconciliation happens during the **render** phase and only DOM
   mutations happen during **commit**. Reworded to name both phases correctly and explicitly.
   Reworded "every component in the tree renders once" (initial-render trigger) to avoid reading
-  as inconsistent with §8's own explanation that Strict Mode may invoke render logic twice in
+  as inconsistent with [§8](01-foundations/README.md#sec-8)'s own explanation that Strict Mode may invoke render logic twice in
   development. Verified the `&&`/`0` footgun claim precisely against `learn/conditional-rendering`
   (`false` is explicitly a "hole" that renders nothing; `0` explicitly is NOT) and narrowed the
   "0/NaN/''" grouping to just the numeric case (`0`/`NaN`) — an empty string doesn't produce the
@@ -268,13 +268,13 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   paragraph immediately above it (kept the substance — legacy `render` genuinely has no access
   to React 18's concurrent model at all — just aligned the tone).
 - **2026-08-14 (eighth pass, same day):** Fixed a mermaid parse error the user hit directly when
-  rendering §8's Strict Mode sequence diagram: the `Note over` line used literal `\n` for line
+  rendering [§8](01-foundations/README.md#sec-8)'s Strict Mode sequence diagram: the `Note over` line used literal `\n` for line
   breaks, which is valid inside flowchart `["..."]` node labels (used elsewhere in this chapter)
   but not inside a sequence-diagram `Note`, and broke the parser entirely. First fix collapsed it
   to one line (parses, but the text overflowed the note box's border) — corrected fix uses `<br/>`
   (the syntax sequence-diagram notes actually support for line breaks) to wrap it into two lines
   that render inside the box.
-- **2026-08-14 (ninth pass, same day):** A sixth external (ChatGPT) review flagged that the §4
+- **2026-08-14 (ninth pass, same day):** A sixth external (ChatGPT) review flagged that the [§4](01-foundations/README.md#sec-4)
   render/commit diagram nested browser paint and `useEffect` inside the "Commit phase" subgraph,
   overclaiming what commit actually covers. Checked directly against
   `reference/dev-tools/react-performance-tracks` (not previously consulted) before changing
@@ -291,10 +291,10 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   mermaid diagrams. Rated the chapter ~8.5-9/10 with no major conceptual flaws; four diagram
   fixes were flagged as "definitely fix" and three prose points as "worth improving." All were
   checked before acting on them, and all held up, so all were applied:
-  - **§1 JSX diagram** said `compiler: Vite / Babel / TS`, treating Vite as the JSX compiler.
+  - **[§1](01-foundations/README.md#sec-1) JSX diagram** said `compiler: Vite / Babel / TS`, treating Vite as the JSX compiler.
     Vite is the build tool that *delegates* the transform to Babel/SWC/TypeScript. Relabelled,
     and the surrounding prose now separates build tool from transform explicitly.
-  - **§1 automatic-transform code sample** was factually wrong, which the review only gestured
+  - **[§1](01-foundations/README.md#sec-1) automatic-transform code sample** was factually wrong, which the review only gestured
     at ("you can get `jsx()`, `jsxs()`, or development-specific transforms") without pinning
     down. Verified empirically rather than from memory, by running this project's own TypeScript
     compiler over the chapter's exact snippet: `<h1 className="title">Hello, {name}</h1>` has two
@@ -303,44 +303,44 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
     (also verified by compiling with `jsx: "react-jsxdev"`). The `Sources` entry records that
     this specific claim was verified by compilation, not by a doc, since React's own JSX
     transform post documents `jsx` but not `jsxs`/`jsxDEV` in detail.
-  - **§1 project-configuration footnote** claimed `app/tsconfig.app.json`'s `"jsx": "react-jsx"`
+  - **[§1](01-foundations/README.md#sec-1) project-configuration footnote** claimed `app/tsconfig.app.json`'s `"jsx": "react-jsx"`
     "is what actually turns this transform on for this repo." Checked the actual config: that
     file also sets `"noEmit": true`, so `tsc -b` only type-checks — the emit is done by
     `@vitejs/plugin-react` (whose README confirms the automatic runtime is its default).
     Corrected to say the tsconfig setting governs type-checking, not emit.
-  - **§4 render/commit diagram** labelled its entry node
+  - **[§4](01-foundations/README.md#sec-4) render/commit diagram** labelled its entry node
     `Trigger (setState / parent render / context change)`, which contradicted the section's own
     prose two paragraphs above naming exactly two root causes and explicitly saying parent
     renders and context changes are *not* independent triggers. Relabelled to "An update occurs
     (initial render, or a state update)".
-  - **§4 render-phase boxes** read as three strictly sequential passes (call everything → build
+  - **[§4](01-foundations/README.md#sec-4) render-phase boxes** read as three strictly sequential passes (call everything → build
     a whole tree → diff two finished trees). Kept the simplified boxes but added an explicit
     note that calling components and reconciling their output are interleaved during traversal,
     and that the simplified picture shouldn't be defended as literal mechanics (ch.19's subject).
-  - **§4 "a prop changing, by itself, does nothing"** was blunt enough to be wrong in the other
+  - **[§4](01-foundations/README.md#sec-4) "a prop changing, by itself, does nothing"** was blunt enough to be wrong in the other
     direction — different props absolutely are why a child renders *differently*. Reworded to
     the causal claim: a prop change isn't an independent *trigger*, and tracing "why did this
     render" always terminates at an initial render or a state update.
-  - **§4 "exactly two root causes"** — added the review's suggested honest caveat about
+  - **[§4](01-foundations/README.md#sec-4) "exactly two root causes"** — added the review's suggested honest caveat about
     `useSyncExternalStore`, which re-renders subscribers without a `useState` setter call, plus
     a phrasing that stays true in all cases (updates originate from state, a Provider's new
     value, or a subscribed external store).
-  - **§5 index-as-key diagram** drew `key=0` / `key=1` / `key=2` as though React had written
+  - **[§5](01-foundations/README.md#sec-5) index-as-key diagram** drew `key=0` / `key=1` / `key=2` as though React had written
     those props onto keyless elements. React matches keyless children *by position*; it doesn't
     synthesize key props. Redrawn as `position 0 → 'A'` etc. Note the prose itself was already
     defensible — `learn/rendering-lists` says outright "that's what React will use if you don't
     specify a `key` at all" (re-confirmed against the live page), so the fix was to keep that
     quote while making clear it describes resulting *behavior*, not props React inserted.
-  - **§8 Strict Mode diagram** said "Effect setup" and "this is the one that stays." Confirmed
+  - **[§8](01-foundations/README.md#sec-8) Strict Mode diagram** said "Effect setup" and "this is the one that stays." Confirmed
     against `reference/react/StrictMode` that the docs use **Effects** as a category term
     (`useEffect`/`useLayoutEffect`/`useInsertionEffect`), not `useEffect` alone; relabelled and
     added a note. Replaced "the one that stays" with "simulates a remount," since the original
     could imply React retains a particular Effect instance from the second invocation.
-  No changes were made to the parts the review rated already-correct (§3's composition diagram,
+  No changes were made to the parts the review rated already-correct ([§3](01-foundations/README.md#sec-3)'s composition diagram,
   and the long list of concepts it signed off on).
 - **2026-08-18 (second pass, same day):** The same reviewer re-checked the revised file, rated
   the diagrams ~9.5/10 and interview-safe, and raised exactly one remaining point — all of it
-  outside the diagrams: §4 said React's docs "name **exactly** two root causes for a component
+  outside the diagrams: [§4](01-foundations/README.md#sec-4) said React's docs "name **exactly** two root causes for a component
   to render **at all**," which overstates a teaching simplification as a complete specification,
   especially given the chapter's own `useSyncExternalStore` caveat a few paragraphs later.
   Re-checked `learn/render-and-commit` first: the page does say "There are two reasons for a
@@ -353,7 +353,7 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
 - **2026-08-18 (third pass, same day):** An eighth external (ChatGPT) review rated the chapter
   9.6/10 with no remaining major issues and four wording tweaks, all of which were checked and
   applied:
-  - **§6's `&&` explanation** opened with a genuinely garbled sentence ("JSX renders that falsy
+  - **[§6](01-foundations/README.md#sec-6)'s `&&` explanation** opened with a genuinely garbled sentence ("JSX renders that falsy
     value's left-hand result directly"). Rewritten as two explicitly separated mechanisms, per
     the project's standing rule that JS mechanics get taught in full rather than assumed: (1)
     what `&&` does as plain JavaScript — it returns the left *operand itself* when falsy, not
@@ -361,24 +361,24 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
     that value — numbers/strings render as visible text, `false`/`null`/`undefined` are holes.
     The bug falls out of stacking the two. The section's conclusions were already correct; only
     the mechanism sentence was wrong.
-  - **§0's "every tag becomes a node"** oversimplified the DOM. Reworded to note that text
+  - **[§0](01-foundations/README.md#sec-0)'s "every tag becomes a node"** oversimplified the DOM. Reworded to note that text
     between tags becomes its own text node, comments are nodes too, and the parser may
     insert/move things — so it isn't a strict one-tag-one-node mapping.
-  - **§0's "near-optimal DOM updates"** was an overclaim, and this one turned out to be worth
+  - **[§0](01-foundations/README.md#sec-0)'s "near-optimal DOM updates"** was an overclaim, and this one turned out to be worth
     more than a wording fix. Checked `legacy.reactjs.org/docs/reconciliation` (not previously
     consulted, and with no current react.dev equivalent): React explicitly does **not** do an
     optimal diff — "state of the art algorithms have a complexity in the order of O(n³)...
     React implements a heuristic O(n) algorithm based on two assumptions." Replaced the claim,
     and expanded the interview-framing box to name the trade-off and connect the algorithm's two
-    assumptions to §5's keys rules, since that connection is a much stronger interview signal
+    assumptions to [§5](01-foundations/README.md#sec-5)'s keys rules, since that connection is a much stronger interview signal
     than the word "optimal." Added the page to `## Sources`.
-  - **§4's render-diagram entry node** still said "the two reasons above," slightly narrower
+  - **[§4](01-foundations/README.md#sec-4)'s render-diagram entry node** still said "the two reasons above," slightly narrower
     than the robust phrasing established in the prose just above it. Changed to "React starts
     work (initial render, or an update)."
   The reviewer again recommended stopping work on ch.01's notes and moving to the exercises and
   `revision.md`, which matches the chapter's actual `Done` criteria in `CLAUDE.md`.
 - **2026-08-18 (fourth pass, same day):** A ninth external (ChatGPT) review rated the chapter
-  9.8/10 with a single remaining item, which held up and was applied. §2 listed "its name must
+  9.8/10 with a single remaining item, which held up and was applied. [§2](01-foundations/README.md#sec-2) listed "its name must
   start with a capital letter" as a rule defining a valid React function component; the
   constraint actually lives in **JSX tag resolution**, not in the function. Verified by
   compiling both forms: `<Greeting />` emits `jsx(Greeting, {})` (a reference to the variable),
@@ -389,15 +389,15 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   react.dev's blunter framing quoted alongside it ("their names must start with a capital letter
   or they won't work!", `learn/your-first-component`) rather than contradicting it, since that
   page is stating the practical rule and is right about practice — you always use a component via
-  a JSX tag. Note §1's own capitalization bullet was already precise on this point and needed no
-  change; the imprecision was only in §2's restatement. One claim was **dropped for lack of
+  a JSX tag. Note [§1](01-foundations/README.md#sec-1)'s own capitalization bullet was already precise on this point and needed no
+  change; the imprecision was only in [§2](01-foundations/README.md#sec-2)'s restatement. One claim was **dropped for lack of
   evidence** rather than written up: that `eslint-plugin-react-hooks` identifies components by
   PascalCase name. Neither `reference/rules/rules-of-hooks` nor the plugin's own README documents
   how it detects components, so it isn't asserted in the notes.
   Ch.01's notes are now considered technically settled; remaining work for `Done` is the
   exercises, `interview-questions/` entries, a verbal explain-back, and `revision.md`.
 - **2026-08-18 (fifth pass, same day):** Fixed a second mermaid parse error the user hit when
-  rendering §1's JSX pipeline diagram (`Expecting 'SEMI', 'NEWLINE'... got 'CALLBACKNAME'`).
+  rendering [§1](01-foundations/README.md#sec-1)'s JSX pipeline diagram (`Expecting 'SEMI', 'NEWLINE'... got 'CALLBACKNAME'`).
   Cause: the diagram's second node used the **ID `call`**, and `call` is a reserved token in
   mermaid's flowchart grammar — it's the `click nodeId call callbackName()` syntax, and the
   lexer switches into callback-name state on `call` followed by whitespace, so the statement
