@@ -16,6 +16,12 @@ syntax.
 - Each chapter folder contains:
   - `README.md` — the chapter notes (outline now, full notes once unlocked)
   - `exercises/` — hands-on exercises for that chapter (added on unlock)
+  - `interview-qa.md` — a comprehensive interview Q&A drill covering every topic in that
+    chapter's notes, one complete question-and-answer per concept (written once, in full, when
+    the chapter's `README.md` is written). Distinct from the root-level
+    [`interview-questions/`](../interview-questions/README.md) folder, which holds short-form
+    "explain this output" snippets, a traps catalog, and open-ended debugging scenarios rather
+    than a comprehensive per-chapter drill.
   - `revision.md` — a short cheat-sheet for fast pre-interview review (filled in once the
     chapter is completed)
   - Chapter 00 additionally has `javascript/` and `browser-and-web/` subfolders, since it
@@ -415,3 +421,17 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   instance of either problem — ch.00's `call1`/`call2` IDs are safe, since the keyword rule only
   fires on bare `call` followed by whitespace, and the word "call" inside a quoted label is also
   fine.
+- **2026-08-20:** New per-chapter artifact added at the user's request: `interview-qa.md`, a
+  comprehensive interview Q&A drill file covering every topic in a chapter's notes (one complete,
+  interview-ready question-and-answer per concept, not a keyword or one-liner). Written once, in
+  full, when a chapter's `README.md` is written, and required going forward for a chapter to earn
+  `Done` status (see `CLAUDE.md`'s "when a chapter is unlocked" working rule and `Done` criteria,
+  both updated to reference it). It's distinct from the root-level `interview-questions/` folder,
+  which holds short-form "explain this output" snippets, a traps catalog, and open-ended debugging
+  scenarios rather than a comprehensive per-chapter drill. Written for the two chapters that
+  currently have full notes: [`00-javascript-and-browser-fundamentals/interview-qa.md`](00-javascript-and-browser-fundamentals/interview-qa.md)
+  (covering both the `javascript/` and `browser-and-web/` subfolders) and
+  [`01-foundations/interview-qa.md`](01-foundations/interview-qa.md). Content was synthesized
+  directly from each chapter's already fact-checked notes rather than re-verified against docs
+  independently, since the underlying claims had already gone through this project's accuracy
+  practice when the notes themselves were written.

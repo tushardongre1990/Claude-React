@@ -42,7 +42,8 @@ history.
 
 **Only the current/completed chapters (and problems/questions the user has actually picked)
 have detailed content. Everything else is an outline only** — chapter folders contain a
-`README.md` with topics to cover, empty `exercises/`, and a placeholder `revision.md`;
+`README.md` with topics to cover, empty `exercises/`, a placeholder `revision.md`, and (once a
+chapter is unlocked — see below) an `interview-qa.md`;
 `coding-interviews/` and `interview-questions/` subfolders contain an index of problem/snippet
 titles only.
 
@@ -67,25 +68,38 @@ When a chapter is unlocked, do all of the following for that chapter (not future
    "Accuracy & currency practice" below for which docs to check per topic.
 2. Add hands-on exercises to `notes/<NN-slug>/exercises/` (problem statements), with starter
    and solution code living in `app/src/chapters/<NN-slug>/`.
-3. As the user works through the chapter, actively watch for mistakes, hesitations, or
+3. Write `notes/<NN-slug>/interview-qa.md` — every interview question a strong interviewer could
+   reasonably ask from that chapter's topics, each followed by a complete, interview-ready
+   answer (not a keyword or a one-liner — an answer that would actually be accepted as
+   demonstrating real understanding, with a short code example where it clarifies the mechanism).
+   This is created **once, in full, when the chapter's `README.md` is written** — it's a
+   comprehensive drill file covering the whole chapter, not something added incrementally per
+   question. It's distinct from the root-level
+   [`interview-questions/`](interview-questions/README.md) folder: that folder holds short-form
+   "explain this output" snippets, a cross-chapter traps catalog, and open-ended debugging
+   scenarios; `interview-qa.md` is one file per chapter, comprehensively covering exactly that
+   chapter's material, organized by the chapter's own section headings. Started for ch.00 and
+   ch.01 on 2026-08-20 (see `notes/README.md`'s revision history); do this for every chapter from
+   here on, same "only the unlocked chapter" scoping as everything else in this list.
+4. As the user works through the chapter, actively watch for mistakes, hesitations, or
    outdated mental models. Log them in
    [`improvement-tracker/weak-areas.md`](improvement-tracker/weak-areas.md) using the format
    already defined in that file. This was an explicit user request — don't skip it, and don't
    wait to be asked each time.
-4. Once the chapter is solid, fill in `notes/<NN-slug>/revision.md` — a short, dense
+5. Once the chapter is solid, fill in `notes/<NN-slug>/revision.md` — a short, dense
    cheat-sheet (5-10 min re-read), not a copy of the full notes.
-5. Update the chapter's **Status** to `In Progress` then `Done` in *both* places: the table in
+6. Update the chapter's **Status** to `In Progress` then `Done` in *both* places: the table in
    [`notes/README.md`](notes/README.md) and the mirrored table below in this file. Keep them
    in sync — this file is what a fresh session reads first.
 
    **A chapter only earns `Done` when all of the following are true, not just "notes were
-   written":** concepts understood, exercises completed, at least a few relevant
-   `interview-questions/` entries answered, at least one concept explained back verbally (not
-   just read), and the chapter's row in
+   written":** concepts understood, exercises completed, `interview-qa.md` written, at least a
+   few relevant `interview-questions/` entries answered, at least one concept explained back
+   verbally (not just read), and the chapter's row in
    [`assessment/chapter-scorecard.md`](assessment/chapter-scorecard.md) meets the readiness
    threshold defined there. Otherwise leave it `In Progress` — the goal is interview
    performance, not reading-completion.
-6. When the user works a problem from `coding-interviews/` or a snippet from
+7. When the user works a problem from `coding-interviews/` or a snippet from
    `interview-questions/`, fill in that specific entry in place (requirements/starter/
    solution/follow-ups, or the snippet + answer) — same "only what's been asked for" rule
    applies there too.
@@ -200,10 +214,12 @@ approach already used for source citations, immediately above.
 │   │   ├── javascript/README.md       ← subfolder: JS fundamentals topics
 │   │   ├── browser-and-web/README.md  ← subfolder: browser/web fundamentals topics
 │   │   ├── exercises/README.md
+│   │   ├── interview-qa.md    ← comprehensive Q&A drill, written once chapter README is done
 │   │   └── revision.md
 │   ├── 01-foundations/
 │   │   ├── README.md
 │   │   ├── exercises/README.md
+│   │   ├── interview-qa.md
 │   │   └── revision.md
 │   ├── 02-state-and-events/  ← same shape, repeated for all chapters 01-22
 │   ├── ...
@@ -264,8 +280,8 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
 
 | # | Chapter | Status | Notes |
 |---|---------|--------|-------|
-| 00 | JavaScript & Browser Fundamentals | In Progress | Notes (both subfolders) + exercises + starter kata files written 2026-08-11. User is now working through exercises. `revision.md` and `Done` status pending completion. |
-| 01 | Foundations: JSX, Rendering & Components | In Progress | Notes + exercises + starter stubs written 2026-08-14 (JSX compile/keys/`createRoot`/Strict Mode verified against react.dev). User now working through `ex1`-`ex3` starter files in `app/src/chapters/01-foundations/`. `revision.md` and `Done` status pending completion. |
+| 00 | JavaScript & Browser Fundamentals | In Progress | Notes (both subfolders) + exercises + starter kata files written 2026-08-11; `interview-qa.md` (comprehensive Q&A drill) written 2026-08-20. User is now working through exercises. `revision.md` and `Done` status pending completion. |
+| 01 | Foundations: JSX, Rendering & Components | In Progress | Notes + exercises + starter stubs written 2026-08-14 (JSX compile/keys/`createRoot`/Strict Mode verified against react.dev); `interview-qa.md` (comprehensive Q&A drill) written 2026-08-20. User now working through `ex1`-`ex3` starter files in `app/src/chapters/01-foundations/`. `revision.md` and `Done` status pending completion. |
 | 02 | State & Events | Not Started | |
 | 03 | Side Effects & Lifecycle | Not Started | |
 | 04 | Refs & the DOM (Document Object Model) | Not Started | |
