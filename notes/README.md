@@ -52,7 +52,7 @@ syntax.
 |---|---------|--------|
 | 00 | [JavaScript & Browser Fundamentals for React Interviews](00-javascript-and-browser-fundamentals/README.md) | In Progress |
 | 01 | [Foundations: JSX, Rendering & Components](01-foundations/README.md) | In Progress |
-| 02 | [State & Events](02-state-and-events/README.md) | Not Started |
+| 02 | [State & Events](02-state-and-events/README.md) | In Progress |
 | 03 | [Side Effects & Lifecycle](03-side-effects-and-lifecycle/README.md) | Not Started |
 | 04 | [Refs & the DOM (Document Object Model)](04-refs-and-dom/README.md) | Not Started |
 | 05 | [Context API & useReducer](05-context-and-reducers/README.md) | Not Started |
@@ -493,3 +493,31 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   "User preferences" section: the four named diagram-shapes (state machine/sequence/tree/decision
   flowchart) are examples of when a diagram helps, not an exhaustive gate on when one is allowed —
   default to more code and diagrams than feels strictly required, going forward for every chapter.
+- **2026-08-20 (fifth pass, same day):** **Chapter 02 unlocked and written** — `README.md` (ten
+  numbered sections, [§0](02-state-and-events/README.md#sec-0)-[§9](02-state-and-events/README.md#sec-9),
+  with `sec-N` anchors and linkified `§N` references per the standing rule), `exercises/README.md`
+  (six exercises), five starter files in
+  [`app/src/chapters/02-state-and-events/`](../app/src/chapters/02-state-and-events/), and
+  `interview-qa.md` following the template ch.00/ch.01 established (⭐/🔥/🧠/🎯 tags plus ⚠️ Version,
+  Quick answer + Full answer layers, and a 12-prompt **Coding & Scenario Questions** section).
+  Per the standing accuracy practice, every checkable claim was verified against official docs
+  *before* writing rather than from prior knowledge — 13 pages consulted and cited in the chapter's
+  `## Sources` section: `reference/react/useState`, `learn/state-as-a-snapshot`,
+  `learn/queueing-a-series-of-state-updates`, `learn/responding-to-events`,
+  `reference/react-dom/components/common`, `reference/react-dom/components/input`,
+  `reference/react-dom/flushSync`, `learn/updating-objects-in-state`,
+  `learn/updating-arrays-in-state`, `learn/choosing-the-state-structure`,
+  `learn/sharing-state-between-components`, `learn/preserving-and-resetting-state`, and the React
+  17, 18, and 19 release posts. Three details that would have been easy to get wrong from memory and
+  were pinned to exact quotes instead: the `Object.is` bail-out is **not** an absolute guarantee
+  ("in some cases React may still need to call your component before skipping the children"), Strict
+  Mode double-invokes **updater** functions as well as initializers and component bodies, and
+  React 17 — not 18 — is where event pooling was removed and delegation moved from `document` to the
+  root container. The React 17 release post lives on `legacy.reactjs.org` (never migrated to
+  react.dev), which is noted in `## Sources` so the odd domain isn't mistaken for a stale citation.
+  Ch.01's deliberate framing of batching as a **performance** optimization rather than a correctness
+  requirement (2026-08-14, second pass) was carried forward into ch.02's [§4](02-state-and-events/README.md#sec-4)
+  and its Q&A rather than silently re-litigated. The chapter's 16 mermaid diagrams were scanned for
+  both failure modes this repo has already hit — reserved node IDs and literal `\n` in labels — and
+  `#` was kept out of sequence-diagram participant names, since mermaid treats it as the start of an
+  entity code.

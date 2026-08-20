@@ -294,7 +294,7 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
 |---|---------|--------|-------|
 | 00 | JavaScript & Browser Fundamentals | In Progress | Notes (both subfolders) + exercises + starter kata files written 2026-08-11; `interview-qa.md` (comprehensive Q&A drill) written 2026-08-20. User is now working through exercises. `revision.md` and `Done` status pending completion. |
 | 01 | Foundations: JSX, Rendering & Components | In Progress | Notes + exercises + starter stubs written 2026-08-14 (JSX compile/keys/`createRoot`/Strict Mode verified against react.dev); `interview-qa.md` (comprehensive Q&A drill) written 2026-08-20. User now working through `ex1`-`ex3` starter files in `app/src/chapters/01-foundations/`. `revision.md` and `Done` status pending completion. |
-| 02 | State & Events | Not Started | |
+| 02 | State & Events | In Progress | Notes + exercises + starter stubs + `interview-qa.md` written 2026-08-20. Every factual claim verified against react.dev first (useState/queueing/snapshot/events/inputs/state-structure/lifting/preserving-state pages, plus the React 17, 18, and 19 release posts and `flushSync`). User now working through `ex1`-`ex5` starter files in `app/src/chapters/02-state-and-events/`. `revision.md` and `Done` status pending completion. |
 | 03 | Side Effects & Lifecycle | Not Started | |
 | 04 | Refs & the DOM (Document Object Model) | Not Started | |
 | 05 | Context API & useReducer | Not Started | |
