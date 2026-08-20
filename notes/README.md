@@ -604,5 +604,24 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   stated as a universal guarantee, and the React 19 form-Actions paragraph no longer asserts the
   uncontrolled pattern is "substantially more attractive" inside technical prose — it states what
   Actions provide, and marks the recommendation that follows as judgment.
+- **2026-08-20 (eighth pass, same day):** A third review of ch.02 confirmed the previous pass's four
+  fixes landed correctly and raised exactly one remaining item, which held up and was applied.
+  [§5](02-state-and-events/README.md#sec-5) defined `e.target` as "the deepest element the event
+  actually originated on." Checked against
+  [MDN's `Event.target`](https://developer.mozilla.org/en-US/docs/Web/API/Event/target), which
+  defines it as "a reference to the object onto which the event was dispatched" — the *origin* of
+  the event, not a claim about tree depth. Depth is a serviceable intuition while an event bubbles
+  but it isn't the definition, and it would be wrong for a programmatically dispatched event.
+  Reworded both bullets to MDN's framing, with the divergence between `target` and `currentTarget`
+  now attributed to the propagation phase (they're the same element during the target phase) rather
+  than left implicit. Added `Event.target` to `## Sources` as the second browser-platform citation
+  in this chapter alongside the `change` event page. A self-review caught that the MDN quote, as
+  first placed, sat under the `currentTarget` bullet and read circularly ("currentTarget is
+  different from currentTarget") — it's a quote from the `target` page about the relationship, so it
+  was moved out of the bullet list into the sentence explaining when the two diverge. The reviewer
+  also explicitly endorsed keeping the "state lives outside your component" mental model as-is, now
+  that the `## Sources` preamble labels it a model rather than an implementation claim, and
+  recommended stopping revisions here — further polishing has diminishing returns, and this chapter
+  should only be revisited if a later chapter exposes a genuine contradiction.
   Ch.02's notes are now considered technically settled. Remaining work for `Done`: the exercises,
   `interview-questions/` entries, a verbal explain-back, and `revision.md`.

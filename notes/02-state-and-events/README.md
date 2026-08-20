@@ -825,9 +825,21 @@ event, it's on `e.nativeEvent` — and the mapping isn't always one-to-one:
 
 `e.target` vs. `e.currentTarget` is worth having straight, since it's asked as a quick check:
 
-- **`e.target`** — the deepest element the event actually originated on (the `<span>` inside the
-  button, if that's what you clicked).
-- **`e.currentTarget`** — the element whose handler is currently running (the `<button>`).
+- **`e.target`** — the element the event was originally dispatched on. MDN defines it as "a
+  reference to the object onto which the event was dispatched"
+  ([`Event.target`](https://developer.mozilla.org/en-US/docs/Web/API/Event/target)) — note that's
+  the *origin* of the event, not "the deepest element in the tree"; depth is a useful intuition
+  while an event bubbles, but it isn't the definition.
+- **`e.currentTarget`** — the element whose handler is currently executing.
+
+The two diverge precisely when propagation is involved — MDN, on `target`: "It is different from
+`Event.currentTarget` when the event handler is called during the bubbling or capturing phase of
+the event." During the target phase itself they're the same element.
+
+Concretely, clicking a `<span>` inside a `<button>` inside a `<div>` with handlers on all three:
+`e.target` is the `<span>` in all three handlers, while `e.currentTarget` is a different element in
+each. That gap is exactly what makes event delegation work — one listener on a parent, handling
+events from many children.
 
 **Version note — event pooling is gone.** In React 16 and earlier, event objects were pooled and
 recycled: reading `e.target` inside a `setTimeout` gave you `null` unless you first called
@@ -1787,6 +1799,10 @@ marked as framing; everything stated as React *behavior* traces to a source belo
   reasons" note about preferring `onChange`, and the controlled-input performance guidance (move
   the input's state into its own component; `useDeferredValue` when a sibling genuinely depends on
   the value).
+- [§5](#sec-5) — [MDN, `Event.target`](https://developer.mozilla.org/en-US/docs/Web/API/Event/target)
+  — `target` defined as the object the event was *dispatched on* (not "the deepest element"), and
+  how it diverges from `currentTarget` during the bubbling and capturing phases. Again a
+  browser-platform definition rather than a React one.
 - [§7](#sec-7) — [MDN, `change` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event)
   — the four distinct moments the native `change` event fires depending on element type, which is
   why "native `change` fires on blur" is only true for the typing inputs. A browser-platform fact
