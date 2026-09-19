@@ -823,25 +823,242 @@ event, it's on `e.nativeEvent` — and the mapping isn't always one-to-one:
 > part of the public API and may change in the future."
 > — [`reference/react-dom/components/common`](https://react.dev/reference/react-dom/components/common)
 
-`e.target` vs. `e.currentTarget` is worth having straight, since it's asked as a quick check:
+### `e.target` vs. `e.currentTarget`
 
-- **`e.target`** — the element the event was originally dispatched on. MDN defines it as "a
-  reference to the object onto which the event was dispatched"
+#### Start here: two different questions
+
+One event object, two properties that both point at "an element," answering two different
+questions:
+
+- **`e.target` — "where did this happen?"** The element the event was originally dispatched on.
+  MDN defines it as "a reference to the object onto which the event was dispatched"
   ([`Event.target`](https://developer.mozilla.org/en-US/docs/Web/API/Event/target)) — note that's
   the *origin* of the event, not "the deepest element in the tree"; depth is a useful intuition
-  while an event bubbles, but it isn't the definition.
-- **`e.currentTarget`** — the element whose handler is currently executing.
+  while an event bubbles, but it isn't the definition. React's own wording: "Returns the node on
+  which the event has occurred (which could be a distant child)."
+- **`e.currentTarget` — "whose handler is running right now?"** The element the currently
+  executing handler is attached to. MDN: "identifies the element to which the event handler has
+  been attached"
+  ([`Event.currentTarget`](https://developer.mozilla.org/en-US/docs/Web/API/Event/currentTarget)).
+  React's wording: "Returns the node to which the current handler is attached in the React tree."
 
-The two diverge precisely when propagation is involved — MDN, on `target`: "It is different from
-`Event.currentTarget` when the event handler is called during the bubbling or capturing phase of
-the event." During the target phase itself they're the same element.
+The one-line version to say out loud: **`target` is fixed for the whole propagation; `currentTarget`
+changes with every handler the event passes through.**
 
-Concretely, clicking a `<span>` inside a `<button>` inside a `<div>` with handlers on all three:
-`e.target` is the `<span>` in all three handlers, while `e.currentTarget` is a different element in
-each. That gap is exactly what makes event delegation work — one listener on a parent, handling
-events from many children.
+#### The diagram: one click, three handlers
 
-**Version note — event pooling is gone.** In React 16 and earlier, event objects were pooled and
+Markup with a handler on all three elements, and the user clicks the innermost one:
+
+```jsx
+<div onClick={handleDiv}>
+  <button onClick={handleButton}>
+    <span onClick={handleSpan}>Buy</span>
+  </button>
+</div>
+```
+
+```mermaid
+flowchart BT
+    s["span — the element you actually clicked"]
+    b["button — has its own onClick"]
+    d["div — has its own onClick"]
+    s -->|"event bubbles up"| b
+    b -->|"event bubbles up"| d
+    s -.->|"handler 1 runs"| hs["e.target = span<br/>e.currentTarget = span<br/>(target phase: the two are equal)"]
+    b -.->|"handler 2 runs"| hb["e.target = span   ← unchanged<br/>e.currentTarget = button   ← moved"]
+    d -.->|"handler 3 runs"| hd["e.target = span   ← unchanged<br/>e.currentTarget = div   ← moved"]
+```
+
+| Handler runs on | `e.target` | `e.currentTarget` | Equal? |
+|---|---|---|---|
+| `span` | `span` | `span` | ✅ target phase |
+| `button` | `span` | `button` | ❌ bubbling |
+| `div` | `span` | `div` | ❌ bubbling |
+
+The same holds in the capture phase, just in the opposite order — MDN, on `target`: "It is
+different from `Event.currentTarget` when the event handler is called during the bubbling or
+capturing phase of the event." They're equal only during the target phase itself.
+
+Written as a runnable check:
+
+```jsx
+function Demo() {
+  const log = (label) => (e) =>
+    console.log(label, '| target:', e.target.tagName, '| currentTarget:', e.currentTarget.tagName);
+
+  return (
+    <div onClick={log('div')}>
+      <button onClick={log('button')}>
+        <span onClick={log('span')}>Buy</span>
+      </button>
+    </div>
+  );
+}
+
+// Clicking "Buy" logs:
+// span    | target: SPAN | currentTarget: SPAN
+// button  | target: SPAN | currentTarget: BUTTON
+// div     | target: SPAN | currentTarget: DIV
+```
+
+#### Which one do you want?
+
+```mermaid
+flowchart TD
+    q{"What do you need the element for?"}
+    q -->|"the element I wrote this handler on<br/>(read the form, the button, its dataset)"| c["e.currentTarget"]
+    q -->|"the exact thing the user interacted with<br/>(which row? which child of many?)"| t["e.target"]
+    c --> c2["Predictable: it is always the element<br/>whose JSX carries this on* prop.<br/>Safe to use directly."]
+    t --> t2["Could be ANY descendant — an icon,<br/>a text node's parent, a nested span.<br/>Narrow it before trusting it."]
+```
+
+**Default to `e.currentTarget`.** It's the one you control: it's whatever element you wrote the
+`onClick`/`onSubmit` on, no matter what the user actually clicked inside it. `<form onSubmit>` is
+the clearest case — `e.currentTarget` is guaranteed to be the `<form>`, while `e.target` is the
+form only if nothing inside it originated the submit:
+
+```jsx
+<form onSubmit={(e) => {
+  e.preventDefault();
+  const data = new FormData(e.currentTarget); // ✅ always the <form>
+  // new FormData(e.target) happens to work here, but says something you didn't mean
+}}>
+```
+
+**Reach for `e.target` when the whole point is "which child?"** — that's event delegation: one
+handler on the parent instead of one per row.
+
+```jsx
+function TodoList({ todos, onDelete }) {
+  function handleClick(e) {
+    // e.currentTarget is always the <ul>. Useless for telling rows apart.
+    // e.target is whatever was clicked — possibly an <svg> inside the button.
+    const button = e.target.closest('button[data-id]');
+    if (!button) return;              // clicked the padding, or the text — ignore
+    onDelete(Number(button.dataset.id));
+  }
+
+  return (
+    <ul onClick={handleClick}>
+      {todos.map(t => (
+        <li key={t.id}>
+          {t.text}
+          <button data-id={t.id}><TrashIcon /></button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+The `closest()` call is the part beginners skip. `e.target` is the *deepest* element under the
+pointer — click the trash icon and `e.target` is the `<svg>` (or even a `<path>`), not the
+`<button>` you were aiming at. Always climb from `e.target` to the element you care about.
+
+Comparing the two is itself a useful idiom — react.dev uses it to tell "focus landed on me" apart
+from "focus landed on one of my children," which is how you build a focus-within behaviour for a
+whole subtree:
+
+```jsx
+<div
+  tabIndex={1}
+  onFocus={(e) => {
+    if (e.currentTarget === e.target) {
+      console.log('focused parent');
+    } else {
+      console.log('focused child', e.target.name);
+    }
+  }}
+>
+```
+— [`reference/react-dom/components/common`](https://react.dev/reference/react-dom/components/common)
+
+(This works only because `onFocus`/`onBlur` bubble in React even though native `focus`/`blur`
+don't — see the propagation exceptions below.)
+
+#### 🎯 The trap: `currentTarget` is null after the handler returns
+
+Event pooling is gone (next subsection), so `e.target` is safe to read asynchronously. **`e.currentTarget`
+is not** — and that catches people who learned "React 17 fixed the async event thing."
+
+> "Note that the value of `currentTarget` is only available in a handler for the event. Outside an
+> event handler it will be `null`."
+> — [MDN, `Event.currentTarget`](https://developer.mozilla.org/en-US/docs/Web/API/Event/currentTarget)
+
+React does the same thing, by design — verified directly in the installed `react-dom@19.2.8`
+bundle (`node_modules/react-dom/cjs/react-dom-client.development.js`), where the dispatch loop
+sets `currentTarget` immediately before calling your listener and clears it immediately after:
+
+```js
+event.currentTarget = currentTarget;
+try { listener(event); } catch (error) { reportGlobalError(error); }
+event.currentTarget = null;   // ← as soon as your handler returns
+```
+
+`target`, by contrast, is assigned once when the synthetic event is constructed and never cleared.
+So:
+
+```jsx
+function handleSubmit(e) {
+  e.preventDefault();
+  const form = e.currentTarget;              // ✅ capture it synchronously
+
+  setTimeout(() => {
+    console.log(e.target);                   // ✅ still the element
+    console.log(e.currentTarget);            // ❌ null — the dispatch already finished
+    console.log(form);                       // ✅ works, because you saved the reference
+  }, 0);
+}
+```
+
+The same applies to `await`:
+
+```jsx
+async function handleSubmit(e) {
+  e.preventDefault();
+  const data = new FormData(e.currentTarget);   // ✅ before the await
+  await save(data);
+  e.currentTarget.reset();                      // ❌ null after the await — TypeError
+}
+```
+
+Rule: **read `e.currentTarget` synchronously, into a local variable, before any `await` or
+callback.**
+
+#### TypeScript angle (ch.14 preview)
+
+They're typed differently, and it's a real day-to-day difference rather than trivia:
+
+```tsx
+function onClick(e: React.MouseEvent<HTMLButtonElement>) {
+  e.currentTarget.disabled = true;  // ✅ typed HTMLButtonElement — the generic narrows it
+  e.target.disabled = true;         // ❌ Property 'disabled' does not exist on type 'EventTarget'
+}
+```
+
+`SyntheticEvent<T>` types `currentTarget` as `EventTarget & T` but `target` as bare `EventTarget`
+— which is *correct*, since the compiler genuinely can't know which descendant the user clicked.
+`ChangeEvent<T>` is the deliberate exception: it narrows `target` to `EventTarget & T` too, which
+is why `e.target.value` compiles in an `onChange` handler at all. The installed
+`@types/react@19.2.18` even flags that as a knowing compromise, `// TODO: This is wrong for change
+event handlers on arbitrary [elements]... kept for backward compatibility until React 20`
+(verified by compiling the snippet above against this repo's own `@types/react`, not from the
+docs).
+
+So the everyday guidance falls out of the types: use `e.target.value` in `onChange` (idiomatic,
+and typed), and `e.currentTarget` almost everywhere else.
+
+> **Interview framing:** the quick check is "`target` is where the event originated;
+> `currentTarget` is the element whose handler is running — they differ during bubbling and
+> capture, and are equal at the target phase." What separates a strong answer: say *why you'd
+> pick each* (`currentTarget` for the element you attached to, `target` for delegation, with
+> `closest()` to climb from the deep node you actually get), and land the nullification gotcha —
+> `target` survives into async code since React 17 killed pooling, but `currentTarget` is nulled
+> the moment your handler returns, so capture it in a local first.
+
+### Version note: event pooling is gone
+
+In React 16 and earlier, event objects were pooled and
 recycled: reading `e.target` inside a `setTimeout` gave you `null` unless you first called
 `e.persist()`. React 17 removed this.
 
@@ -1778,8 +1995,11 @@ marked as framing; everything stated as React *behavior* traces to a source belo
   capture-phase handlers, and `onScroll` being the one event that doesn't propagate.
 - [§5](#sec-5) — [`reference/react-dom/components/common`](https://react.dev/reference/react-dom/components/common)
   — the React event object also being called a "synthetic event," conforming to the DOM event
-  standard while fixing browser inconsistencies, `e.nativeEvent` and its non-public mapping, and
-  the confirmation that React attaches handlers at the root.
+  standard while fixing browser inconsistencies, `e.nativeEvent` and its non-public mapping, the
+  property definitions of `target` ("the node on which the event has occurred (which could be a
+  distant child)") and `currentTarget` ("the node to which the current handler is attached in the
+  React tree"), the `e.currentTarget === e.target` focus example, and the confirmation that React
+  attaches handlers at the root.
 - [§5](#sec-5) — [React v17 release post](https://legacy.reactjs.org/blog/2020/08/10/react-v17-rc.html)
   — delegation moving from `document` to the root container (and why: gradual upgrades /
   `stopPropagation` across nested React versions), the full removal of event pooling
@@ -1803,6 +2023,24 @@ marked as framing; everything stated as React *behavior* traces to a source belo
   — `target` defined as the object the event was *dispatched on* (not "the deepest element"), and
   how it diverges from `currentTarget` during the bubbling and capturing phases. Again a
   browser-platform definition rather than a React one.
+- [§5](#sec-5) — [MDN, `Event.currentTarget`](https://developer.mozilla.org/en-US/docs/Web/API/Event/currentTarget)
+  — `currentTarget` defined as the element the handler is *attached to*, and the key gotcha that
+  its value "is only available in a handler for the event. Outside an event handler it will be
+  `null`."
+- [§5](#sec-5) — **Verified by reading the installed bundle, not a doc:**
+  `app/node_modules/react-dom/cjs/react-dom-client.development.js` (react-dom 19.2.8) — React's
+  dispatch loop assigns `event.currentTarget` before invoking each listener and sets it back to
+  `null` immediately afterwards, while `this.target` is assigned once in the synthetic event's
+  constructor and never cleared. That's the mechanism behind "`target` survives into async code
+  but `currentTarget` doesn't." Re-check it with
+  `grep -n -B6 "currentTarget = null" node_modules/react-dom/cjs/react-dom-client.development.js`
+  from `app/`.
+- [§5](#sec-5) — **Verified by compiling, not a doc:** `app/node_modules/@types/react` (19.2.18) —
+  `SyntheticEvent<T>` types `currentTarget` as `EventTarget & T` and `target` as bare
+  `EventTarget`, while `ChangeEvent<T>` deliberately narrows `target` too (with an in-source
+  `TODO` calling it a backward-compatibility compromise "until React 20"). Confirmed by
+  type-checking a probe file using `e.currentTarget.disabled` and a `@ts-expect-error`'d
+  `e.target.disabled` against this repo's own `@types/react`.
 - [§7](#sec-7) — [MDN, `change` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event)
   — the four distinct moments the native `change` event fires depending on element type, which is
   why "native `change` fires on blur" is only true for the typing inputs. A browser-platform fact

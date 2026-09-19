@@ -625,3 +625,22 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   should only be revisited if a later chapter exposes a genuine contradiction.
   Ch.02's notes are now considered technically settled. Remaining work for `Done`: the exercises,
   `interview-questions/` entries, a verbal explain-back, and `revision.md`.
+- **2026-09-19:** At the user's request, expanded `e.target` vs. `e.currentTarget` in
+  [§5](02-state-and-events/README.md#sec-5) from two bullets into a full `###` subsection with
+  diagrams. Added: a plain-language "two different questions" framing; a Mermaid bubbling diagram
+  plus a value table showing `target` fixed and `currentTarget` moving across three handlers; a
+  runnable three-handler logging example with its exact console output; a Mermaid decision
+  flowchart for choosing between them; a delegation example showing why `e.target.closest(...)` is
+  mandatory (clicking an icon gives you the `<svg>`, not the `<button>`); react.dev's
+  `e.currentTarget === e.target` focus idiom; a trap subsection on `currentTarget` being nulled
+  after the handler returns (the `await`/`setTimeout` failure); and a TypeScript subsection on
+  `currentTarget: EventTarget & T` vs. `target: EventTarget`. Two claims were settled by running
+  something rather than reading a doc, per `CLAUDE.md`: React's own dispatch loop in the installed
+  `react-dom@19.2.8` bundle sets `event.currentTarget = null` right after invoking each listener
+  while `target` is set once in the constructor and never cleared, and the typing difference was
+  confirmed by type-checking a throwaway probe file against this repo's `@types/react@19.2.18`
+  (whose `ChangeEvent` carries an in-source `TODO` admitting its narrowed `target` is a
+  backward-compatibility compromise "until React 20"). `Event.currentTarget` added to
+  `## Sources`, along with both run-to-verify entries labelled as such. Also promoted the
+  event-pooling version note to its own `###` heading so it isn't visually swallowed by the new
+  subsection.
