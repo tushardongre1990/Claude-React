@@ -46,7 +46,10 @@ user clicked Send, so it goes in a handler. Staying connected to the chat room h
 room is displayed, and no event caused it, so it's an Effect. The docs' decision rule is worth
 quoting: "ask yourself *why* this code needs to run. Use Effects only for code that should run
 *because* the component was displayed to the user." Rendering code, the third place, must stay
-pure: compute JSX from props and state and do nothing else.
+pure: compute JSX from props and state and do nothing else. For precision, "displayed" is the docs'
+teaching phrase. More exactly, an Effect keeps an external system in sync with the component's
+*committed* props and state, and stays set up only while its Effects are active. Those can differ:
+a component inside a hidden `<Activity>` keeps its state but has its Effects unmounted.
 
 **Q: What counts as a "side effect," and why can't it go in the render body?** *(⭐ Core)*
 
@@ -54,10 +57,10 @@ pure: compute JSX from props and state and do nothing else.
 subscriptions, or DOM and `localStorage` writes. Render must be pure because React may call your
 component many times, discard results, or double-call it in Strict Mode.
 
-**Full answer:** Rendering is React asking your function "what should this look like?" React
-reserves the right to ask repeatedly: on every state change, speculatively during concurrent
-rendering, twice in Strict Mode development. A side effect in the body would run every one of those
-times and could run for a render that's never committed. So side effects go either in event
+**Full answer:** Rendering is React asking your function "what should this look like?" React may
+call your component many times, call it and throw the result away, or (in Strict Mode) call it
+twice on purpose. A side effect in the body would run again every one of those times, including for
+a render whose result is thrown away. So side effects go either in event
 handlers (caused by an interaction) or in Effects (which run after a commit, so they only happen
 for UI that actually reached the screen).
 
@@ -71,6 +74,18 @@ If the Effect only reads props and state and sets other state, no external syste
 it's almost always one of the [§8](README.md#sec-8) anti-patterns (derived state, a reset, event
 logic). If there *is* an external system, ask whether you're keeping something connected (an Effect)
 or reading a value that changes on its own (`useSyncExternalStore`).
+
+**Q: When is the DOM an "external system" that needs an Effect?** *(🧠 Deep · 🎯 Trap)*
+
+**Quick answer:** Only when you need an imperative browser API that JSX can't express, like
+`play()`/`pause()`, `focus()`, `scrollIntoView()` or `showModal()`. Anything expressible as JSX,
+props or state should just be rendered.
+
+**Full answer:** Most of the DOM *is* controlled by React. Class names, text, and whether an element
+exists are all JSX, and reaching for an Effect there is an anti-pattern. The docs' canonical case is
+a `VideoPlayer` with an `isPlaying` prop. `<video>` has no `playing` prop, so the Effect reads a ref
+and calls `ref.current.play()` or `.pause()`, with `[isPlaying]` as the dependency. `isPlaying` is
+React state, playback is the external system, and the Effect keeps the second in step with the first.
 
 ---
 
@@ -91,6 +106,18 @@ extra setup+cleanup cycle on mount. `[]` means "no reactive dependencies," not "
 that must run once per page load belongs at module level. For a senior answer, add that you
 don't choose the array: it has to list every reactive value the Effect reads, and the lint rule
 enforces it.
+
+**Q: When is an Effect with no dependency array appropriate?** *(🧠 Deep · 🎯 Trap)*
+
+**Quick answer:** Rarely. It re-syncs after every commit, so it needs an external system that
+genuinely has to be re-synced after every commit. "I want this to run after every render" isn't
+that reason.
+
+**Full answer:** No array is valid, but it's the Effect form most likely to be lifecycle thinking in
+disguise (a `componentDidUpdate` substitute). Ask which external system needs re-synchronizing after
+*every* commit, and why. If there's no good answer, the code is usually derived state (compute it
+during render) or event logic (put it in the handler). And if it sets state unconditionally, it's the
+infinite-loop trap below.
 
 **Q: When exactly does `useEffect` run relative to rendering and painting?** *(🧠 Deep · ⚠️ Version)*
 
@@ -191,6 +218,19 @@ process." Split them, even if their dependencies match today.
 later and the other re-runs too (for example, analytics changes start reconnecting the chat). The
 test: if you deleted one piece, would the other still make sense? Then they're separate Effects.
 
+**Q: What changes when you move an Effect into a custom Hook?** *(🔥 Frequent · 🎯 Trap)*
+
+**Quick answer:** Nothing about how the Effect behaves. A custom Hook packages a synchronization
+process under a name, like `useChatRoom(roomId)`. The dependencies, cleanup, closures and Strict
+Mode behavior are exactly as if the Effect were written inline.
+
+**Full answer:** A custom Hook is a function whose name starts with `use` and that calls other Hooks.
+Its Effect belongs to whichever component calls it, and re-runs according to the values *it* reads.
+So `useChatRoom(roomId)` still re-syncs when `roomId` changes and still needs its cleanup. The payoff
+is readability, since the component now declares "stay connected to this room," and reuse.
+`useOnlineStatus` wrapping `useSyncExternalStore` is the same idea. Designing custom Hooks well is a
+separate topic (ch.08).
+
 ---
 
 ## §3. Dependencies — [notes](README.md#sec-3)
@@ -246,6 +286,19 @@ no longer reads `messages`, so it isn't a dependency.
 which here means reconnecting. The updater receives the latest state from React's queue, so the
 Effect writes without reading.
 
+**Q: My Effect restarts even though nothing on screen changed. Why?** *(🧠 Deep · 🎯 Trap)*
+
+**Quick answer:** Dependencies are compared every time the component renders and commits, whatever
+caused the render. Nothing visible has to change. Usually some render created a new object or
+function identity for one of the dependencies.
+
+**Full answer:** A render isn't the same as a visible change. The component can re-render because of
+its own unrelated state, a parent re-rendering, or a context change, and each time React compares
+the dependency array with `Object.is`. An object or function created in the body is a new identity
+on every such render, so the Effect restarts. Nothing on screen differs, but the chat reconnects.
+The right debugging question is "which render created a new identity for one of my dependencies?",
+not "what changed on screen?"
+
 ---
 
 ## §4. Stale closures — [notes](README.md#sec-4)
@@ -275,16 +328,19 @@ its timing. Suppressing the lint rule is how this bug usually gets written.
 
 **Q: What are the ways to fix a stale closure, and when do you use each?** *(🧠 Deep)*
 
-**Quick answer:** Add the dependency if the Effect should re-sync. Use an updater if it only writes
-state. Use `useEffectEvent` (19.2) or a ref if it must read the latest value without re-syncing.
-Move it to an event handler if it was never an Effect.
+**Quick answer:** First ask "should this value changing restart the synchronization?" If yes, add
+the dependency. If the code only writes state, use an updater. If the value is event data that
+shouldn't restart anything, use `useEffectEvent` (19.2), or a ref before that. If it was never an
+Effect, move it to an event handler.
 
 **Full answer:** It depends on what the stale code does. If a value changing means the
 synchronization is wrong (a new `roomId`), it's a real dependency. If the code only computes next
-state from previous state, use an updater. If it reads a value that shouldn't restart the
-synchronization (a theme used in a notification), use an Effect Event in React 19.2+, or before
-that a ref updated with the latest value. If the logic responds to a user action, move it to the
-handler, since handlers are recreated every render.
+state from previous state, use an updater. If the value is part of an *event* fired from the Effect
+and genuinely shouldn't restart it (a theme used in a notification), use an Effect Event in React
+19.2+, or before that a ref holding the latest value. Don't treat `useEffectEvent` as a general
+"get the latest value" fix: it's for separating non-reactive logic, and wrapping a truly reactive
+value in it reintroduces a bug. If the logic responds to a user action, move it to the handler,
+since handlers are recreated every render.
 
 ---
 
@@ -321,14 +377,18 @@ still allowed to affect the current UI, which is why cleanup matters even when n
 
 **Q: How did cleanup timing change in React 17?** *(🧠 Deep · ⚠️ Version)*
 
-**Quick answer:** Cleanup became asynchronous: on unmount it runs *after* the screen updates. React
-17 also guaranteed all cleanups run before any new Effects. The consequence is that `ref.current`
-may already be `null` in cleanup, so capture it during setup.
+**Quick answer:** `useEffect` cleanup became asynchronous: on unmount it runs *after* the screen
+updates. Layout Effect cleanup didn't change. React 17 also guaranteed all cleanups run before any
+new Effects. The consequence is that `ref.current` may already be `null` in cleanup, so capture it
+during setup.
 
-**Full answer:** From the React 17 notes: "the effect cleanup function always runs asynchronously —
-for example, if the component is unmounting, the cleanup runs after the screen has been updated,"
-and "React 17 will always execute all effect cleanup functions (for all components) before it runs
-any new effects." Their example: reading `someRef.current` inside cleanup can fail. The fix is
+**Full answer:** Scope it correctly, because "Effect cleanup became async" is too broad. Before 17,
+"effect cleanup functions used to run synchronously (similar to `componentWillUnmount` being
+synchronous in classes)." React 17: "the effect cleanup function always runs asynchronously — for
+example, if the component is unmounting, the cleanup runs after the screen has been updated." The
+same notes point to `useLayoutEffect` for anyone who needs synchronous cleanup. They also add "React
+17 will always execute all effect cleanup functions (for all components) before it runs any new
+effects." Their example of what breaks: reading `someRef.current` inside cleanup. The fix is
 `const instance = someRef.current;` in setup, so the cleanup closes over a value that can't change.
 That's the closure rule used deliberately.
 
@@ -366,18 +426,25 @@ check that your cleanup fully undoes your setup. Production runs setup once.
 your setup logic." The sequence (verified in React 19.2.8) is mount (layout, then regular Effects),
 simulated unmount (both destroyed), then remount with the same state. It happens only when a
 component first mounts, and updates look like production. The docs reframe the question: it's not
-"how to run an Effect once" but "how to fix the Effect so that it works after remounting." If the
-double cycle breaks something, the cleanup is missing or incomplete.
+"how to run an Effect once" but "how to fix the Effect so that it works after remounting." An Effect
+must be resilient to being started, stopped and started again: setup → cleanup → setup must leave
+the external system as one setup would. If the double cycle breaks something, the cleanup is missing
+or incomplete. Version detail: from React 19.3 the extra cycle also runs during hydration of
+server-rendered apps ("Double invoke Effects in Strict Mode during hydration, matching
+client-rendered roots"), not only for client-rendered roots.
 
 **Q: Why not use a ref to make the Effect run only once?** *(🔥 Frequent · 🎯 Trap)*
 
 **Quick answer:** Because it hides the missing cleanup in dev and leaves the bug for production.
 The docs say it outright: "Don't use refs to prevent Effects from firing."
 
-**Full answer:** A `didRun` ref guard makes the dev double-call disappear but skips the cleanup
-entirely. So leaving the page leaks the connection, a dependency change never re-synchronizes, and
-any real remount breaks it. The fix is a cleanup that mirrors setup, after which the double cycle is
-invisible because you end up in the same state as a single setup.
+**Full answer:** A `didRun` ref guard makes the dev double-call disappear, and it's broken in two
+separate ways. (1) There's no cleanup, so the connection leaks on unmount or when an `<Activity>`
+hides the component. (2) It blocks legitimate re-synchronization. When a dependency like `roomId`
+changes, React re-runs the Effect, but the ref is still `true`, so it returns early and stays
+connected to the old room. The guard can't tell Strict Mode's rehearsal from a real change. The fix
+is a cleanup that mirrors setup, after which the double cycle is invisible because you end up in the
+same state as a single setup.
 
 **Q: Why does React do this? Is remounting real, or just a dev check?** *(🧠 Deep · ⚠️ Version)*
 
@@ -399,9 +466,10 @@ because it belongs in an event handler.
 
 **Full answer:** For analytics: "We recommend keeping this code as is. … In production, there will
 be no duplicate visit logs." For fetching: "In development, you will see two fetches in the Network
-tab. There is nothing wrong with that," since cleanup sets the first run's `ignore` to `true`.
-Anything non-idempotent that a user action caused (buy, submit, send email) was never an Effect. App
-initialization that must run once per page load belongs at module level.
+tab. There is nothing wrong with that," since cleanup sets the first run's `ignore` to `true`. A
+POST, purchase or "send email" firing twice is different: it's caused by an interaction, so it was
+never an Effect and belongs in the event handler. App-wide initialization belongs at module level,
+where it runs once per module evaluation.
 
 ---
 
@@ -430,9 +498,8 @@ during server rendering.
 browser from repainting the screen. When used excessively, this makes your app slow." That shows up
 as interaction latency (ch.20's INP). Separately: "If you trigger a state update inside
 `useLayoutEffect`, React will execute all remaining Effects immediately including `useEffect`." So
-one `setState` there drags every pending regular Effect in front of the paint too. On the server
-there's no layout, so "`useLayoutEffect` does
-nothing on the server," and code relying on it for the initial layout needs a client-only fallback.
+one `setState` there drags every pending regular Effect in front of the paint too. And on the
+server there's no layout, so "`useLayoutEffect` does nothing on the server."
 
 **Q: What is `useInsertionEffect`?** *(🧠 Deep · 🎯 Trap)*
 
@@ -468,6 +535,32 @@ Chains of Effects cause a render per link and become fragile as requirements cha
 parent from an Effect makes it find out a render late. The principle underneath: "If something can
 be calculated from the existing props or state, don't put it in state. Instead, calculate it during
 rendering."
+
+**Q: `useEffect` + `setState` vs. `useMemo` for a derived value: which, and why?** *(⭐ Core · 🎯 Trap)*
+
+**Quick answer:** Neither by default. Compute it during render. Add `useMemo` only if the calculation
+is measurably expensive. An Effect is never the tool for derived data.
+
+**Full answer:** They aren't alternatives. `useMemo` is an *optimization* of a calculation you'd
+otherwise do during render, and removing it should never change behavior. An Effect is a
+*synchronization* with something outside React. Deriving in an Effect costs an extra render per
+change, and the first of those renders shows a stale value. So `const visible = filter(items,
+query)` is the default, `useMemo(() => filter(items, query), [items, query])` is the optimization,
+and `useEffect(() => setVisible(filter(items, query)), [items, query])` is the anti-pattern.
+
+**Q: Where does "run once when the app loads" code go, and what does "once" mean?** *(🧠 Deep)*
+
+**Quick answer:** At module level, outside any component (guarded with `typeof window !==
+'undefined'` if it's browser-only). "Once" means once per module evaluation, which in a browser page
+load is effectively once per page load.
+
+**Full answer:** A `[]` Effect is the wrong place, because it runs once per *mount* and components
+remount. The docs: "Code at the top level runs once when your component is imported — even if it
+doesn't end up being rendered." But module evaluation isn't "once for the app's lifetime" everywhere.
+On a server, a module is evaluated once per process and shared by every request, so per-user work
+must never live there. HMR re-evaluates edited modules in development, and test runners may evaluate
+modules once per test file. The docs also show a module-level `didInit` flag inside an Effect for
+code that must run after the first render.
 
 **Q: How do you reset a component's state when a prop changes?** *(🔥 Frequent · 🎯 Trap)*
 
@@ -536,10 +629,9 @@ the server already processed stays processed, which is one more reason mutations
 **Quick answer:** It resolves normally. `fetch` only rejects on network failure or abort, so you
 must check `res.ok` yourself.
 
-**Full answer:** A typical bug is a `.catch` that never runs for HTTP errors, with the component
-trying to parse an error page as data. Throw on `!res.ok` inside the chain so HTTP errors and network
-errors reach the same handler, while still filtering `AbortError`, which isn't an error from the
-user's point of view.
+**Full answer:** So a `.catch` alone never sees a 404 or 500. Throw on `!res.ok` inside the chain
+so HTTP errors and network errors reach the same handler, while still filtering `AbortError`, which
+is expected when you cancel a request, not a real error.
 
 **Q: How would you build a debounced live search?** *(🔥 Frequent)*
 
@@ -569,7 +661,8 @@ server, they create network waterfalls, they usually mean no preloading or cachi
 race-condition boilerplate. The docs recommend "if you use a framework, use its built-in data
 fetching mechanism," otherwise a client-side cache like TanStack Query, useSWR, or React Router 6.4+.
 Then place each tool. A router loader is called "before the route component is rendered" on
-navigation, so data is tied to the URL and nested routes load in parallel. A Server Component fetches
+navigation, so data is tied to the URL and loads as part of navigation instead of in a
+render-then-fetch waterfall. A Server Component fetches
 on the server with no client fetch code. TanStack Query owns caching, deduping, background refetch
 and invalidation, and passes an `AbortSignal` to your query function. Suspense only activates for
 Suspense-enabled sources: "Suspense does not detect when data is fetched inside an Effect or event
@@ -590,9 +683,10 @@ for. Data libraries are themselves built on Effects and subscriptions internally
 
 **Q: Why use `useSyncExternalStore` instead of `useEffect` + `useState` to subscribe to a store?** *(🔥 Frequent · 🧠 Deep · ⚠️ Version)*
 
-**Quick answer:** No guessed first render, a server snapshot for SSR, and protection against
-"tearing" in concurrent rendering, where components on one screen show different versions of the
-store.
+**Quick answer:** The Effect version is workable for a simple client-only app, but
+`useSyncExternalStore` is the React primitive designed for this. It adds three things: no guessed
+first render, a server snapshot for SSR and hydration, and protection against "tearing" in
+concurrent rendering, where components on one screen show different versions of the store.
 
 **Full answer:** The Effect version renders once with a placeholder and corrects it after mount, and
 it has no answer for the server. Under concurrent rendering (React 18+), a render can pause, and if
@@ -600,7 +694,9 @@ the store changes during the pause, earlier and later components can disagree. T
 against that by re-checking the snapshot and, for transitions, restarting as a blocking update "to
 ensure that every component on screen is reflecting the same version of the store." The React 18
 post introduced it to let external stores "support concurrent reads," and said it "removes the need
-for useEffect when implementing subscriptions."
+for useEffect when implementing subscriptions." Version detail: React 19.3's changelog includes "Fix
+`useSyncExternalStore` missing store mutations that happened while an `<Activity>` tree was hidden."
+That's a narrow edge case that differs between 19.2.x and 19.3, not a general caveat on the Hook.
 
 **Q: What are the arguments to `useSyncExternalStore`?** *(⭐ Core)*
 
@@ -645,7 +741,7 @@ Effects (`useEffect`, `useLayoutEffect` or `useInsertionEffect`) or other Effect
 pass it to other components or Hooks, never list it as a dependency (because it represents
 non-reactive logic. That's the reason, and its identity changing every render is a secondary
 implementation detail), and upgrade `eslint-plugin-react-hooks` so the linter doesn't
-demand it. Version detail: React 19.3 fixed a bug where Effect Events didn't read the latest values
+demand it. (This repo's `oxlint` already doesn't flag an omitted Effect Event.) Version detail: React 19.3 fixed a bug where Effect Events didn't read the latest values
 in `forwardRef` and `memo` components ("Fix `useEffectEvent` to read the latest values in
 `forwardRef` and `memo` components"). That's a narrow edge case to know about on 19.2.x, not a
 general caveat on the API.
@@ -664,13 +760,13 @@ pattern of passing the reactive part as an argument (`onVisit(url)`) makes the s
 
 **Q: How did people solve this before React 19.2?** *(🧠 Deep · ⚠️ Version)*
 
-**Quick answer:** A ref holding the latest callback or value, updated after every render, read
-inside the Effect. `useEffectEvent` is the official, lint-aware version of that pattern.
+**Quick answer:** A ref holding the latest value, updated on every render and read inside the
+Effect. `useEffectEvent` is the dedicated API for the same need.
 
 **Full answer:** The ref pattern works because `ref.current` is one mutable box shared by every
-render (ch.04), so the Effect reads the latest value without depending on it. It's easy to get subtly
-wrong (updating the ref during render is impure, and it's easy to forget to update it), which is
-part of why the dedicated API exists. If the codebase is on React < 19.2, say so.
+render (ch.04), so the Effect reads the latest value without depending on it. Knowing the older
+pattern shows you understand *why* `useEffectEvent` exists. If the codebase is on React < 19.2, say
+so. Version awareness is part of a senior answer.
 
 ---
 
@@ -747,8 +843,9 @@ useEffect(async () => {
 *([§1](README.md#sec-1)/[§5](README.md#sec-5), 🔥 Frequent · 🎯 Trap)* The async function returns a
 Promise, but setup must return nothing or a cleanup function. React warns "useEffect must not return
 anything besides a function, which is used for clean-up," and later throws `destroy is not a
-function` when it tries to run the Promise as cleanup. TypeScript rejects it outright. Define an
-async function inside and call it. There's also no race protection, so add `ignore` or abort.
+function` when it tries to run the Promise as cleanup. In this repo you'd never get that far:
+TypeScript rejects it, and the hooks lint rule flags it. Define an async function inside and call
+it. There's also no race protection, so add `ignore` or abort.
 
 **6. A teammate's fix for "my Effect runs twice." Review it.**
 ```jsx
@@ -760,9 +857,10 @@ useEffect(() => {
 }, []);
 ```
 *([§6](README.md#sec-6), 🔥 Frequent · 🎯 Trap)* It hides Strict Mode's check instead of passing it.
-There's no cleanup, so the subscription leaks on unmount, and on a real remount (e.g. React 19.2
-`<Activity>`) the ref guard can skip re-subscribing. The docs: "Don't use refs to prevent Effects
-from firing." Fix: `return () => sub.unsubscribe();` and delete the ref.
+There's no cleanup, so the subscription leaks on unmount or when an `<Activity>` hides the
+component. And if this Effect ever gains a dependency, the ref will also block the re-subscribe that
+change needs. The docs: "Don't use refs to prevent Effects from firing." Fix:
+`return () => sub.unsubscribe();` and delete the ref.
 
 **7. Rewrite without the Effect.**
 ```jsx

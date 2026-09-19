@@ -811,3 +811,37 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   split, the cleanup section, `getSnapshot`, `ref.current`, and the no-array Effect wording. Per
   the review's closing advice and this project's "depth over breadth-padding" preference, ch.03's
   notes are considered settled. Further changes only if a later chapter exposes a contradiction.
+- **2026-09-20 (fourth pass, same day):** New standing rule from the user: **the chapter
+  `README.md` is the single source of truth.** Write only the notes first. Exercises, `src`
+  starters, `interview-qa.md` and `revision.md` come after the user approves the notes, and are
+  derived from them (recorded in `CLAUDE.md`'s unlock checklist). Ch.03's derived files predated two
+  review rounds, so at the user's request they were **re-derived from the final notes**. Every
+  derived item was audited in both directions.
+  **One gap found in the notes themselves, fixed there first:** exercise 3's Bug 5 and the Q&A both
+  said a `useRef` "run once" guard also *blocks legitimate re-synchronization* when a dependency
+  changes. That's true, and exercise 3's smoke test showed it, but [§6](03-side-effects-and-lifecycle/README.md#sec-6)
+  only mentioned the leak. §6 now lists both failure modes.
+  **Removed from `interview-qa.md` as not backed by the notes:** "speculatively during concurrent
+  rendering" (replaced with the notes' own wording), "updating the ref during render is impure",
+  "needs a client-only fallback" for `useLayoutEffect`, "nested routes load in parallel" (replaced
+  with the notes' waterfall framing), "non-idempotent" (the notes deliberately avoid the word), and
+  Coding Q6's claim that a ref guard "can skip re-subscribing" on `<Activity>`.
+  **Brought in line with the final notes:** the React 17 answer is now scoped to `useEffect`
+  cleanup; the stale-closure-fixes answer leads with "should this value restart the
+  synchronization?"; the ref-guard answer names both failure modes; the Strict Mode answer adds the
+  start → stop → start resilience wording and 19.3's hydration change; the `useSyncExternalStore`
+  answer calls the Effect version workable and adds the 19.3 edge case; module-level code is "once
+  per module evaluation."
+  **New questions for notes content the Q&A didn't cover:** when the DOM is an external system
+  (`VideoPlayer`), when a no-array Effect is appropriate, what moving an Effect into a custom Hook
+  changes (nothing), why an Effect restarts with no visible change, `useEffect` + `setState` vs.
+  `useMemo` for derived values, and what "once" means for module-level code.
+  **Exercises:** exercise 1 gained a step and two follow-ups sorting documented guarantees from
+  observed order (and the real reason refs are attached). Exercise 2 Part B now starts from the
+  notes' deciding question, with a follow-up against "just use `useEffectEvent`." Exercise 3 was
+  renamed from "five leaks" (Bug 4 isn't one), with follow-ups on cleanup ≠ unmount and the
+  resource-vs-correctness split. Exercise 6 asks when the Effect version is acceptable. Exercise 7's
+  explain-back adds cleanup-while-mounted, `<Activity>`, and version awareness. Starter-file
+  comments for exercises 1 and 2 were updated to match; no starter code changed. Validation after
+  the pass: no ch.03 `tsc` errors, no lint warnings beyond exercise 2's three intentional ones, all
+  22 diagrams parse, all links resolve, LF line endings throughout.

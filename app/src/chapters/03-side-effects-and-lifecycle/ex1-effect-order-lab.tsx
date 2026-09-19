@@ -11,6 +11,8 @@
 //   2. Clicking "change dep".
 //   3. Clicking "toggle mount" (unmount).
 // Then run it and compare. The expected production order is in notes §2, the Strict Mode order in §6.
+// Afterwards, sort what you saw into "documented guarantee" vs "observed in this React version"
+// (notes §2 draws that line; don't treat child-first order as a contract).
 
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
 

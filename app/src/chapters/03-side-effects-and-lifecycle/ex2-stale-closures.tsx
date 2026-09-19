@@ -29,6 +29,7 @@ export function BrokenTicker() {
 // The ticker should add `step` every second. Changing `step` should take effect on the NEXT tick,
 // but must NOT restart the interval (i.e. must not reset the one-second rhythm).
 // Symptom: changing step does nothing.
+// Deciding question first (notes §4): should `step` changing restart the synchronization?
 // TODO: fix it. Then fix it a second way, and note in a comment which approach you'd ship and why:
 //   (1) add `step` to the dependencies (what does that do to the interval's timing?)
 //   (2) useEffectEvent (React 19.2 — notes §12)

@@ -1433,7 +1433,17 @@ useEffect(() => {
 }, [roomId]);
 ```
 
-The ref guard hides the symptom in development and leaves the real bug for production.
+The ref guard hides the symptom in development and leaves the real bug for production. It's
+broken in two separate ways:
+
+1. **No cleanup**, so the connection leaks when the component unmounts or an `<Activity>` hides it.
+2. **It blocks legitimate re-synchronization too.** `roomId` is a dependency, so when it changes
+   React re-runs the Effect, as it should. But the ref is still `true` from the first run, so the
+   Effect returns early and the component stays connected to the *old* room. The guard can't tell
+   Strict Mode's rehearsal apart from a real change it needs to respond to.
+
+(Exercise 3's `ChatConnection` reproduces both. After "switch room," the stats panel still shows
+only the first room's connection.)
 
 ### Common "it runs twice!" cases and what to do
 

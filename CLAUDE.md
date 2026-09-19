@@ -73,10 +73,9 @@ derived from it. When a chapter is unlocked:
 
 A chapter's `probes/` folder (see repo structure) backs claims *in the notes*, so it's written in
 phase 1 alongside the notes. Ch.03 was written before this rule, all at once (notes, exercises,
-starters and Q&A in one pass, then two review rounds on the notes only), so its derived files
-predate the final notes. Re-derive/re-check ch.03's `exercises/README.md`, starter files and
-`interview-qa.md` against the final notes if the user asks. Otherwise apply the rule from ch.04
-onward.
+starters and Q&A in one pass, then two review rounds on the notes only), and its derived files
+were then re-derived from the final notes at the user's request (2026-09-20, see
+`notes/README.md`'s revision history). Apply the two-phase rule from ch.04 onward.
 
 When a chapter is unlocked, do all of the following for that chapter (not future ones), in the
 two phases above:

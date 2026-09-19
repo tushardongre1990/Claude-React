@@ -22,8 +22,7 @@ Each exercise has a problem statement, what to do, and "why this, not just how" 
 count as `Done`).
 
 > **Do exercise 1 before reading [§2](../README.md#sec-2) and [§6](../README.md#sec-6) of the
-> notes closely.** It's a prediction exercise, and
-> the notes contain the answer.
+> notes closely.** It's a prediction exercise, and the notes contain the answer.
 
 ---
 
@@ -41,6 +40,11 @@ setup and cleanup is written to a log panel. Nothing to implement.
 2. Run it and compare line by line.
 3. To see the **production** order (no Strict Mode), temporarily remove `<StrictMode>` from
    `main.tsx`, reload, and compare again. Put it back afterwards.
+4. Sort every ordering rule you observed into two lists: **documented guarantees** and
+   **observed behavior of this React version**. Check your lists against the notes'
+   [§2](../README.md#sec-2). (The same log is produced headlessly by
+   [`probes/effect-order.mjs`](../probes/effect-order.mjs), if you want to compare runs after a React
+   upgrade.)
 
 **Follow-ups to answer out loud:**
 - Why do *all* layout Effects run before *any* regular Effect in the same commit?
@@ -48,6 +52,10 @@ setup and cleanup is written to a log panel. Nothing to implement.
   guarantee, and what bug could the old order cause?
 - In Strict Mode, the extra cleanup/setup appears on mount but not on "change dep". Why only on
   mount? What real React 19.2 feature does the same unmount/remount in production?
+- An interviewer asks "do child Effects run before parent Effects?" Give an answer that's accurate
+  about what's guaranteed and what isn't.
+- A parent's Effect reads a child's DOM node through a ref. Why is that node already attached? (The
+  answer isn't "because the child's Effects ran first.")
 
 ---
 
@@ -57,10 +65,12 @@ setup and cleanup is written to a log panel. Nothing to implement.
 **Notes:** [§3](../README.md#sec-3), [§4](../README.md#sec-4), [§12](../README.md#sec-12)
 
 - **Part A — `BrokenTicker`:** goes 0 → 1 and freezes. Fix it so the interval is created **once**.
-- **Part B — `StepTicker`:** adds `step` every second, but changing `step` does nothing. Fix it
-  twice: (1) with `step` as a dependency, and (2) with `useEffectEvent`. Watch the ticks closely
-  while typing a new step in each version. One of them resets the one-second rhythm on every
-  change. Leave a comment saying which fix you'd ship.
+- **Part B — `StepTicker`:** adds `step` every second, but changing `step` does nothing. Start
+  with the notes' deciding question: *should `step` changing restart the synchronization (the
+  interval)?* Then fix it twice: (1) with `step` as a dependency, and (2) with `useEffectEvent`.
+  Watch the ticks closely while typing a new step in each version. One of them resets the
+  one-second rhythm on every change. Leave a comment saying which fix you'd ship, justified by your
+  answer to the deciding question.
 - **Part C — `EnterToSubmit`:** pressing Enter always submits an empty string. Fix it.
 
 For each part, **before fixing**, write a one-line comment naming which render's value the stale
@@ -72,10 +82,12 @@ function reads and why React never gave it a newer one.
   only *write* state, or does it also need to *read* something that isn't state it's setting?)
 - Someone fixes Part C with `// eslint-disable-next-line react-hooks/exhaustive-deps`. What's your
   code-review comment?
+- Someone says "stale closure? just wrap it in `useEffectEvent`." What's wrong with that as a
+  general rule?
 
 ---
 
-## Exercise 3 — `CleanupAudit`: five leaks
+## Exercise 3 — `CleanupAudit`: five cleanup problems
 
 **File:** [`ex3-cleanup-audit.tsx`](../../../app/src/chapters/03-side-effects-and-lifecycle/ex3-cleanup-audit.tsx)
 **Notes:** [§5](../README.md#sec-5), [§6](../README.md#sec-6)
@@ -99,6 +111,10 @@ Five small components, each with a cleanup problem. The file's `tracked*` helper
   ways it's still broken. What did the `useRef` guard actually hide?
 - What does the `AbortController` + `{ signal }` option for `addEventListener` buy you in Bug 1
   and Bug 3?
+- "Switch room" runs Bug 5's (fixed) cleanup while the component stays mounted. What does that tell
+  you about the idea that cleanup means unmount?
+- All five fixes here are *resource* cleanup. Name the other job cleanup does, and which exercise in
+  this chapter needs it.
 
 ---
 
@@ -180,7 +196,7 @@ double render too, so compare relative numbers, not absolute ones.
 
 **Follow-ups to answer out loud:**
 - The old `useOnlineStatusWithEffect` works. Give three concrete things `useSyncExternalStore` does
-  better.
+  better, and say when the Effect version would still be an acceptable answer.
 - In Part B, what happens if `add` mutates `cart` with `push` and then notifies? Walk through the
   `Object.is` check.
 - Explain Part C's infinite loop step by step.
@@ -195,15 +211,18 @@ Close the notes. Out loud, in under three minutes, answer as if to an interviewe
 > subscribes to a chat room mounts, re-renders with a new `roomId`, and unmounts — in development
 > and in production."
 
-You should naturally hit: render → commit → paint → setup; `Object.is` comparison of dependencies;
-old cleanup (with the old `roomId`) before new setup; cleanup on unmount; Strict Mode's extra
-setup → cleanup → setup on mount only; and why that check exists.
+You should naturally hit: render → commit → (usually) paint → setup; `Object.is` comparison of
+dependencies; old cleanup (with the old `roomId`) before new setup, *while the component stays
+mounted*; cleanup on unmount; Strict Mode's extra setup → cleanup → setup on mount only; and why that
+check exists (remounting is real: `<Activity>`).
 
 Then, without notes:
 - When would you use `useLayoutEffect` instead?
 - Name five situations where you *shouldn't* write an Effect, and what to use instead.
 - Where would you fetch data in a production app, and why is "in a `useEffect`" usually not your
   first answer?
+- Which React version are you describing? What's current, what does this repo run, and name one
+  Effect-related difference between them.
 
 ---
 
