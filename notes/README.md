@@ -53,7 +53,7 @@ syntax.
 | 00 | [JavaScript & Browser Fundamentals for React Interviews](00-javascript-and-browser-fundamentals/README.md) | In Progress |
 | 01 | [Foundations: JSX, Rendering & Components](01-foundations/README.md) | In Progress |
 | 02 | [State & Events](02-state-and-events/README.md) | In Progress |
-| 03 | [Side Effects & Lifecycle](03-side-effects-and-lifecycle/README.md) | Not Started |
+| 03 | [Side Effects & Lifecycle](03-side-effects-and-lifecycle/README.md) | In Progress |
 | 04 | [Refs & the DOM (Document Object Model)](04-refs-and-dom/README.md) | Not Started |
 | 05 | [Context API & useReducer](05-context-and-reducers/README.md) | Not Started |
 | 06 | [Performance, Memoization & the React Compiler](06-performance-and-react-compiler/README.md) | Not Started |
@@ -644,3 +644,170 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   `## Sources`, along with both run-to-verify entries labelled as such. Also promoted the
   event-pooling version note to its own `###` heading so it isn't visually swallowed by the new
   subsection.
+- **2026-09-20:** **Chapter 03 unlocked and written** — `README.md` (thirteen numbered sections,
+  [§0](03-side-effects-and-lifecycle/README.md#sec-0)-[§12](03-side-effects-and-lifecycle/README.md#sec-12),
+  with `sec-N` anchors and linkified `§N` references), `exercises/README.md` (seven exercises), six
+  starter files in
+  [`app/src/chapters/03-side-effects-and-lifecycle/`](../app/src/chapters/03-side-effects-and-lifecycle/),
+  and `interview-qa.md` on the ch.02 template (⭐/🔥/🧠/🎯/⚠️ tags, Quick + Full answers, and a
+  13-prompt **Coding & Scenario Questions** section). The outline's topics are all covered, in this
+  order: where side-effect code can live, `useEffect` anatomy and timing, synchronization vs.
+  lifecycle thinking, dependencies, stale closures, cleanup, Strict Mode's extra cycle,
+  `useLayoutEffect`/`useInsertionEffect`, "you might not need an Effect," race conditions and
+  `AbortController`, a data-fetching decision framework (Effect vs. router loader vs. Server
+  Component vs. Suspense-enabled source vs. TanStack Query, taught as different problems rather than
+  a replacement timeline, as the outline required), `useSyncExternalStore`, and a
+  `useEffectEvent` preview (full treatment stays in ch.07).
+  Per the standing accuracy practice, every checkable claim was verified before writing, against 21
+  sources cited in the chapter's `## Sources`: 12 react.dev pages (`useEffect`,
+  `synchronizing-with-effects`, `lifecycle-of-reactive-effects`, `removing-effect-dependencies`,
+  `you-might-not-need-an-effect`, `separating-events-from-effects`, `useLayoutEffect`,
+  `useInsertionEffect`, `useSyncExternalStore`, `useEffectEvent`, `StrictMode`, `Suspense`, plus
+  `Component` for the class-lifecycle comparison), the React 17 notes, the React 18 upgrade guide and
+  release post, the React 19.2 release post, three MDN pages (`AbortController`, `AbortSignal`,
+  `addEventListener`), React Router's data-loading page, and TanStack Query's cancellation guide.
+  **Seven claims were settled by running something instead of reading a doc**, listed separately in
+  `## Sources` with re-check instructions: (1) cross-component Effect order, with and without Strict
+  Mode, from a `Parent`/`Child` probe on React 19.2.8 + `happy-dom` (setups child-first, all layout
+  Effects before any regular Effect, all cleanups before any new setup, and declaration order not
+  mattering across the two kinds); (2) the stale interval; (3) React's exact warning for
+  `useEffect(async …)` *and* the fact that it then throws `destroy is not a function`, which is
+  stronger than the "just a warning" most sources describe; (4) TypeScript rejecting async Effects
+  via `EffectCallback`; (5) the uncached-`getSnapshot` error text; (6) that this repo's `oxlint`
+  already reports `exhaustive-deps` with no config change; and (7) that it doesn't flag an omitted
+  Effect Event. Two first-draft claims were corrected during verification: the draft said
+  `componentDidMount` "runs before paint," replaced with the `Component` reference's own wording
+  ("`useLayoutEffect` is a closer match" for before-paint code); and every quote in
+  [§10](03-side-effects-and-lifecycle/README.md#sec-10)'s list of Effect-fetching downsides was
+  re-fetched verbatim after the first fetch had returned a summary. All six starter files were
+  type-checked, linted (the only warnings left are the three deliberate `exhaustive-deps` bugs in
+  exercise 2), and smoke-tested by mounting them under Strict Mode on `happy-dom`. That caught a
+  real bug in the first draft of exercise 1: its lab component subscribed to its own log store,
+  which would have re-rendered, re-logged and looped forever. Its `LogPanel` is now a separate
+  subscriber. The same run confirmed exercise 3's leak counters grow as designed. All 22 Mermaid
+  diagrams were parsed with the `mermaid` package itself (after confirming the checker rejects known-bad
+  diagrams), which is a stronger check than the manual reserved-word scan used for ch.02. Double
+  quotes were removed from sequence-diagram message text and `#` from flowchart labels as a
+  precaution. Remaining work for `Done`: the exercises, `interview-questions/` entries, a verbal
+  explain-back, and `revision.md`.
+- **2026-09-20 (second pass, same day):** An external (ChatGPT) review of ch.03 rated it "very
+  strong and mostly technically correct" and raised 21 points. Each was fact-checked before
+  anything was applied, per the standing policy.
+  **Held up and applied:**
+  - **React 19.3 is current.** Confirmed via the [19.3 release post](https://react.dev/blog/2026/09/09/react-19-3)
+    (9 September 2026), react.dev's versions page, and `npm view react version` → `19.3.0`. The
+    version note now separates "current release" (19.3) from "installed and tested in this repo"
+    (19.2.8). The review missed the most relevant part, which the check turned up: three
+    Effect-related 19.3 changelog fixes (Strict Mode double-invoking Effects during hydration,
+    `useEffectEvent` reading latest values in `forwardRef`/`memo`, and `useSyncExternalStore`
+    missing mutations while an `<Activity>` tree was hidden). These were added to
+    [§6](03-side-effects-and-lifecycle/README.md#sec-6),
+    [§12](03-side-effects-and-lifecycle/README.md#sec-12) and
+    [§11](03-side-effects-and-lifecycle/README.md#sec-11). The repo itself was **not** upgraded,
+    since that's a tech-stack decision for the user.
+  - **`useInsertionEffect` "after commit" was wrong, but the review's replacement was also too
+    precise.** The hooks overview says it "fires before React makes changes to the DOM." The
+    reference's own caveat says it "may run either before or after the DOM has been updated." A
+    19.2.8 probe showed both: before the DOM on mount, after its own component's DOM update on an
+    update. The probe also confirmed a documented quirk neither the notes nor the review mentioned:
+    insertion Effects interleave cleanup and setup one component at a time. That's an exception to
+    [§2](03-side-effects-and-lifecycle/README.md#sec-2)'s "all cleanups before any setups," now
+    stated there. [§7](03-side-effects-and-lifecycle/README.md#sec-7) now gives "before any layout
+    Effects" as the only firm promise, with the probe log verbatim.
+  - **Cross-component Effect order was presented too much like a contract.** §2 now separates
+    documented guarantees (after commit, layout first, React 17's cleanup-before-setup, refs
+    attached before Effects) from observed 19.2.8 behavior (child-first setup, parent-first
+    unmount).
+  - **The causal claim "a parent's Effect can read a child's DOM node *because* the child's Effects
+    ran first" was wrong.** It's because "React sets `ref.current` during the commit," right after
+    the DOM update. Now cited from `learn/manipulating-the-dom-with-refs`.
+  - **"`[]` runs once" → "after the initial commit of each mount,"** with the remount cases listed.
+  - **A state update in `useLayoutEffect` flushes all remaining Effects**, including `useEffect`.
+    Verified verbatim in the `useLayoutEffect` caveats and added to §7 and §1's timing model.
+  - **Effect Events can be called from all three Effect kinds.** Verified in the `useEffectEvent`
+    reference.
+  - **The stale-closure fix table framed `useEffectEvent` as a "latest value" tool.** Reframed
+    around "should this value restart the synchronization?", with a warning against reading it as
+    a general stale-closure fix.
+  - **Additions, each small:** a highlighted "cleanup ≠ unmount" rule and a resource-vs-correctness
+    cleanup table ([§5](03-side-effects-and-lifecycle/README.md#sec-5)); "render ≠ visible change"
+    for dependency re-runs ([§3](03-side-effects-and-lifecycle/README.md#sec-3)); a caution that a
+    no-array Effect still needs a synchronization reason ([§1](03-side-effects-and-lifecycle/README.md#sec-1));
+    "resilient to start → stop → start" wording in §5; and a short custom-Hook bridge in §2.
+    That last one is kept deliberately brief because custom Hooks are ch.08's topic in its outline,
+    so a full section here would break the don't-write-ahead rule.
+  **Directionally right but imprecise, applied with adjustment:**
+  - **`ref.current` "can't be a dependency."** The docs say exactly that, in bold, so the wording
+    wasn't wrong. The review's point that you *can* type it, it just isn't reactive, was added as the
+    explanation, alongside the docs' purity reason.
+  - **Module-level code "once when the app starts."** The docs themselves say "once per app load"
+    and "once when your component is imported." Refined to "once per module evaluation," with the
+    SSR/HMR/test cases spelled out.
+  - **"Because the component is displayed."** That's the docs' own teaching phrase, so it was kept.
+    A precision note was added in [§0](03-side-effects-and-lifecycle/README.md#sec-0) about
+    committed state and `<Activity>` (alive but with Effects unmounted).
+  - **"Idempotent" setup/cleanup.** Rejected as the term: setup alone is typically *not* safe to
+    repeat (twice without cleanup means two connections). The underlying idea, that setup →
+    cleanup → setup must equal one setup, is now stated explicitly in §5 without the misleading
+    word.
+  **Already present, no change needed:** the "useEffect isn't guaranteed after paint" point (§1
+  already said it; it was restructured into a three-line model rather than added), and the
+  Effect-fetching vs. Suspense distinction (§10 already quotes "Suspense does not detect when data
+  is fetched inside an Effect or event handler" and tabulates the difference).
+  `interview-qa.md` was updated to match every change above (16 edits), including softening
+  Coding Q13's ordering answer and making the `useInsertionEffect` question a 🎯 Trap.
+  **Process note:** this pass's Python fix-up scripts opened files in text mode, which on Windows
+  silently rewrote five files (`CLAUDE.md`, `notes/README.md`, ch.03's `README.md` and
+  `interview-qa.md`, and `ex3-cleanup-audit.tsx`) to CRLF. It was caught because the Mermaid
+  checker suddenly reported "parsed 0 blocks" (its regex expects LF), and all five were restored
+  to LF. For future sessions: open files with `newline=''` or in binary mode when scripting edits
+  on this machine, and treat a checker reporting zero items as a failure, not a pass.
+- **2026-09-20 (third pass, same day):** A second ChatGPT review of the revised ch.03 rated it
+  ~9.2/10, confirmed the previous pass's 21 fixes (including agreeing with the `useInsertionEffect`
+  correction over its own earlier suggestion, and with rejecting "idempotent"), and raised 16
+  further points. Each was checked before editing.
+  **Held up and applied:**
+  - **React 17 summary line too broad.** Re-checked the React 17 notes: the change is about
+    **`useEffect`** cleanup ("effect cleanup functions used to run synchronously"), and they point to
+    `useLayoutEffect` for anyone relying on synchronous execution. In this chapter "Effect" covers
+    all three kinds, so the version note now defers to [§5](03-side-effects-and-lifecycle/README.md#sec-5),
+    and §5 states the scope with both quotes.
+  - **`useInsertionEffect` "before anything measures the DOM"** narrowed to "before layout Effects
+    take their measurements."
+  - **`useEffectEvent` dependency rule** now leads with the real reason (it represents non-reactive
+    logic), with identity-changes-every-render demoted to a secondary detail, in both
+    [§12](03-side-effects-and-lifecycle/README.md#sec-12) and `interview-qa.md`.
+  - **"The senior answer is `useSyncExternalStore`"** softened. An Effect-based custom Hook is
+    workable for a simple client-only app, and `useSyncExternalStore` is now introduced as "the React
+    primitive designed for this."
+  - **Diagram wording** for module-level code now matches §8's "when the module is evaluated"
+    (both flowcharts).
+  - **19.3 changelog items were over-extrapolated.** The `useEffectEvent` note said "the core
+    promise didn't fully hold." It now quotes the changelog line and calls it a narrow edge case.
+    The same narrowing was applied to the `useSyncExternalStore`/`<Activity>` note in
+    [§11](03-side-effects-and-lifecycle/README.md#sec-11), which had the same problem though the
+    review didn't mention it.
+  - **Reproducible probes.** This was the most substantive point, and truer than the reviewer
+    could see: every "verified by running" probe had lived only in a temporary session scratchpad,
+    so none could actually be re-run. They're now committed as
+    [`03-side-effects-and-lifecycle/probes/`](03-side-effects-and-lifecycle/probes/README.md): six
+    scripts with pinned `react`/`react-dom` 19.2.8 and `happy-dom`, a lockfile, `npm run all`, and a
+    table mapping each script to the section it backs. `## Sources` now names the script behind
+    every claim. Re-running them from the repo reproduced every documented result, and **found
+    one thing the original probes had hidden**: `oxlint` also flags `useEffect(async …)` ("Effect
+    callbacks are synchronous to prevent race conditions"). The original probe file had a
+    lint-disable comment above that line, which suppressed it. [§5](03-side-effects-and-lifecycle/README.md#sec-5),
+    `## Sources` and the Q&A now say the linter catches it too. This is a pattern worth reusing for
+    later chapters' run-to-verify claims.
+  - **Optional additions, both small:** the docs' `VideoPlayer` example in
+    [§0](03-side-effects-and-lifecycle/README.md#sec-0), separating React-controlled DOM (JSX) from
+    imperative DOM APIs (ref + Effect); and a one-time definition of "mount" as shorthand for an
+    instance's first commit in [§1](03-side-effects-and-lifecycle/README.md#sec-1).
+  **Already present:** the derived-value vs. `useEffect` + `useMemo` example was already in
+  [§8](03-side-effects-and-lifecycle/README.md#sec-8). The review said not to duplicate it if so,
+  so only one sentence was added separating `useMemo` (an optimization) from Effects
+  (synchronization).
+  **No change, as the review itself recommended:** the ordering section's guarantee/observation
+  split, the cleanup section, `getSnapshot`, `ref.current`, and the no-array Effect wording. Per
+  the review's closing advice and this project's "depth over breadth-padding" preference, ch.03's
+  notes are considered settled. Further changes only if a later chapter exposes a contradiction.

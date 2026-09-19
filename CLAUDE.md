@@ -58,7 +58,28 @@ where the user actually is.
 not chapter content — it was created fully filled-in as templates from the start and should be
 *updated* (rows filled in, scores added) as the user progresses, not left as a placeholder.
 
-When a chapter is unlocked, do all of the following for that chapter (not future ones):
+**Standing instruction (2026-09-20): notes first, everything else only after the user approves
+them.** The chapter's `README.md` is the **single source of truth**, and every other artifact is
+derived from it. When a chapter is unlocked:
+
+1. **Phase 1:** write *only* the complete `notes/<NN-slug>/README.md` (step 1 below). Then stop
+   and hand it over for review. The user usually has it reviewed externally, and those reviews are
+   fact-checked and applied per the accuracy practice below.
+2. **Phase 2:** only after the user explicitly says the notes are ready/final, write the derived
+   files from the approved notes: exercises (`exercises/README.md`), starter code in
+   `app/src/chapters/<NN-slug>/`, `interview-qa.md`, and later `revision.md`. They must not
+   introduce claims the notes don't contain. If writing them exposes a gap or error, fix the notes
+   first, then derive from them.
+
+A chapter's `probes/` folder (see repo structure) backs claims *in the notes*, so it's written in
+phase 1 alongside the notes. Ch.03 was written before this rule, all at once (notes, exercises,
+starters and Q&A in one pass, then two review rounds on the notes only), so its derived files
+predate the final notes. Re-derive/re-check ch.03's `exercises/README.md`, starter files and
+`interview-qa.md` against the final notes if the user asks. Otherwise apply the rule from ch.04
+onward.
+
+When a chapter is unlocked, do all of the following for that chapter (not future ones), in the
+two phases above:
 1. Fill in `notes/<NN-slug>/README.md` with real explanations — assume a strong existing
    React developer, so focus on *depth, nuance, gotchas, and interview framing* rather than
    basic tutorial prose. Call out what's new/changed in React 19/19.2 wherever relevant.
@@ -234,6 +255,10 @@ approach already used for source citations, immediately above.
 │   │   ├── interview-qa.md
 │   │   └── revision.md
 │   ├── 02-state-and-events/  ← same shape, repeated for all chapters 01-22
+│   ├── 03-side-effects-and-lifecycle/
+│   │   └── probes/            ← runnable scripts backing the chapter's "verified by running"
+│   │                             claims (own package.json, pinned React; `npm install && npm run all`).
+│   │                             Reuse this pattern when a later chapter settles a claim by running code.
 │   ├── ...
 │   └── 22-system-design-and-mock-interviews/
 ├── coding-interviews/         ← implementation problem bank, separate from concept notes
@@ -295,7 +320,7 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
 | 00 | JavaScript & Browser Fundamentals | In Progress | Notes (both subfolders) + exercises + starter kata files written 2026-08-11; `interview-qa.md` (comprehensive Q&A drill) written 2026-08-20. User is now working through exercises. `revision.md` and `Done` status pending completion. |
 | 01 | Foundations: JSX, Rendering & Components | In Progress | Notes + exercises + starter stubs written 2026-08-14 (JSX compile/keys/`createRoot`/Strict Mode verified against react.dev); `interview-qa.md` (comprehensive Q&A drill) written 2026-08-20. User now working through `ex1`-`ex3` starter files in `app/src/chapters/01-foundations/`. `revision.md` and `Done` status pending completion. |
 | 02 | State & Events | In Progress | Notes + exercises + starter stubs + `interview-qa.md` written 2026-08-20. Every factual claim verified against react.dev first (useState/queueing/snapshot/events/inputs/state-structure/lifting/preserving-state pages, plus the React 17, 18, and 19 release posts and `flushSync`). User now working through `ex1`-`ex5` starter files in `app/src/chapters/02-state-and-events/`. `revision.md` and `Done` status pending completion. |
-| 03 | Side Effects & Lifecycle | Not Started | |
+| 03 | Side Effects & Lifecycle | In Progress | Notes (13 sections, §0-§12) + 7 exercises + 6 starter files + `interview-qa.md` written 2026-09-20. Verified against react.dev/MDN/React Router/TanStack docs, plus 7 claims settled by running React 19.2.8 on `happy-dom` (Effect order, async-Effect crash, uncached `getSnapshot`, etc.; see the chapter's `## Sources`). An external review was fact-checked and applied the same day (see `notes/README.md` revision history). The notes now distinguish React 19.3 (current release) from 19.2.8 (installed here). User to work through `ex1`-`ex6` in `app/src/chapters/03-side-effects-and-lifecycle/`. `revision.md` and `Done` status pending. |
 | 04 | Refs & the DOM (Document Object Model) | Not Started | |
 | 05 | Context API & useReducer | Not Started | |
 | 06 | Performance, Memoization & the React Compiler | Not Started | |

@@ -1,0 +1,20 @@
+{
+  "name": "ch03-effect-probes",
+  "private": true,
+  "type": "module",
+  "description": "Re-runnable probes behind ch.03's 'verified by running' claims. See README.md.",
+  "scripts": {
+    "effect-order": "node effect-order.mjs",
+    "stale-interval": "node stale-interval.mjs",
+    "async-effect": "node async-effect.mjs",
+    "uncached-snapshot": "node uncached-snapshot.mjs",
+    "insertion-timing": "node insertion-timing.mjs",
+    "tooling": "node tooling.mjs",
+    "all": "node run-all.mjs"
+  },
+  "dependencies": {
+    "happy-dom": "20.14.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  }
+}
