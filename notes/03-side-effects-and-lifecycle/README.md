@@ -240,11 +240,18 @@ Read that as three rules:
 3. **When the component is removed:** run the last cleanup.
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Synchronized: first commit → setup()
-    Synchronized --> Synchronized: commit with changed deps → cleanup(old) then setup(new)
-    Synchronized --> Synchronized: commit with same deps → nothing
-    Synchronized --> [*]: removed from screen → cleanup()
+flowchart TD
+    Mount([First commit]) --> Setup["setup() runs"]
+    Setup --> Sync(["Effect is synchronized"])
+    Sync --> Commit{"Next commit:<br/>did a dependency change?"}
+    Commit -- "No" --> Nothing["Nothing runs"]
+    Nothing --> Sync
+    Commit -- "Yes" --> Clean["cleanup(old) runs"]
+    Clean --> Resetup["setup(new) runs"]
+    Resetup --> Sync
+    Sync --> Remove([Removed from screen])
+    Remove --> Last["cleanup() runs"]
+    Last --> Stopped(["Effect stopped"])
 ```
 
 ### When an Effect runs, relative to render and paint
