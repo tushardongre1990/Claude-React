@@ -418,7 +418,18 @@ In `@types/react` (19.2, installed in this repo), the setup function has type
 `EffectCallback = () => void | Destructor`, where `Destructor` is the cleanup function. So setup
 must return **either nothing or a cleanup function**. Returning anything else, including a Promise,
 is a type error. That's why [§5](#sec-5)'s "you can't pass an `async` function to `useEffect`"
-rule is caught by the compiler in this repo:
+rule is caught by the compiler in this repo. This component:
+
+```tsx
+import { useEffect } from "react";
+
+export function P() {
+  useEffect(async () => { await Promise.resolve(); }, []); // ❌ setup returns a Promise
+  return null;
+}
+```
+
+fails to type-check with:
 
 ```
 error TS2345: Argument of type '() => Promise<void>' is not assignable to parameter of type 'EffectCallback'.
@@ -607,6 +618,54 @@ They say less about the order *across* components and Effect types, and intervie
 ask anyway ("does the parent's Effect or the child's run first?"). Rather than guess, this was
 settled by rendering a `Parent` → `Child` pair, each with one `useLayoutEffect` and one
 `useEffect`, in React 19.2.8 and logging every call (see [Sources](#sources) for how to re-run it).
+The code (a JSX version of [`probes/effect-order.mjs`](probes/effect-order.mjs)):
+
+```jsx
+const log = [];
+
+function Child({ dep }) {
+  log.push(`render Child(${dep})`);
+
+  useLayoutEffect(() => {
+    log.push(`  layout setup Child(${dep})`);
+    return () => log.push(`  layout cleanup Child(${dep})`);
+  }, [dep]);
+
+  useEffect(() => {
+    log.push(`  effect setup Child(${dep})`);
+    return () => log.push(`  effect cleanup Child(${dep})`);
+  }, [dep]);
+
+  return null;
+}
+
+function Parent({ dep }) {
+  log.push(`render Parent(${dep})`);
+
+  useLayoutEffect(() => {
+    log.push(`  layout setup Parent(${dep})`);
+    return () => log.push(`  layout cleanup Parent(${dep})`);
+  }, [dep]);
+
+  useEffect(() => {
+    log.push(`  effect setup Parent(${dep})`);
+    return () => log.push(`  effect cleanup Parent(${dep})`);
+  }, [dep]);
+
+  return <Child dep={dep} />;
+}
+
+// The driver: mount, change the prop, unmount.
+// (act() flushes all pending renders and Effects before moving on.)
+const root = createRoot(document.getElementById('root'));
+await act(() => root.render(<Parent dep="a" />));   // 1. mount
+log.push('--- update dep a->b');
+await act(() => root.render(<Parent dep="b" />));   // 2. same component, new prop → update
+log.push('--- unmount');
+await act(() => root.unmount());                   // 3. unmount
+console.log(log.join('\n'));
+```
+
 The output, without Strict Mode:
 
 ```
@@ -665,7 +724,32 @@ this run but not something the docs promise or ask you to depend on.
 6. **Unmount cleanups ran parent-first.**
 7. **Declaration order inside a component didn't matter across the two kinds.** Declaring
    `useEffect` above `useLayoutEffect` still logged the layout Effect first (checked with a second
-   probe), which is just rule 2.
+   probe), which is just rule 2:
+
+   ```jsx
+   const out = [];
+
+   function C2() {
+     useEffect(() => { out.push('child effect'); });       // declared FIRST
+     useLayoutEffect(() => { out.push('child layout'); }); // declared second
+     return null;
+   }
+
+   function P2() {
+     useEffect(() => { out.push('parent effect'); });
+     useLayoutEffect(() => { out.push('parent layout'); });
+     return <C2 />;
+   }
+
+   await act(() => createRoot(container).render(<P2 />));
+   console.log(out.join(' | '));
+   ```
+
+   Output:
+
+   ```
+   child layout | parent layout | child effect | parent effect
+   ```
 
 Rules 5 and 6 are consistent and interviewers do ask about them, so know them. Present them as
 "what React does in my testing," not as an API contract. If your application logic depends on
@@ -777,8 +861,20 @@ Two rows need explaining:
 ### The linter is not optional
 
 The `exhaustive-deps` rule reads your Effect, finds every reactive value it uses, and warns about
-any that are missing from the array. This repo's linter (`oxlint`) already runs it by default. A
-probe file with `useEffect(() => { console.log(id, n); setN(1); }, [])` produced:
+any that are missing from the array. This repo's linter (`oxlint`) already runs it by default. This
+probe file:
+
+```tsx
+import { useEffect, useState } from "react";
+
+export function P({ id }: { id: string }) {
+  const [n, setN] = useState(0);
+  useEffect(() => { console.log(id, n); setN(1); }, []); // reads id, n and setN; lists none
+  return null;
+}
+```
+
+produced:
 
 ```
 warning react-hooks(exhaustive-deps): React Hook useEffect has missing dependencies: 'n', and 'id'
@@ -1351,7 +1447,45 @@ that behavior specifically, since Effects are where it confuses people most.
 > — [`reference/react/useEffect`](https://react.dev/reference/react/useEffect)
 
 Here's the same `Parent`/`Child` probe from [§2](#sec-2), now wrapped in `<StrictMode>`, run on
-React 19.2.8:
+React 19.2.8. `Parent` and `Child` are unchanged; only the driver wraps each render:
+
+```jsx
+function Child({ dep }) {
+  log.push(`render Child(${dep})`);
+  useLayoutEffect(() => {
+    log.push(`  layout setup Child(${dep})`);
+    return () => log.push(`  layout cleanup Child(${dep})`);
+  }, [dep]);
+  useEffect(() => {
+    log.push(`  effect setup Child(${dep})`);
+    return () => log.push(`  effect cleanup Child(${dep})`);
+  }, [dep]);
+  return null;
+}
+
+function Parent({ dep }) {
+  log.push(`render Parent(${dep})`);
+  useLayoutEffect(() => {
+    log.push(`  layout setup Parent(${dep})`);
+    return () => log.push(`  layout cleanup Parent(${dep})`);
+  }, [dep]);
+  useEffect(() => {
+    log.push(`  effect setup Parent(${dep})`);
+    return () => log.push(`  effect cleanup Parent(${dep})`);
+  }, [dep]);
+  return <Child dep={dep} />;
+}
+
+const root = createRoot(document.getElementById('root'));
+await act(() => root.render(<StrictMode><Parent dep="a" /></StrictMode>)); // mount
+log.push('--- update dep a->b');
+await act(() => root.render(<StrictMode><Parent dep="b" /></StrictMode>)); // update
+log.push('--- unmount');
+await act(() => root.unmount());
+console.log(log.join('\n'));
+```
+
+Output (mount part; the rest is summarized on the last line):
 
 ```
 render Parent(a)
@@ -1370,7 +1504,8 @@ render Child(a)
   layout setup Parent(a)
   effect setup Child(a)
   effect setup Parent(a)
---- update dep a->b          ← updates and unmount: identical to non-Strict Mode
+--- update dep a->b          ← from here on, Effects run exactly as without Strict Mode
+                                (each render is still doubled: render Parent(b) ×2, render Child(b) ×2)
 ```
 
 It matches the sequence the React 18 upgrade guide describes: mount (layout effects, then
@@ -1582,6 +1717,42 @@ a CSS-in-JS library is in place before layout Effects take their measurements.
 
 A probe on React 19.2.8 shows why the docs hedge (see [Sources](#sources)). Two sibling components
 logged `container.textContent` from inside their insertion Effects:
+
+```jsx
+const out = [];
+const container = document.getElementById('root');
+
+function Item({ label }) {
+  useInsertionEffect(() => {
+    out.push(`  insertion setup ${label}  (DOM text now: "${container.textContent}")`);
+    return () => out.push(`  insertion cleanup ${label}`);
+  }, [label]);
+
+  useLayoutEffect(() => {
+    out.push(`  layout setup ${label}  (DOM text now: "${container.textContent}")`);
+    return () => out.push(`  layout cleanup ${label}`);
+  }, [label]);
+
+  return <span>{label}</span>;
+}
+
+function App({ v }) {
+  return (
+    <div>
+      <Item label={'A' + v} />
+      <Item label={'B' + v} />
+    </div>
+  );
+}
+
+const root = createRoot(container);
+await act(() => root.render(<App v={1} />));  // mount: A1, B1
+out.push('--- update v1 -> v2');
+await act(() => root.render(<App v={2} />));  // update: A2, B2
+console.log(out.join('\n'));
+```
+
+Output:
 
 ```
   insertion setup A1  (DOM text now: "")        ← mount: DOM not yet attached

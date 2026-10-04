@@ -845,3 +845,14 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   comments for exercises 1 and 2 were updated to match; no starter code changed. Validation after
   the pass: no ch.03 `tsc` errors, no lint warnings beyond exercise 2's three intentional ones, all
   22 diagrams parse, all links resolve, LF line endings throughout.
+- **2026-10-04:** At the user's request, ch.03's notes were made self-contained: every output
+  block now has the code that produced it directly above it, in the same file, instead of only
+  pointing at `probes/`. Code was added above the Effect-order log
+  ([§2](03-side-effects-and-lifecycle/README.md#sec-2), plus the rule-7 declaration-order probe
+  with its output, which was previously only described in prose), the `TS2345` error
+  ([§1](03-side-effects-and-lifecycle/README.md#sec-1)), the `exhaustive-deps` warning
+  ([§3](03-side-effects-and-lifecycle/README.md#sec-3)), the Strict Mode log
+  ([§6](03-side-effects-and-lifecycle/README.md#sec-6)) and the `useInsertionEffect` log
+  ([§7](03-side-effects-and-lifecycle/README.md#sec-7)). All outputs were re-run against React
+  19.2.8 first and matched. While re-running, the Strict Mode log's closing annotation was
+  corrected: after mount the *Effects* match non-Strict Mode, but each render is still doubled.

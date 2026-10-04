@@ -386,6 +386,16 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
   click faster than another paragraph of prose would — including simple cascades (e.g. "parent
   re-renders → children re-render by default") and decision trees (e.g. "how to trace backwards
   from a render to its trigger"), not only the more obviously diagram-shaped topics named above.
+- **Standing instruction (2026-10-04): notes must be self-contained — every output shown in a
+  chapter file must have the code that produced it directly above it, in the same file.** This
+  applies to console logs, render/Effect-order logs, compiler (`tsc`) errors, linter warnings,
+  runtime warnings: any output block. Don't show an output and only point at
+  `probes/` (or another file) for the code; the user shouldn't have to switch files to see what
+  produced it. Linking to the probe as the re-runnable source is still fine *in addition*. If the
+  probe uses `createElement`/test plumbing, show a readable JSX version of it in the notes. The
+  same applies to `interview-qa.md`, `revision.md`, exercises and `interview-questions/` entries.
+  Applied retroactively to ch.03 on 2026-10-04 after the user flagged the §2 Effect-order log;
+  apply it to every chapter written or revised from here on.
 - Prioritize *interview framing*: for every concept, be explicit about how it could show up as
   an interview question and what a strong answer sounds like, not just how the API works.
 - Be explicit about what changed in **React 19 / 19.2** specifically vs older React the user
