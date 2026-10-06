@@ -54,7 +54,7 @@ syntax.
 | 01 | [Foundations: JSX, Rendering & Components](01-foundations/README.md) | In Progress |
 | 02 | [State & Events](02-state-and-events/README.md) | In Progress |
 | 03 | [Side Effects & Lifecycle](03-side-effects-and-lifecycle/README.md) | In Progress |
-| 04 | [Refs & the DOM (Document Object Model)](04-refs-and-dom/README.md) | Not Started |
+| 04 | [Refs & the DOM (Document Object Model)](04-refs-and-dom/README.md) | In Progress |
 | 05 | [Context API & useReducer](05-context-and-reducers/README.md) | Not Started |
 | 06 | [Performance, Memoization & the React Compiler](06-performance-and-react-compiler/README.md) | Not Started |
 | 07 | [React 19 & 19.2: Modern APIs](07-react-19-features/README.md) | Not Started |
@@ -856,3 +856,70 @@ don't attempt it until most of 00-21 are done, and lean on `coding-interviews/` 
   ([§7](03-side-effects-and-lifecycle/README.md#sec-7)). All outputs were re-run against React
   19.2.8 first and matched. While re-running, the Strict Mode log's closing annotation was
   corrected: after mount the *Effects* match non-Strict Mode, but each render is still doubled.
+- **2026-10-07:** **Chapter 04 unlocked, phase 1 (notes only)**, the first chapter written under the
+  notes-first rule. `README.md` has twelve numbered sections,
+  [§0](04-refs-and-dom/README.md#sec-0)-[§11](04-refs-and-dom/README.md#sec-11), with `sec-N` anchors
+  and linkified `§N` references. They cover refs vs. state vs. plain variables, `useRef`'s rules and
+  React 19 types, non-DOM ref patterns, DOM refs and attach timing, ref callbacks with React 19
+  cleanup, `ref` as a prop (with `forwardRef` as history), `useImperativeHandle`, portals, an
+  accessible modal (native `<dialog>` vs. portal + `inert` + focus trap), focus and measuring, React
+  19.3 Fragment refs, and when *not* to use a ref. Exercises, starters, `interview-qa.md` and
+  `revision.md` wait for the user's approval of the notes.
+  This is also the first chapter written under the 2026-10-07 **complete-code-examples rule**: all 28
+  full examples are runnable `.tsx` components with output and interaction notes. A new probe,
+  [`typecheck-examples.mjs`](04-refs-and-dom/probes/README.md), extracts every one from the README and
+  type-checks it with the app's `tsc`. All 28 compile, and `oxlint` reports nothing.
+  Every claim was checked against react.dev (`useRef`, `referencing-values-with-refs`,
+  `manipulating-the-dom-with-refs`, `components/common` ref callbacks, `forwardRef`,
+  `useImperativeHandle`, `createPortal`, `Fragment`, `StrictMode`, `useState`, the `refs` lint page,
+  the React 19 post and upgrade guide, the 19.3 post), MDN (`<dialog>`, `inert`, `focus()`,
+  `getBoundingClientRect`, `ResizeObserver`), the WAI-ARIA modal pattern, and the HTML spec's dialog
+  section. **Eight probes** in [`04-refs-and-dom/probes/`](04-refs-and-dom/probes/README.md) (React
+  19.2.8 + `happy-dom`), plus a separately pinned **React 19.3.0** probe for Fragment refs, settled
+  the rest. They cover ref attach timing, inline vs. stable ref callbacks, Strict Mode's extra ref
+  cycle, `useImperativeHandle` timing and deps, portal event bubbling (the React ancestor's
+  `onClick` fires, a native listener on the same node doesn't), the manual-`remove()` crash,
+  `autoFocus` (focuses, writes no attribute), `inert` as a boolean, and this repo's `tsc`/`oxlint`
+  output for refs (TS2554, TS18047, TS2322; no lint rule for render-time ref reads).
+  **Corrected during verification:** the first draft said "React 19 dims" Strict Mode's second log.
+  The `StrictMode` page says React DevTools does that, and the sentence now says so. The 19.3 probe's
+  first version put a `<p>` first, and happy-dom focused it (a browser wouldn't), so the probe was
+  restructured to put only genuinely focusable elements at the edges, and the notes flag happy-dom's
+  looser focus rules. All 7 Mermaid diagrams parse with the `mermaid` package, all relative links and
+  anchors resolve, and line endings are LF.
+- **2026-10-07 (second pass, same day):** An external (ChatGPT) review of ch.04 rated it 9.2/10 and
+  found no major factual errors. Each point was fact-checked before acting. The user asked for **no
+  class-component content**, so the class-only material already in the notes was removed (the
+  class-instance bullet, string refs, and "refs to class components" in the ref-cleanup paragraph),
+  and the review's class-oriented suggestions were not added.
+  **Didn't hold up:** "'a plain object' is implementation-flavored." The `useRef` reference says "a
+  ref is a plain JavaScript object", so the wording was kept and that quote is now cited. **The
+  review's own `mergeRefs` snippet is wrong for React 19:** it ignores the cleanup a callback ref
+  returns. A new probe, [`probes/merge-refs.mjs`](04-refs-and-dom/probes/README.md), showed a parent's
+  React 19-style callback ref getting `null` on unmount, with its cleanup never running.
+  **Held up, applied:** the ref-callback-before-layout-Effect order is now labelled observed, with
+  the documented rule ("refs are attached during the commit") as the version to state
+  ([§4](04-refs-and-dom/README.md#sec-4)). The mental model's "never while rendering" now names the
+  lazy-init exception. The §0 re-render sentence was made precise (a *different* state value, parent
+  re-render, or context change; a re-render doesn't necessarily change the DOM).
+  [§3](04-refs-and-dom/README.md#sec-3) now says `flushSync` isn't a general fix for "state isn't
+  immediate."
+  **Added:** a cleanup-aware `mergeRefs` as the main way to give the parent the node while keeping
+  your own ref ([§6](04-refs-and-dom/README.md#sec-6)), with a diagram and the probe output. The
+  `useImperativeHandle(ref, () => innerRef.current!)` version was demoted to an alternative, with its
+  snapshot caveat (the review's "subtle" point, which held). Also added: a ref-callback vs.
+  `useLayoutEffect` comparison ([§4](04-refs-and-dom/README.md#sec-4)), a short "`useRef`, not
+  `createRef`" note with no class code ([§1](04-refs-and-dom/README.md#sec-1), cited to
+  `reference/react/createRef`), `findDOMNode`'s React 19 removal
+  ([§5](04-refs-and-dom/README.md#sec-5), cited to the upgrade guide), and a "toolbox in one table"
+  summary ([§11](04-refs-and-dom/README.md#sec-11)). After the pass, all 28 full examples still
+  type-check and lint cleanly, all 8 diagrams parse, links resolve, and every probe reproduces.
+- **2026-10-07 (third pass, same day):** The same reviewer re-checked the updated chapter (9.5/10,
+  "no significant factual errors"). **Applied:** a small "which Hook?" table in
+  [§11](04-refs-and-dom/README.md#sec-11) (`useState` / `useRef` / `useEffect` / `useLayoutEffect` /
+  `useImperativeHandle`), linking back to ch.03. **Not applied:** the suggestion to soften "nothing
+  on screen may depend on it" to "don't use a ref as the source of truth for rendered UI," on the
+  grounds that a render-time read is merely bad design. `reference/react/useRef` is stricter than
+  that ("Do not write *or read* `ref.current` during rendering, except for initialization"), so the
+  notes' wording stays aligned with the docs. The TypeScript-priority and Fragment-refs-priority
+  remarks are study advice, not corrections. No other changes.

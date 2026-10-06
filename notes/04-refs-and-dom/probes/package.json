@@ -1,0 +1,24 @@
+{
+  "name": "ch04-refs-probes",
+  "private": true,
+  "type": "module",
+  "description": "Re-runnable probes behind ch.04's 'verified by running' claims. See README.md.",
+  "scripts": {
+    "ref-vs-state": "node ref-vs-state.mjs",
+    "attach-timing": "node attach-timing.mjs",
+    "ref-callback": "node ref-callback.mjs",
+    "imperative-handle": "node imperative-handle.mjs",
+    "merge-refs": "node merge-refs.mjs",
+    "portal": "node portal.mjs",
+    "manual-dom": "node manual-dom.mjs",
+    "attributes": "node attributes.mjs",
+    "tooling": "node tooling.mjs",
+    "typecheck-examples": "node typecheck-examples.mjs",
+    "all": "node run-all.mjs"
+  },
+  "dependencies": {
+    "happy-dom": "20.14.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  }
+}

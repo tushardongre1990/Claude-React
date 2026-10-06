@@ -1,0 +1,14 @@
+{
+  "name": "ch04-fragment-ref-probe",
+  "private": true,
+  "type": "module",
+  "description": "Fragment refs are a React 19.3 feature; the rest of the repo is on 19.2.8, so this probe pins 19.3.0 separately.",
+  "scripts": {
+    "all": "node fragment-refs.mjs"
+  },
+  "dependencies": {
+    "happy-dom": "20.14.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  }
+}
