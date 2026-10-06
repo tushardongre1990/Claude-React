@@ -396,6 +396,20 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
   same applies to `interview-qa.md`, `revision.md`, exercises and `interview-questions/` entries.
   Applied retroactively to ch.03 on 2026-10-04 after the user flagged the §2 Effect-order log;
   apply it to every chapter written or revised from here on.
+- **Standing instruction (2026-10-07): give complete, full-fledged code examples, not fragments.**
+  The user wants to understand every example from the notes alone, without asking ChatGPT or
+  another source to fill in the gaps. From ch.04 onward (and in any chapter being revised):
+  1. Each example is a complete, working unit: imports, the full component(s), any types/state it
+     uses, and how it is rendered or used. Don't write a lone `useEffect(...)` or `ref.current = x`
+     line that depends on code the reader has to imagine.
+  2. A reader should be able to paste the example into a file in `app/` and run it as-is.
+  3. Comment the non-obvious lines inline, explaining *why* each line is there, not just what it does.
+  4. Show the result next to the code: the rendered UI or console output, and what changes on
+     interaction (click, type, re-render, unmount). This builds on the self-contained rule above.
+  5. Short snippets are still fine *in addition*, e.g. a one-line "wrong vs right" contrast, but
+     only after the full example has given that line its context.
+  This applies to `README.md` notes first, and then to everything derived from them
+  (`interview-qa.md`, exercises, `revision.md` excepted where brevity is the point).
 - Prioritize *interview framing*: for every concept, be explicit about how it could show up as
   an interview question and what a strong answer sounds like, not just how the API works.
 - Be explicit about what changed in **React 19 / 19.2** specifically vs older React the user
