@@ -40,6 +40,11 @@ Newest sessions at the top.
 2026-10-11. [§1](../notes/03-side-effects-and-lifecycle/README.md#sec-1) interview-ready on
 2026-10-12. Moved to [§2](../notes/03-side-effects-and-lifecycle/README.md#sec-2).*
 
+> **▶ Resume here (paused 2026-10-12):** §2, Question 1, asked but not yet answered: *"Is
+> `useEffect(fn, [])` the same as `componentDidMount`?"* (similarity, why the docs reject the
+> lifecycle model and what replaces it, one concrete difference). Before it, briefly re-test the
+> Open entries in [weak-areas.md](weak-areas.md), especially the dependency check vs bail-out.
+
 ### `n` capped at 2: trace dependency check + bail-out per render
 - **Section:** [§1](../notes/03-side-effects-and-lifecycle/README.md#sec-1)
 - **Date:** 2026-10-12

@@ -428,7 +428,8 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
   → next question. Move to the next section only once everything in the current one is
   interview-ready. Log every wrong or shaky
   answer there, and add repeated or real conceptual gaps to `weak-areas.md` too. Start each session
-  by re-testing that log's "Re-tested: Not yet" entries.
+  by reading the log's **"▶ Resume here"** note (the exact section/question to continue from) and
+  re-testing its "Re-tested: Not yet" entries. When pausing a session, update that note.
 - Use `coding-interviews/` and `interview-questions/` actively, not just `notes/` — the user's
   goal is interview *performance*, and drilling/output-prediction/traps are as important as
   the explanatory notes.
