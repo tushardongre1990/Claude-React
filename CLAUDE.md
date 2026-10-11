@@ -420,6 +420,15 @@ with anything a fresh session needs to know (e.g. "exercise 3 left unfinished").
   and explicitly rejected as overkill.
 - Don't write ahead of the current chapter (see working rule above) — this has been asked for
   explicitly and repetition of this instruction is unnecessary once followed correctly.
+- **Standing instruction (2026-10-11): "quiz me" sessions.** When the user asks to be quizzed on a
+  chapter/notes/topic, follow the rules at the top of
+  [`improvement-tracker/quiz-log.md`](improvement-tracker/quiz-log.md) every time, without being
+  reminded. In short: one section at a time in order, mixed question types, and for each question
+  the loop is question → evaluate (hint + one retry) → verdict/opinion → **re-teach the concept**
+  → next question. Move to the next section only once everything in the current one is
+  interview-ready. Log every wrong or shaky
+  answer there, and add repeated or real conceptual gaps to `weak-areas.md` too. Start each session
+  by re-testing that log's "Re-tested: Not yet" entries.
 - Use `coding-interviews/` and `interview-questions/` actively, not just `notes/` — the user's
   goal is interview *performance*, and drilling/output-prediction/traps are as important as
   the explanatory notes.

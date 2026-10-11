@@ -20,4 +20,18 @@ it correctly without hesitation — the history is useful evidence of progress.
 
 ---
 
-*No entries yet — this fills in as chapters and exercises are completed.*
+## Explains Effects by *timing* instead of *cause*; thinks Effects re-run when external systems change
+- **Chapter:** [ch.03 §0](../notes/03-side-effects-and-lifecycle/README.md#sec-0)
+- **Noticed:** 2026-10-11 (quiz; came up in 2 consecutive questions, see [quiz-log.md](quiz-log.md))
+- **What happened:** When asked *why* code belongs in an Effect, answered with *when* it runs
+  ("on mount and when dependencies change", "because unreadCount changes"). Also stated the
+  decision rule as "did the user do something, or did the external system change?"
+- **Correct understanding:**
+  1. Why it's an Effect: the component is on screen and must keep an **external system** (something
+     outside React's tree: network, browser APIs, `document.title`, imperative DOM calls) in sync
+     with its props/state. A change in a React value also re-runs render, so it can't be the reason.
+  2. React can't observe external systems. An Effect re-runs only when React values in its
+     dependency array change. External changes reach React through a *subscription callback* that
+     the Effect set up (e.g. a `resize` listener calling `setWidth`).
+- **Status:** Open. Both parts were answered correctly in later questions the same day (see
+  quiz-log). Keep re-testing in later sections before marking Resolved.
