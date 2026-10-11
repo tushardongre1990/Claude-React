@@ -36,7 +36,138 @@ Newest sessions at the top.
 
 ## 2026-10-11: ch.03 Side Effects & Lifecycle
 
-*Started at [§0](../notes/03-side-effects-and-lifecycle/README.md#sec-0).*
+*Started at [§0](../notes/03-side-effects-and-lifecycle/README.md#sec-0). §0 interview-ready on
+2026-10-11. [§1](../notes/03-side-effects-and-lifecycle/README.md#sec-1) interview-ready on
+2026-10-12. Moved to [§2](../notes/03-side-effects-and-lifecycle/README.md#sec-2).*
+
+### `n` capped at 2: trace dependency check + bail-out per render
+- **Section:** [§1](../notes/03-side-effects-and-lifecycle/README.md#sec-1)
+- **Date:** 2026-10-12
+- **My answer:** Dependency checks correct on every row (`Object.is(0,1)`, `Object.is(1,2)`).
+  Row 3: said `setN(2)` causes a re-render, giving 4 renders and 3 Effect runs. After a hint:
+  "only 3 renders because of bail-out" ✅.
+- **Problem:** Partial. The dependency check is now correct, but the bail-out check was forgotten
+  on the first try (the other half of the same weak area).
+- **Correct answer:** 3 renders, 3 Effect runs. Render 3's Effect calls `setN(2)` while n is
+  already 2, so it bails out and there's no render 4.
+- **Re-tested:** Correct after one hint on 2026-10-12.
+
+### Final §1 check: `Stepper` / `mode` loop / SSR `document.title`
+- **Section:** [§1](../notes/03-side-effects-and-lifecycle/README.md#sec-1)
+- **Date:** 2026-10-12
+- **My answer:**
+  1. Answered for 1 click instead of 3 (misread). Retry: `step 8, clicks 0` ✅.
+  2. "Effect runs twice, 3 renders." Retry: "2 Effects, 2 renders", but the trace said the Effect
+     doesn't run on render 2 "as same mode value" and called render 2 a "mount."
+  3. False ✅. The reason was only implied ("server HTML is hydrated").
+- **Problem:** Partial.
+  1. Second misread of an output question (after `'offline!'`/`'online!'`).
+  2. Same error as loop-or-settle Version B: blends the dependency check (previous commit vs this
+     commit) with the setState bail-out (new value vs stored). Added to weak-areas.md.
+  3. Should state the key fact: "Effects don't run during server rendering."
+- **Correct answer:** Part 2: Effect #1 on mount sets 'ready'. Commit 2's dep check finds
+  'idle'→'ready', so Effect #2 runs. `setMode('ready')` bails out, so there's no render 3.
+- **Re-tested:** Dependency-check half correct on 2026-10-12 (`n` capped at 2). Bail-out half
+  correct after a hint.
+
+### Effect timing: render/commit/paint order, "always after paint?", SSR
+- **Section:** [§1](../notes/03-side-effects-and-lifecycle/README.md#sec-1)
+- **Date:** 2026-10-12
+- **My answer:** (1) render → commit → paint → usually useEffect ✅. (2) "No, it can run before
+  paint when triggered by interactions" ✅. (3) "I don't think server-side components have
+  useEffects."
+- **Problem:** Partial on (3). Confused **SSR** (normal components rendered to HTML on the server,
+  which can contain `useEffect`) with **Server Components** (server-only, no Hooks at all).
+- **Correct answer:** With SSR, Effects don't run during server rendering (there's no
+  commit/paint), so the server HTML never includes an Effect's result. Effects run in the browser
+  after hydration.
+- **Re-tested:** Not yet
+
+### Loop or settle? Object dep (A), primitive dep (B), `[]` (C)
+- **Section:** [§1](../notes/03-side-effects-and-lifecycle/README.md#sec-1)
+- **Date:** 2026-10-12
+- **My answer:** A loops ✅. C settles ✅ (said "1 render", but it's 1 Effect run and 2 renders).
+  B: said it settles, but traced "re-render → Effect doesn't run because loaded didn't change."
+  After a hint: "Effect runs twice" ✅.
+- **Problem:** Partial. In B, compared `loaded` within one render instead of between commits
+  (false → true *is* a change). Loose wording on render vs Effect-run counts.
+- **Correct answer:** B: Effect run #1 on mount sets true. Commit 2 compares false→true (changed),
+  so Effect run #2 sets true again. That's the same primitive, so it bails out and settles.
+- **Re-tested:** Not yet
+
+### `Box`: state vs plain local variable across renders and remount
+- **Section:** ch.02 [§1](../notes/02-state-and-events/README.md#sec-1) (re-test of the
+  "useState resets" weak area)
+- **Date:** 2026-10-12
+- **My answer:** After 2 clicks: `20 / 15`. After hide + show: `10 / 10`, with correct reasoning.
+- **Problem:** Partial. Thought the handler's `m = m + 5` shows up on screen. It changes only that
+  render's `m`. The re-render (caused by `setN`) runs `let m = 10` again.
+- **Correct answer:** `20 / 10`, then `10 / 10`. Plain variables reset every render, and their
+  changes are never displayed. State persists across renders and resets only on remount.
+- **Re-tested:** Correct on 2026-10-12 (`Stepper`: `step 8, clicks 0`).
+
+### `Notifications`: three bugs (conditional Hook / setState loop / async setup)
+- **Section:** [§1](../notes/03-side-effects-and-lifecycle/README.md#sec-1)
+- **Date:** 2026-10-12
+- **My answer:** Effect 1 and Effect 3 correct after one hint. Effect 2 (no-array Effect calling
+  `setCount(count + 1)`), both tries: "UI shows 0, then 1, and stays at 1 because it always starts
+  from 0." Proposed fix: updater function + `[count]`.
+- **Problem:** Wrong on Effect 2.
+  1. Didn't recognize the infinite loop ("Maximum update depth exceeded").
+  2. **Closure misconception:** assumed one Effect function keeps seeing `count = 0` forever. In
+     fact each render creates a new Effect that sees that render's `count`. Values only get stuck
+     when a dependency is *missing* (stale closure, §4).
+  3. Wrong fix: an updater or `[count]` still loops, because the Effect changes its own dependency.
+  4. **Root cause (found on follow-up):** believed each render starts again from `useState(0)`'s
+     initial value. Added to weak-areas.md.
+- **Correct answer:** It's an infinite render loop. Fix: don't set state in an Effect without an
+  external reason. Increment in the handler/callback that receives the event, use a ref for
+  render-counting, or derive the value during render.
+- **Re-tested:** Loop recognition correct on 2026-10-12 (Version A of the loop-or-settle question).
+
+### `Dashboard`: state object vs body object as dependencies
+- **Section:** [§1](../notes/03-side-effects-and-lifecycle/README.md#sec-1)
+- **Date:** 2026-10-12
+- **My answer:** Moment 1 (Count click): `F`, correct, including that the state object `filters`
+  keeps its identity. Moment 2 (`setFilters({ status: 'open' })`): first said `F`; after a hint
+  said "nothing is logged, React checks its value and ignores it if it's the same."
+- **Problem:** Wrong. **Misconception:** believes React's `useState` bail-out compares object
+  *contents*. It uses `Object.is` (identity), the same as dependencies. Also dropped `F`, which
+  always runs once a re-render happens.
+- **Correct answer:** `E F`. The new object is a new identity, so the state changes, React
+  re-renders, E's dependency changed, and `styles` is new so F runs. G skips. A bail-out only
+  happens for the same primitive or the same object reference (`setFilters(filters)`).
+- **Re-tested:** Correct on 2026-10-12 (5/5 quick-fire: `setPage(1)`, `setTags(tags)`,
+  `setTags(['react'])`, `setTags([...tags])`, all with correct reasons).
+
+### `Profile`: which of Effects A/B/C/D run (no array, `[]`, `[userId]`, `[user]` object)
+- **Section:** [§1](../notes/03-side-effects-and-lifecycle/README.md#sec-1)
+- **Date:** 2026-10-12
+- **My answer:** Unsure. Thought batching might be involved. After being taught the method, asked
+  for the answer instead of attempting it.
+- **Problem:** Hesitant / not attempted.
+  1. Misapplied batching: batching groups *multiple* updates in one event into one render. Here
+     each moment had a single update, so it was irrelevant.
+  2. Couldn't yet apply "after each commit, check each Effect's deps with `Object.is`" on its own.
+- **Correct answer:** Mount: A B C D. Click: A D (C skips because 7 === 7; D runs because `user`
+  is a new object each render). `userId` 7→8: A C D.
+- **Re-tested:** Correct on 2026-10-12 (applied the per-commit dependency check unaided in the
+  `Dashboard` moment 1 and the `tags`/`page` quick-fire).
+
+### Three dependency-array forms + how "changed" is decided
+- **Section:** [§1](../notes/03-side-effects-and-lifecycle/README.md#sec-1)
+- **My answer:** First try: forms 1 and 2 correct, but `[a, b]` was missing "also runs on mount";
+  named `Object.is` without explaining it. Retry: fixed the mount case and stated cleanup → setup
+  correctly, but described `Object.is` as "like `==`" for primitives, and didn't say why identity
+  comparison matters for Effects.
+- **Problem:** Partial.
+  1. `Object.is` is like `===` (no type conversion), not `==` (`5 == '5'` is true;
+     `Object.is(5, '5')` is false). A JS equality slip (ch.00 territory).
+  2. Didn't connect identity comparison to its consequence.
+- **Correct answer:** `Object.is` ≈ `===`: primitives compare by value; objects/arrays/functions
+  compare by identity. An object created during render is new on every render, so as a dependency
+  it makes the Effect re-run after every render.
+- **Re-tested:** Correct on 2026-10-12 (quick-fire 5/5 used identity vs value correctly).
 
 ### `Cart`: unnecessary Effect computing `total`
 - **Section:** [§0](../notes/03-side-effects-and-lifecycle/README.md#sec-0) /
